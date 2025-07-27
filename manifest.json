@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "LLM Broadcast",
+  "version": "1.0.0",
+  "description": "Efficiently manage and send messages to multiple AI services at once",
+  "permissions": ["tabs", "activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://grok.com/*"
+  ],
+  "action": {
+    "default_popup": "dist/popup/popup.html",
+    "default_title": "LLM Broadcast"
+  },
+  "background": {
+    "service_worker": "dist/background/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://grok.com/*"
+      ],
+      "js": ["dist/content/content.js"]
+    }
+  ]
+}
