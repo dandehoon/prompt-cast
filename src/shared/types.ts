@@ -1,10 +1,17 @@
+import { 
+  ExtensionMessageType, 
+  ContentMessageType, 
+  ToastType, 
+  ServiceStatusType,
+} from './constants';
+
 // Chrome Extension Message Types
 export interface ExtensionMessage {
-  type: string;
-  payload?: any;
+  type: ExtensionMessageType;
+  payload?: unknown;
 }
 
-export interface Response<T = any> {
+export interface Response<T = unknown> {
   success: boolean;
   error?: string;
   data?: T;
@@ -18,7 +25,7 @@ export interface AIService {
   name: string;
   url: string;
   enabled: boolean;
-  status: 'connected' | 'disconnected' | 'loading' | 'error';
+  status: ServiceStatusType;
   tabId?: number;
 }
 
@@ -26,7 +33,7 @@ export type ServiceConfig = Record<AIServiceId, AIService>;
 
 // Content Script Message Types
 export interface ContentMessage {
-  type: 'INJECT_MESSAGE' | 'STATUS_CHECK';
+  type: ContentMessageType;
   payload?: {
     message?: string;
   };
@@ -56,6 +63,6 @@ export interface UserPreferences {
 export interface ToastMessage {
   id: string;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: ToastType;
   duration?: number;
 }

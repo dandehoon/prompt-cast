@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "LLM Broadcast",
+  "name": "Prompt Cast",
   "version": "1.0.0",
   "description": "Efficiently manage and send messages to multiple AI services at once",
   "permissions": ["tabs", "activeTab", "scripting", "storage"],
@@ -12,7 +12,7 @@
   ],
   "action": {
     "default_popup": "dist/popup/popup.html",
-    "default_title": "LLM Broadcast"
+    "default_title": "Prompt Cast"
   },
   "background": {
     "service_worker": "dist/background/background.js"

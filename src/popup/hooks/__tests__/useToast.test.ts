@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useToast } from '../useToast';
+import { TOAST_TYPES } from '../../../shared/constants';
 
 describe('useToast', () => {
   beforeEach(() => {
@@ -14,13 +15,13 @@ describe('useToast', () => {
     const { result } = renderHook(() => useToast());
 
     act(() => {
-      result.current.showToast('Test message', 'success');
+      result.current.showToast('Test message', TOAST_TYPES.SUCCESS);
     });
 
     expect(result.current.toasts).toHaveLength(1);
     expect(result.current.toasts[0]).toMatchObject({
       message: 'Test message',
-      type: 'success',
+      type: TOAST_TYPES.SUCCESS,
       duration: 3000,
     });
     expect(result.current.toasts[0].id).toBeDefined();
@@ -30,7 +31,7 @@ describe('useToast', () => {
     const { result } = renderHook(() => useToast());
 
     act(() => {
-      result.current.showToast('Test message', 'info', 1000);
+      result.current.showToast('Test message', TOAST_TYPES.INFO, 1000);
     });
 
     expect(result.current.toasts).toHaveLength(1);

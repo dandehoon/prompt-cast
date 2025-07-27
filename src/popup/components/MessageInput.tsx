@@ -1,4 +1,4 @@
-import React, { KeyboardEvent, ChangeEvent } from 'react';
+import React, { KeyboardEvent, ChangeEvent, forwardRef } from 'react';
 
 interface MessageInputProps {
   value: string;
@@ -8,13 +8,13 @@ interface MessageInputProps {
   placeholder?: string;
 }
 
-export function MessageInput({
+export const MessageInput = forwardRef<HTMLTextAreaElement, MessageInputProps>(({
   value,
   onChange,
   onSend,
   disabled = false,
-  placeholder = 'Type message for all AI services...',
-}: MessageInputProps) {
+  placeholder = 'Enter your prompt...',
+}, ref) => {
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
   };
@@ -32,10 +32,11 @@ export function MessageInput({
   return (
     <div className="space-y-2">
       <label htmlFor="messageInput" className="block text-sm font-medium">
-        Message for AI Services
+        Prompt
       </label>
       <textarea
         id="messageInput"
+        ref={ref}
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
@@ -48,4 +49,6 @@ export function MessageInput({
       </div>
     </div>
   );
-}
+});
+
+MessageInput.displayName = 'MessageInput';

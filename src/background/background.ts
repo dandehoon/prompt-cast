@@ -6,6 +6,7 @@ import {
   ServiceTogglePayload,
   UserPreferences,
 } from '../shared/types';
+import { EXTENSION_MESSAGE_TYPES, CONTENT_MESSAGE_TYPES } from '../shared/constants';
 import { SERVICE_CONFIGS } from '../shared/serviceConfig';
 
 class BackgroundService {
@@ -82,39 +83,39 @@ class BackgroundService {
   ): Promise<void> {
     try {
       switch (message.type) {
-        case 'OPEN_TABS':
+        case EXTENSION_MESSAGE_TYPES.OPEN_TABS:
           await this.openAllTabs();
           sendResponse({ success: true });
           break;
 
-        case 'SEND_MESSAGE':
-          await this.sendMessageToServices(
+        case EXTENSION_MESSAGE_TYPES.SEND_MESSAGE:
+          await this.sendMessageToServicesRobust(
             message.payload as SendMessagePayload,
           );
           sendResponse({ success: true });
           break;
 
-        case 'SERVICE_TOGGLE':
+        case EXTENSION_MESSAGE_TYPES.SERVICE_TOGGLE:
           await this.toggleService(message.payload as ServiceTogglePayload);
           sendResponse({ success: true });
           break;
 
-        case 'CLOSE_TAB':
-          await this.closeTab(message.payload.serviceId);
+        case EXTENSION_MESSAGE_TYPES.CLOSE_TAB:
+          await this.closeTab((message.payload as { serviceId: string }).serviceId);
           sendResponse({ success: true });
           break;
 
-        case 'CLOSE_ALL_TABS':
+        case EXTENSION_MESSAGE_TYPES.CLOSE_ALL_TABS:
           await this.closeAllTabs();
           sendResponse({ success: true });
           break;
 
-        case 'FOCUS_TAB':
-          await this.focusTab(message.payload.serviceId);
+        case EXTENSION_MESSAGE_TYPES.FOCUS_TAB:
+          await this.focusTab((message.payload as { serviceId: string }).serviceId);
           sendResponse({ success: true });
           break;
 
-        case 'TAB_STATUS_UPDATE':
+        case EXTENSION_MESSAGE_TYPES.TAB_STATUS_UPDATE:
           // Handle status updates from content scripts
           break;
 
@@ -217,6 +218,22 @@ class BackgroundService {
     }
   }
 
+  private async sendMessageToServicesRobust(
+    payload: SendMessagePayload,
+  ): Promise<void> {
+    // First, ensure all tabs are open and ready
+    await this.openAllTabs();
+
+    // ChatGPT-specific delay for first-time initialization
+    const hasChatGPT = payload.services.includes('chatgpt');
+    const delay = hasChatGPT ? 5000 : 3000; // 5s for ChatGPT, 3s for others
+
+    await new Promise(resolve => setTimeout(resolve, delay));
+
+    // Now send messages to all services
+    await this.sendMessageToServices(payload);
+  }
+
   private async sendMessageToServices(
     payload: SendMessagePayload,
   ): Promise<void> {
@@ -253,14 +270,9 @@ class BackgroundService {
 
       // If no tabs exist, open one first
       if (tabs.length === 0) {
-        console.log(`No existing tab for ${service.name}, creating new one...`);
         await this.openOrFocusTab(service);
-
         // Query again after opening
         tabs = await chrome.tabs.query({ url: service.url + '*' });
-        console.log(
-          `After opening, found ${tabs.length} tabs for ${service.name}`,
-        );
       }
 
       if (tabs.length > 0) {
@@ -274,7 +286,7 @@ class BackgroundService {
         await this.sendMessageWithRetry(
           tab.id!,
           {
-            type: 'INJECT_MESSAGE',
+            type: CONTENT_MESSAGE_TYPES.INJECT_MESSAGE,
             payload: { message },
           },
           5, // Max retries
@@ -298,13 +310,14 @@ class BackgroundService {
     // First wait for tab to be ready
     await this.waitForTabReady(tabId);
 
-    // Then check if content script is responding
-    const maxAttempts = 20; // 20 attempts = 20 seconds max
+    // Then check if content script is responding with longer timeout
+    const maxAttempts = 30; // 30 attempts = 30 seconds max
+    const delayBetweenAttempts = 1000; // 1 second
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const response = await chrome.tabs.sendMessage(tabId, {
-          type: 'STATUS_CHECK',
+          type: CONTENT_MESSAGE_TYPES.STATUS_CHECK,
         });
 
         if (response && response.ready) {
@@ -313,11 +326,18 @@ class BackgroundService {
 
         // If not ready, wait before next attempt
         if (attempt < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve =>
+            setTimeout(resolve, delayBetweenAttempts),
+          );
         }
       } catch (_error) {
+        // Content script might not be loaded yet, wait and retry
         if (attempt < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve =>
+            setTimeout(resolve, delayBetweenAttempts),
+          );
+        } else {
+          // Proceed anyway after max attempts
         }
       }
     }
@@ -401,6 +421,7 @@ class BackgroundService {
   private async closeAllTabs(): Promise<void> {
     const tabIds: number[] = [];
 
+    // First collect tracked tab IDs
     Object.values(this.services).forEach(service => {
       if (service.tabId) {
         tabIds.push(service.tabId);
@@ -409,11 +430,31 @@ class BackgroundService {
       }
     });
 
+    // Also find any tabs by URL in case tracking is out of sync
+    const serviceUrls = Object.values(this.services).map(
+      service => service.url + '*',
+    );
+    const allTabs = await chrome.tabs.query({});
+
+    for (const tab of allTabs) {
+      if (
+        tab.url &&
+        serviceUrls.some(pattern =>
+          tab.url!.startsWith(pattern.replace('*', '')),
+        )
+      ) {
+        if (!tabIds.includes(tab.id!)) {
+          tabIds.push(tab.id!);
+        }
+      }
+    }
+
     if (tabIds.length > 0) {
       try {
         await chrome.tabs.remove(tabIds);
       } catch (error) {
         console.error('Failed to close all tabs:', error);
+        throw error;
       }
     }
   }

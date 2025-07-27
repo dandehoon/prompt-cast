@@ -1,4 +1,5 @@
 import { ContentMessage } from '../shared/types';
+import { CONTENT_MESSAGE_TYPES } from '../shared/constants';
 import { getServiceByHostname, ServiceConfig } from '../shared/serviceConfig';
 
 class ContentScript {
@@ -12,12 +13,6 @@ class ContentScript {
   private detectService(): void {
     const hostname = window.location.hostname;
     this.currentServiceConfig = getServiceByHostname(hostname);
-    
-    if (this.currentServiceConfig) {
-      console.log(`🔍 Detected service: ${this.currentServiceConfig.name} on ${hostname}`);
-    } else {
-      console.warn(`❓ Unknown AI service on ${hostname}`);
-    }
   }
 
   private initializeListeners(): void {
@@ -50,14 +45,14 @@ class ContentScript {
   ): Promise<void> {
     try {
       switch (message.type) {
-        case 'INJECT_MESSAGE':
+        case CONTENT_MESSAGE_TYPES.INJECT_MESSAGE:
           if (message.payload?.message) {
             const success = await this.injectMessage(message.payload.message);
             sendResponse({ success, service: this.currentServiceConfig?.id });
           }
           break;
 
-        case 'STATUS_CHECK':
+        case CONTENT_MESSAGE_TYPES.STATUS_CHECK:
           // Use enhanced input detection with retries
           const isInputReady = await this.checkInputWithRetries();
           sendResponse({
@@ -82,48 +77,32 @@ class ContentScript {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const inputElement = this.findInputElement();
       if (inputElement) {
-        console.log(`✅ Input element found for ${this.currentServiceConfig?.name} after ${attempt + 1} attempts`);
         return true;
       }
-      
+
       // Wait 1 second between attempts
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (attempt % 3 === 0 && attempt > 0) {
-        console.log(`⏳ Still waiting for input element for ${this.currentServiceConfig?.name}... (${attempt + 1}/${maxAttempts} attempts)`);
-      }
     }
-    
-    console.warn(`❌ Input element not found for ${this.currentServiceConfig?.name} after ${maxAttempts} attempts`);
+
     return false;
   }
 
   private async injectMessage(message: string): Promise<boolean> {
-    // Enhanced retry logic with up to 30 attempts and better logging
     const maxAttempts = 30;
     let inputElement = null;
-
-    console.log(`🚀 Starting message injection for ${this.currentServiceConfig?.name}`);
 
     // Persistent input element detection
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       inputElement = this.findInputElement();
       if (inputElement) {
-        console.log(`✅ Input element found for ${this.currentServiceConfig?.name} after ${attempt + 1} attempts`);
         break;
       }
 
       // Wait 500ms between attempts for faster response
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Progress logging every 5 attempts
-      if (attempt % 5 === 4) {
-        console.log(`⏳ Still searching for input element for ${this.currentServiceConfig?.name}... (${attempt + 1}/${maxAttempts})`);
-      }
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     if (!inputElement) {
-      console.error(`❌ Could not find input element for ${this.currentServiceConfig?.name} after ${maxAttempts} attempts`);
       return false;
     }
 
@@ -142,8 +121,7 @@ class ContentScript {
       } else {
         return false;
       }
-    } catch (error) {
-      console.error(`AI Hub: Failed to inject message:`, error);
+    } catch (_error) {
       return false;
     }
   }
@@ -155,7 +133,7 @@ class ContentScript {
     try {
       // Focus the element first
       element.focus();
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Set the value using multiple approaches
       const nativeValueSetter =
@@ -182,10 +160,10 @@ class ContentScript {
         new Event('focus', { bubbles: true }),
       ];
 
-      events.forEach((event) => element.dispatchEvent(event));
+      events.forEach(event => element.dispatchEvent(event));
 
       // Wait a bit and then try to find and click send button
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Try to find and click the send button
       const sendButtonClicked = await this.clickSendButton();
@@ -216,7 +194,7 @@ class ContentScript {
     try {
       // Focus the element first
       element.focus();
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Clear existing content and set new content
       element.innerHTML = '';
@@ -266,10 +244,10 @@ class ContentScript {
         );
       }
 
-      events.forEach((event) => element.dispatchEvent(event));
+      events.forEach(event => element.dispatchEvent(event));
 
       // Wait and try to send
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Try to find and click send button
       const sendButtonClicked = await this.clickSendButton();
@@ -389,7 +367,7 @@ class ContentScript {
       ariaLabel
     ).toLowerCase();
 
-    return inputKeywords.some((keyword) => combinedText.includes(keyword));
+    return inputKeywords.some(keyword => combinedText.includes(keyword));
   }
 
   private checkInputReady(): void {
@@ -407,7 +385,7 @@ class ContentScript {
         try {
           chrome.runtime
             .sendMessage({
-              type: 'INPUT_READY',
+              type: CONTENT_MESSAGE_TYPES.INPUT_READY,
               payload: {
                 ready: !!inputElement,
                 service: this.currentServiceConfig?.id,

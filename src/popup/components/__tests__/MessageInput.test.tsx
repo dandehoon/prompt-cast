@@ -18,10 +18,10 @@ describe('MessageInput', () => {
         onChange={mockOnChange}
         onSend={mockOnSend}
         disabled={false}
-      />
+      />,
     );
 
-    expect(screen.getByLabelText('Message for AI Services')).toBeInTheDocument();
+    expect(screen.getByLabelText('Prompt')).toBeInTheDocument();
     expect(screen.getByText('Press Enter to send, Shift+Enter for new line')).toBeInTheDocument();
   });
 
@@ -33,10 +33,10 @@ describe('MessageInput', () => {
         onChange={mockOnChange}
         onSend={mockOnSend}
         disabled={false}
-      />
+      />,
     );
 
-    const textarea = screen.getByLabelText('Message for AI Services');
+    const textarea = screen.getByLabelText('Prompt');
     await user.type(textarea, 'Hello');
 
     // userEvent.type triggers onChange for each character separately
@@ -57,10 +57,10 @@ describe('MessageInput', () => {
         onChange={mockOnChange}
         onSend={mockOnSend}
         disabled={false}
-      />
+      />,
     );
 
-    const textarea = screen.getByLabelText('Message for AI Services');
+    const textarea = screen.getByLabelText('Prompt');
     await user.type(textarea, '{Enter}');
 
     expect(mockOnSend).toHaveBeenCalled();
@@ -74,10 +74,10 @@ describe('MessageInput', () => {
         onChange={mockOnChange}
         onSend={mockOnSend}
         disabled={false}
-      />
+      />,
     );
 
-    const textarea = screen.getByLabelText('Message for AI Services');
+    const textarea = screen.getByLabelText('Prompt');
     await user.type(textarea, '{Shift>}{Enter}{/Shift}');
 
     expect(mockOnSend).not.toHaveBeenCalled();
@@ -91,10 +91,10 @@ describe('MessageInput', () => {
         onChange={mockOnChange}
         onSend={mockOnSend}
         disabled={true}
-      />
+      />,
     );
 
-    const textarea = screen.getByLabelText('Message for AI Services');
+    const textarea = screen.getByLabelText('Prompt');
     expect(textarea).toBeDisabled();
   });
 
@@ -106,10 +106,10 @@ describe('MessageInput', () => {
         onChange={mockOnChange}
         onSend={mockOnSend}
         disabled={false}
-      />
+      />,
     );
 
-    const textarea = screen.getByLabelText('Message for AI Services');
+    const textarea = screen.getByLabelText('Prompt');
     await user.type(textarea, '{Enter}');
 
     expect(mockOnSend).not.toHaveBeenCalled();
@@ -123,10 +123,10 @@ describe('MessageInput', () => {
         onChange={mockOnChange}
         onSend={mockOnSend}
         disabled={false}
-      />
+      />,
     );
 
-    const textarea = screen.getByLabelText('Message for AI Services');
+    const textarea = screen.getByLabelText('Prompt');
     await user.type(textarea, '{Enter}');
 
     expect(mockOnSend).not.toHaveBeenCalled();
@@ -140,7 +140,7 @@ describe('MessageInput', () => {
         onSend={mockOnSend}
         disabled={false}
         placeholder="Custom placeholder"
-      />
+      />,
     );
 
     expect(screen.getByPlaceholderText('Custom placeholder')).toBeInTheDocument();

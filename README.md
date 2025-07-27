@@ -1,4 +1,4 @@
-# LLM Broadcast
+# Prompt Cast
 
 Chrome extension for sending messages to multiple AI services simultaneously with React TSX interface.
 
@@ -15,7 +15,7 @@ Chrome extension for sending messages to multiple AI services simultaneously wit
 
 ```bash
 git clone <repo>
-cd chat-all
+cd prompt-cast
 pnpm install && pnpm run build
 ```
 

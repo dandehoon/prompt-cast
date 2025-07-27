@@ -1,4 +1,5 @@
 import React from 'react';
+import { SERVICE_STATUS } from '../../shared/constants';
 import { AIService, AIServiceId } from '../../shared/types';
 
 interface ServiceCardProps {
@@ -12,13 +13,13 @@ export function ServiceCard({ service, onToggle, onCloseTab, onFocusTab }: Servi
   const getStatusClasses = () => {
     const baseClasses = 'w-2 h-2 rounded-full';
     switch (service.status) {
-      case 'connected':
+      case SERVICE_STATUS.CONNECTED:
         return `${baseClasses} bg-green-500`;
-      case 'loading':
+      case SERVICE_STATUS.LOADING:
         return `${baseClasses} bg-yellow-500 animate-pulse`;
-      case 'error':
+      case SERVICE_STATUS.ERROR:
         return `${baseClasses} bg-red-500`;
-      case 'disconnected':
+      case SERVICE_STATUS.DISCONNECTED:
       default:
         return `${baseClasses} bg-gray-500`;
     }
