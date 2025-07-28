@@ -145,7 +145,7 @@ class BackgroundService {
       if (result.userPreferences) {
         const prefs: UserPreferences = result.userPreferences;
         // Update service enabled states from saved preferences
-        Object.keys(this.services).forEach(serviceId => {
+        Object.keys(this.services).forEach((serviceId) => {
           const typedServiceId = serviceId as keyof ServiceConfig;
           if (prefs.services && prefs.services[typedServiceId]) {
             this.services[typedServiceId].enabled =
@@ -164,7 +164,7 @@ class BackgroundService {
         services: {},
       };
 
-      Object.keys(this.services).forEach(serviceId => {
+      Object.keys(this.services).forEach((serviceId) => {
         const typedServiceId = serviceId as keyof ServiceConfig;
         preferences.services[typedServiceId] = {
           enabled: this.services[typedServiceId].enabled,
@@ -184,7 +184,7 @@ class BackgroundService {
 
     // Open all tabs concurrently
     const openPromises = enabledServices.map(([_serviceId, service]) =>
-      this.openOrFocusTab(service).catch(error => {
+      this.openOrFocusTab(service).catch((error) => {
         console.error(`Failed to open tab for ${service.name}:`, error);
         return null;
       }),
@@ -233,13 +233,8 @@ class BackgroundService {
     // First, ensure all tabs are open and ready
     await this.openAllTabs();
 
-    // ChatGPT-specific delay for first-time initialization
-    const hasChatGPT = payload.services.includes('chatgpt');
-    const delay = hasChatGPT ? 5000 : 3000; // 5s for ChatGPT, 3s for others
-
-    await new Promise(resolve => setTimeout(resolve, delay));
-
-    // Now send messages to all services
+    // Remove hardcoded delays - let content script readiness detection handle timing
+    // Now send messages to all services immediately
     await this.sendMessageToServices(payload);
   }
 
@@ -247,11 +242,11 @@ class BackgroundService {
     payload: SendMessagePayload,
   ): Promise<void> {
     const enabledServices = payload.services.filter(
-      serviceId => this.services[serviceId as keyof ServiceConfig]?.enabled,
+      (serviceId) => this.services[serviceId as keyof ServiceConfig]?.enabled,
     );
 
     // Process all services concurrently
-    const sendPromises = enabledServices.map(serviceId =>
+    const sendPromises = enabledServices.map((serviceId) =>
       this.sendToSingleService(serviceId, payload.message),
     );
 
@@ -319,9 +314,9 @@ class BackgroundService {
     // First wait for tab to be ready
     await this.waitForTabReady(tabId);
 
-    // Then check if content script is responding with longer timeout
-    const maxAttempts = 30; // 30 attempts = 30 seconds max
-    const delayBetweenAttempts = 1000; // 1 second
+    // Then check if content script is responding with optimized timing
+    const maxAttempts = 20; // 10 seconds max (reduced from 30)
+    const delayBetweenAttempts = 500; // 500ms (reduced from 1000ms)
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -335,25 +330,25 @@ class BackgroundService {
 
         // If not ready, wait before next attempt
         if (attempt < maxAttempts) {
-          await new Promise(resolve =>
+          await new Promise((resolve) =>
             setTimeout(resolve, delayBetweenAttempts),
           );
         }
       } catch (_error) {
         // Content script might not be loaded yet, wait and retry
         if (attempt < maxAttempts) {
-          await new Promise(resolve =>
+          await new Promise((resolve) =>
             setTimeout(resolve, delayBetweenAttempts),
           );
         } else {
-          // Proceed anyway after max attempts
+          // Proceed anyway after max attempts - content script might still work
         }
       }
     }
   }
 
   private async waitForTabReady(tabId: number): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const checkReady = async (attempts = 0) => {
         try {
           const tab = await chrome.tabs.get(tabId);
@@ -365,9 +360,9 @@ class BackgroundService {
             !tab.url.startsWith('chrome://')
           ) {
             resolve();
-          } else if (attempts < 20) {
-            // Max 10 seconds
-            setTimeout(() => checkReady(attempts + 1), 500);
+          } else if (attempts < 40) {
+            // Max 10 seconds, but with faster polling
+            setTimeout(() => checkReady(attempts + 1), 250); // 250ms intervals
           } else {
             resolve(); // Give up after max attempts
           }
@@ -383,7 +378,7 @@ class BackgroundService {
   private async sendMessageWithRetry(
     tabId: number,
     message: ContentMessage,
-    maxRetries: number = 5,
+    maxRetries: number = 3, // Reduced from 5
   ): Promise<void> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -391,9 +386,9 @@ class BackgroundService {
         return; // Success
       } catch (error) {
         if (attempt < maxRetries) {
-          // Wait before retry, with exponential backoff
-          const delay = Math.min(attempt * 1500, 5000); // Max 5 second delay
-          await new Promise(resolve => setTimeout(resolve, delay));
+          // Wait before retry, with faster backoff
+          const delay = Math.min(attempt * 500, 1500); // Max 1.5 second delay
+          await new Promise((resolve) => setTimeout(resolve, delay));
         } else {
           throw error; // Final attempt failed
         }
@@ -431,7 +426,7 @@ class BackgroundService {
     const tabIds: number[] = [];
 
     // First collect tracked tab IDs
-    Object.values(this.services).forEach(service => {
+    Object.values(this.services).forEach((service) => {
       if (service.tabId) {
         tabIds.push(service.tabId);
         service.tabId = undefined;
@@ -441,14 +436,14 @@ class BackgroundService {
 
     // Also find any tabs by URL in case tracking is out of sync
     const serviceUrls = Object.values(this.services).map(
-      service => service.url + '*',
+      (service) => service.url + '*',
     );
     const allTabs = await chrome.tabs.query({});
 
     for (const tab of allTabs) {
       if (
         tab.url &&
-        serviceUrls.some(pattern =>
+        serviceUrls.some((pattern) =>
           tab.url!.startsWith(pattern.replace('*', '')),
         )
       ) {
@@ -492,7 +487,7 @@ class BackgroundService {
 
   private handleTabClosed(tabId: number): void {
     // Update service status when tab is manually closed
-    Object.values(this.services).forEach(service => {
+    Object.values(this.services).forEach((service) => {
       if (service.tabId === tabId) {
         service.tabId = undefined;
         service.status = 'disconnected';
@@ -502,7 +497,7 @@ class BackgroundService {
 
   private handleTabUpdated(tabId: number, url: string): void {
     // Update service status when tab is loaded
-    Object.values(this.services).forEach(service => {
+    Object.values(this.services).forEach((service) => {
       if (service.tabId === tabId && url.startsWith(service.url)) {
         service.status = 'connected';
       }

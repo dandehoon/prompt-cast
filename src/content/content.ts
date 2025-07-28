@@ -33,9 +33,11 @@ class ContentScript {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         this.checkInputReady();
+        this.setupDOMObserver(); // Add DOM observer for dynamic content
       });
     } else {
       this.checkInputReady();
+      this.setupDOMObserver(); // Add DOM observer for dynamic content
     }
   }
 
@@ -80,26 +82,26 @@ class ContentScript {
         return true;
       }
 
-      // Wait 1 second between attempts
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait 100ms between attempts for faster response
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     return false;
   }
 
   private async injectMessage(message: string): Promise<boolean> {
-    const maxAttempts = 30;
+    const maxAttempts = 15; // Increased attempts but faster intervals
     let inputElement = null;
 
-    // Persistent input element detection
+    // Persistent input element detection with faster intervals
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       inputElement = this.findInputElement();
       if (inputElement) {
         break;
       }
 
-      // Wait 500ms between attempts for faster response
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait 100ms between attempts for faster response
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     if (!inputElement) {
@@ -133,7 +135,7 @@ class ContentScript {
     try {
       // Focus the element first
       element.focus();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 50)); // Reduced from 100ms
 
       // Set the value using multiple approaches
       const nativeValueSetter =
@@ -160,10 +162,10 @@ class ContentScript {
         new Event('focus', { bubbles: true }),
       ];
 
-      events.forEach(event => element.dispatchEvent(event));
+      events.forEach((event) => element.dispatchEvent(event));
 
       // Wait a bit and then try to find and click send button
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 200)); // Reduced from 500ms
 
       // Try to find and click the send button
       const sendButtonClicked = await this.clickSendButton();
@@ -194,7 +196,7 @@ class ContentScript {
     try {
       // Focus the element first
       element.focus();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 50)); // Reduced from 100ms
 
       // Clear existing content and set new content
       element.innerHTML = '';
@@ -244,10 +246,10 @@ class ContentScript {
         );
       }
 
-      events.forEach(event => element.dispatchEvent(event));
+      events.forEach((event) => element.dispatchEvent(event));
 
       // Wait and try to send
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 200)); // Reduced from 500ms
 
       // Try to find and click send button
       const sendButtonClicked = await this.clickSendButton();
@@ -367,19 +369,20 @@ class ContentScript {
       ariaLabel
     ).toLowerCase();
 
-    return inputKeywords.some(keyword => combinedText.includes(keyword));
+    return inputKeywords.some((keyword) => combinedText.includes(keyword));
   }
 
   private checkInputReady(): void {
-    const maxAttempts = 10;
+    const maxAttempts = 20; // Increased attempts
     let attempts = 0;
+    const checkInterval = 500; // Faster checking (500ms instead of 1s)
 
-    const checkInterval = setInterval(() => {
+    const check = setInterval(() => {
       attempts++;
       const inputElement = this.findInputElement();
 
       if (inputElement || attempts >= maxAttempts) {
-        clearInterval(checkInterval);
+        clearInterval(check);
 
         // Notify background script about input readiness (optional)
         try {
@@ -397,7 +400,70 @@ class ContentScript {
           // Ignore messaging errors
         }
       }
-    }, 1000);
+    }, checkInterval);
+  }
+
+  private setupDOMObserver(): void {
+    // Set up a MutationObserver to detect when input elements are added dynamically
+    // This is especially useful for ChatGPT which loads content dynamically
+    if (
+      !this.currentServiceConfig ||
+      typeof window.MutationObserver === 'undefined'
+    )
+      return;
+
+    const observer = new window.MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          // Check if any of the added nodes or their children contain input elements
+          for (const node of Array.from(mutation.addedNodes)) {
+            if (node.nodeType === window.Node.ELEMENT_NODE) {
+              const element = node as Element;
+              // Check if this element or its children match our input selectors
+              const hasInputElement =
+                this.currentServiceConfig!.inputSelectors.some((selector) => {
+                  return (
+                    element.matches &&
+                    (element.matches(selector) ||
+                      element.querySelector(selector))
+                  );
+                });
+
+              if (hasInputElement) {
+                // Found input element, stop observing and notify
+                observer.disconnect();
+                try {
+                  chrome.runtime
+                    .sendMessage({
+                      type: CONTENT_MESSAGE_TYPES.INPUT_READY,
+                      payload: {
+                        ready: true,
+                        service: this.currentServiceConfig?.id,
+                        dynamicallyDetected: true,
+                      },
+                    })
+                    .catch(() => {}); // Ignore errors
+                } catch (_error) {
+                  // Ignore messaging errors
+                }
+                return;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Start observing
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    // Stop observing after 15 seconds to prevent memory leaks
+    setTimeout(() => {
+      observer.disconnect();
+    }, 15000);
   }
 }
 

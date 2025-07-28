@@ -27,12 +27,21 @@ export const SERVICE_CONFIGS: Record<AIServiceId, ServiceConfig> = {
     name: 'ChatGPT',
     url: 'https://chatgpt.com/',
     hostPatterns: ['chatgpt.com'],
-    inputSelectors: ['div#prompt-textarea'],
-    submitSelectors: ['button#composer-submit-button'],
+    inputSelectors: [
+      'div#prompt-textarea',
+      '[data-testid="composer-input"]',
+      '[contenteditable="true"]',
+    ],
+    submitSelectors: [
+      'button#composer-submit-button',
+      '[data-testid="send-button"]',
+      'button[aria-label="Send message"]',
+    ],
     keyboardShortcut: { key: 'Enter' },
     specialHandling: {
       usesContentEditable: true,
       requiresFocus: true,
+      extraEvents: ['input', 'compositionend'],
     },
   },
 
@@ -83,7 +92,7 @@ export const SERVICE_CONFIGS: Record<AIServiceId, ServiceConfig> = {
 
 export function getServiceByHostname(hostname: string): ServiceConfig | null {
   for (const config of Object.values(SERVICE_CONFIGS)) {
-    if (config.hostPatterns.some(pattern => hostname.includes(pattern))) {
+    if (config.hostPatterns.some((pattern) => hostname.includes(pattern))) {
       return config;
     }
   }
