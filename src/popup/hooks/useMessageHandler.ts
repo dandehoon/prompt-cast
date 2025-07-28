@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { ChromeMessaging } from '../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../shared/constants';
 import { ExtensionMessage, SendMessagePayload } from '../../shared/types';
+import { CONFIG } from '../../shared/config';
 
 interface UseMessageHandlerProps {
   getEnabledServices: () => string[];
@@ -53,7 +54,10 @@ export function useMessageHandler({
             'success',
           );
           // Update service states after sending
-          setTimeout(() => refreshServiceStates(), 1000);
+          setTimeout(
+            () => refreshServiceStates(),
+            CONFIG.popup.services.refreshDelay,
+          );
           return true;
         } else {
           throw new Error(response.error || 'Failed to send message');

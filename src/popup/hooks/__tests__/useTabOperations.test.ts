@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useTabOperations } from '../useTabOperations';
 import { ChromeMessaging } from '../../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../../shared/constants';
+import { CONFIG } from '../../../shared/config';
 import { AIServiceId } from '../../../shared/types';
 
 // Mock Chrome messaging
@@ -187,8 +188,8 @@ describe('useTabOperations', () => {
   it('should manage loading state for close all tabs', async () => {
     mockChromeMessaging.sendMessage.mockImplementation(
       () =>
-        new Promise(resolve =>
-          setTimeout(() => resolve({ success: true }), 100),
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ success: true }), CONFIG.test.asyncDelay),
         ),
     );
 
@@ -205,7 +206,9 @@ describe('useTabOperations', () => {
 
     // Wait for promise to resolve
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) =>
+        setTimeout(resolve, CONFIG.test.integrationDelay),
+      );
     });
 
     // Loading should be false after completion

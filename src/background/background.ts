@@ -13,6 +13,7 @@ import {
   CONTENT_MESSAGE_TYPES,
 } from '../shared/constants';
 import { SERVICE_CONFIGS } from '../shared/serviceConfig';
+import { CONFIG } from '../shared/config';
 
 class BackgroundService {
   private services: ServiceConfig = {
@@ -287,14 +288,10 @@ class BackgroundService {
         await this.waitForContentScriptReady(tab.id!);
 
         // Try to send message with retry logic
-        await this.sendMessageWithRetry(
-          tab.id!,
-          {
-            type: CONTENT_MESSAGE_TYPES.INJECT_MESSAGE,
-            payload: { message },
-          },
-          5, // Max retries
-        );
+        await this.sendMessageWithRetry(tab.id!, {
+          type: CONTENT_MESSAGE_TYPES.INJECT_MESSAGE,
+          payload: { message },
+        });
 
         service.status = 'connected';
       } else {
@@ -315,10 +312,10 @@ class BackgroundService {
     await this.waitForTabReady(tabId);
 
     // Then check if content script is responding with optimized timing
-    const maxAttempts = 20; // 10 seconds max (reduced from 30)
-    const delayBetweenAttempts = 500; // 500ms (reduced from 1000ms)
+    const { maxReadinessAttempts, readinessCheckDelay } =
+      CONFIG.background.contentScript;
 
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    for (let attempt = 1; attempt <= maxReadinessAttempts; attempt++) {
       try {
         const response = await chrome.tabs.sendMessage(tabId, {
           type: CONTENT_MESSAGE_TYPES.STATUS_CHECK,
@@ -329,16 +326,16 @@ class BackgroundService {
         }
 
         // If not ready, wait before next attempt
-        if (attempt < maxAttempts) {
+        if (attempt < maxReadinessAttempts) {
           await new Promise((resolve) =>
-            setTimeout(resolve, delayBetweenAttempts),
+            setTimeout(resolve, readinessCheckDelay),
           );
         }
       } catch (_error) {
         // Content script might not be loaded yet, wait and retry
-        if (attempt < maxAttempts) {
+        if (attempt < maxReadinessAttempts) {
           await new Promise((resolve) =>
-            setTimeout(resolve, delayBetweenAttempts),
+            setTimeout(resolve, readinessCheckDelay),
           );
         } else {
           // Proceed anyway after max attempts - content script might still work
@@ -349,6 +346,8 @@ class BackgroundService {
 
   private async waitForTabReady(tabId: number): Promise<void> {
     return new Promise((resolve) => {
+      const { maxReadyAttempts, readyCheckInterval } = CONFIG.background.tab;
+
       const checkReady = async (attempts = 0) => {
         try {
           const tab = await chrome.tabs.get(tabId);
@@ -360,9 +359,9 @@ class BackgroundService {
             !tab.url.startsWith('chrome://')
           ) {
             resolve();
-          } else if (attempts < 40) {
+          } else if (attempts < maxReadyAttempts) {
             // Max 10 seconds, but with faster polling
-            setTimeout(() => checkReady(attempts + 1), 250); // 250ms intervals
+            setTimeout(() => checkReady(attempts + 1), readyCheckInterval);
           } else {
             resolve(); // Give up after max attempts
           }
@@ -378,16 +377,23 @@ class BackgroundService {
   private async sendMessageWithRetry(
     tabId: number,
     message: ContentMessage,
-    maxRetries: number = 3, // Reduced from 5
+    maxRetries?: number,
   ): Promise<void> {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const {
+      maxRetries: defaultMaxRetries,
+      baseDelay,
+      maxDelay,
+    } = CONFIG.background.messageRetry;
+    const retryCount = maxRetries ?? defaultMaxRetries;
+
+    for (let attempt = 1; attempt <= retryCount; attempt++) {
       try {
         await chrome.tabs.sendMessage(tabId, message);
         return; // Success
       } catch (error) {
-        if (attempt < maxRetries) {
-          // Wait before retry, with faster backoff
-          const delay = Math.min(attempt * 500, 1500); // Max 1.5 second delay
+        if (attempt < retryCount) {
+          // Wait before retry, with exponential backoff
+          const delay = Math.min(attempt * baseDelay, maxDelay);
           await new Promise((resolve) => setTimeout(resolve, delay));
         } else {
           throw error; // Final attempt failed

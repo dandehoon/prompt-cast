@@ -1,6 +1,7 @@
 import { ContentMessage } from '../shared/types';
 import { CONTENT_MESSAGE_TYPES } from '../shared/constants';
 import { getServiceByHostname, ServiceConfig } from '../shared/serviceConfig';
+import { CONFIG } from '../shared/config';
 
 class ContentScript {
   private currentServiceConfig: ServiceConfig | null = null;
@@ -75,33 +76,36 @@ class ContentScript {
     }
   }
 
-  private async checkInputWithRetries(maxAttempts = 10): Promise<boolean> {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+  private async checkInputWithRetries(maxAttempts?: number): Promise<boolean> {
+    const attempts = maxAttempts ?? CONFIG.content.input.maxReadinessAttempts;
+    const { detectionDelay } = CONFIG.content.input;
+
+    for (let attempt = 0; attempt < attempts; attempt++) {
       const inputElement = this.findInputElement();
       if (inputElement) {
         return true;
       }
 
-      // Wait 100ms between attempts for faster response
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait between attempts for faster response
+      await new Promise((resolve) => setTimeout(resolve, detectionDelay));
     }
 
     return false;
   }
 
   private async injectMessage(message: string): Promise<boolean> {
-    const maxAttempts = 15; // Increased attempts but faster intervals
+    const { maxInjectionAttempts, detectionDelay } = CONFIG.content.input;
     let inputElement = null;
 
     // Persistent input element detection with faster intervals
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    for (let attempt = 0; attempt < maxInjectionAttempts; attempt++) {
       inputElement = this.findInputElement();
       if (inputElement) {
         break;
       }
 
-      // Wait 100ms between attempts for faster response
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait between attempts for faster response
+      await new Promise((resolve) => setTimeout(resolve, detectionDelay));
     }
 
     if (!inputElement) {
@@ -133,9 +137,11 @@ class ContentScript {
     message: string,
   ): Promise<boolean> {
     try {
+      const { focusDelay, injectionDelay } = CONFIG.content.dom;
+
       // Focus the element first
       element.focus();
-      await new Promise((resolve) => setTimeout(resolve, 50)); // Reduced from 100ms
+      await new Promise((resolve) => setTimeout(resolve, focusDelay));
 
       // Set the value using multiple approaches
       const nativeValueSetter =
@@ -165,7 +171,7 @@ class ContentScript {
       events.forEach((event) => element.dispatchEvent(event));
 
       // Wait a bit and then try to find and click send button
-      await new Promise((resolve) => setTimeout(resolve, 200)); // Reduced from 500ms
+      await new Promise((resolve) => setTimeout(resolve, injectionDelay));
 
       // Try to find and click the send button
       const sendButtonClicked = await this.clickSendButton();
@@ -194,9 +200,11 @@ class ContentScript {
     message: string,
   ): Promise<boolean> {
     try {
+      const { focusDelay, injectionDelay } = CONFIG.content.dom;
+
       // Focus the element first
       element.focus();
-      await new Promise((resolve) => setTimeout(resolve, 50)); // Reduced from 100ms
+      await new Promise((resolve) => setTimeout(resolve, focusDelay));
 
       // Clear existing content and set new content
       element.innerHTML = '';
@@ -249,7 +257,7 @@ class ContentScript {
       events.forEach((event) => element.dispatchEvent(event));
 
       // Wait and try to send
-      await new Promise((resolve) => setTimeout(resolve, 200)); // Reduced from 500ms
+      await new Promise((resolve) => setTimeout(resolve, injectionDelay));
 
       // Try to find and click send button
       const sendButtonClicked = await this.clickSendButton();
@@ -373,15 +381,14 @@ class ContentScript {
   }
 
   private checkInputReady(): void {
-    const maxAttempts = 20; // Increased attempts
+    const { maxPollingAttempts, pollingInterval } = CONFIG.content.polling;
     let attempts = 0;
-    const checkInterval = 500; // Faster checking (500ms instead of 1s)
 
     const check = setInterval(() => {
       attempts++;
       const inputElement = this.findInputElement();
 
-      if (inputElement || attempts >= maxAttempts) {
+      if (inputElement || attempts >= maxPollingAttempts) {
         clearInterval(check);
 
         // Notify background script about input readiness (optional)
@@ -400,7 +407,7 @@ class ContentScript {
           // Ignore messaging errors
         }
       }
-    }, checkInterval);
+    }, pollingInterval);
   }
 
   private setupDOMObserver(): void {
@@ -460,10 +467,10 @@ class ContentScript {
       subtree: true,
     });
 
-    // Stop observing after 15 seconds to prevent memory leaks
+    // Stop observing after timeout to prevent memory leaks
     setTimeout(() => {
       observer.disconnect();
-    }, 15000);
+    }, CONFIG.content.observer.timeout);
   }
 }
 

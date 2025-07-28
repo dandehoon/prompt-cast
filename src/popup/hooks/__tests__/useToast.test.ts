@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useToast } from '../useToast';
 import { TOAST_TYPES } from '../../../shared/constants';
+import { CONFIG } from '../../../shared/config';
 
 describe('useToast', () => {
   beforeEach(() => {
@@ -22,7 +23,7 @@ describe('useToast', () => {
     expect(result.current.toasts[0]).toMatchObject({
       message: 'Test message',
       type: TOAST_TYPES.SUCCESS,
-      duration: 3000,
+      duration: CONFIG.popup.toast.defaultDuration,
     });
     expect(result.current.toasts[0].id).toBeDefined();
   });
@@ -31,13 +32,17 @@ describe('useToast', () => {
     const { result } = renderHook(() => useToast());
 
     act(() => {
-      result.current.showToast('Test message', TOAST_TYPES.INFO, 1000);
+      result.current.showToast(
+        'Test message',
+        TOAST_TYPES.INFO,
+        CONFIG.test.toastDuration,
+      );
     });
 
     expect(result.current.toasts).toHaveLength(1);
 
     act(() => {
-      jest.advanceTimersByTime(1000);
+      jest.advanceTimersByTime(CONFIG.test.toastDuration);
     });
 
     expect(result.current.toasts).toHaveLength(0);
