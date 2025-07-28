@@ -34,7 +34,6 @@ export function PopupApp() {
   const {
     closeAllLoading,
     handleServiceToggle,
-    handleCloseTab,
     handleFocusTab,
     handleCloseAllTabs,
   } = useTabOperations({
@@ -83,7 +82,6 @@ export function PopupApp() {
           <AIServicesSection
             services={services}
             onServiceToggle={handleServiceToggle}
-            onCloseTab={handleCloseTab}
             onFocusTab={handleFocusTab}
             onCloseAllTabs={handleCloseAllTabs}
             closeAllLoading={closeAllLoading}

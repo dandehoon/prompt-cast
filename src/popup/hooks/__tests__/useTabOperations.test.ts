@@ -95,37 +95,6 @@ describe('useTabOperations', () => {
     );
   });
 
-  it('should handle close tab', async () => {
-    mockChromeMessaging.sendMessage.mockResolvedValue({ success: true });
-    const { result } = renderHook(() => useTabOperations(defaultProps));
-
-    await act(async () => {
-      result.current.handleCloseTab('chatgpt');
-    });
-
-    expect(mockChromeMessaging.sendMessage).toHaveBeenCalledWith({
-      type: EXTENSION_MESSAGE_TYPES.CLOSE_TAB,
-      payload: { serviceId: 'chatgpt' },
-    });
-    expect(mockShowToast).toHaveBeenCalledWith('ChatGPT tab closed', 'info');
-    expect(mockRefreshServiceStates).toHaveBeenCalled();
-  });
-
-  it('should handle close tab error', async () => {
-    mockChromeMessaging.sendMessage.mockResolvedValue({
-      success: false,
-      error: 'Tab not found',
-    });
-    const { result } = renderHook(() => useTabOperations(defaultProps));
-
-    await act(async () => {
-      result.current.handleCloseTab('claude');
-    });
-
-    expect(mockShowToast).toHaveBeenCalledWith('Failed to close tab', 'error');
-    expect(mockRefreshServiceStates).not.toHaveBeenCalled();
-  });
-
   it('should handle focus tab for connected service', async () => {
     mockChromeMessaging.sendMessage.mockResolvedValue({ success: true });
     const { result } = renderHook(() => useTabOperations(defaultProps));
@@ -151,7 +120,26 @@ describe('useTabOperations', () => {
     });
 
     expect(mockShowToast).toHaveBeenCalledWith('Opening Claude...', 'info');
+    expect(mockChromeMessaging.sendMessage).toHaveBeenCalledWith({
+      type: EXTENSION_MESSAGE_TYPES.FOCUS_TAB,
+      payload: { serviceId: 'claude' },
+    });
     expect(mockRefreshServiceStates).toHaveBeenCalled();
+  });
+
+  it('should handle focus tab error', async () => {
+    mockChromeMessaging.sendMessage.mockResolvedValue({
+      success: false,
+      error: 'Failed to focus tab',
+    });
+    const { result } = renderHook(() => useTabOperations(defaultProps));
+
+    await act(async () => {
+      result.current.handleFocusTab('chatgpt');
+    });
+
+    expect(mockShowToast).toHaveBeenCalledWith('Failed to focus tab', 'error');
+    expect(mockRefreshServiceStates).not.toHaveBeenCalled();
   });
 
   it('should close all tabs successfully', async () => {

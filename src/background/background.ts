@@ -89,6 +89,10 @@ class BackgroundService {
     sender: chrome.runtime.MessageSender,
     sendResponse: (response?: Response) => void,
   ): Promise<void> {
+    logger.info(
+      `Background received message: ${message.type}`,
+      message.payload,
+    );
     try {
       switch (message.type) {
         case EXTENSION_MESSAGE_TYPES.OPEN_TABS:
@@ -187,7 +191,7 @@ class BackgroundService {
 
     // Open all tabs concurrently
     const openPromises = enabledServices.map(([_serviceId, service]) =>
-      this.openOrFocusTab(service).catch((error) => {
+      this.openOrFocusTab(service, false).catch((error) => {
         logger.error(`Failed to open tab for ${service.name}:`, error);
         return null;
       }),
@@ -196,33 +200,56 @@ class BackgroundService {
     await Promise.all(openPromises);
   }
 
-  private async openOrFocusTab(service: AIService): Promise<void> {
+  private async openOrFocusTab(
+    service: AIService,
+    shouldFocus: boolean = false,
+  ): Promise<void> {
+    logger.info(
+      `openOrFocusTab called for ${service.name}, shouldFocus: ${shouldFocus}`,
+    );
     try {
       // Check if tab already exists
       const existingTabs = await chrome.tabs.query({ url: service.url + '*' });
+      logger.info(
+        `Found ${existingTabs.length} existing tabs for ${service.name}`,
+      );
 
       if (existingTabs.length > 0) {
         // Focus existing tab
         const tab = existingTabs[0];
+        logger.info(`Focusing existing tab ${tab.id} for ${service.name}`);
         await chrome.tabs.update(tab.id!, { active: true });
         await chrome.windows.update(tab.windowId, { focused: true });
 
         // Update service with existing tab ID
         service.tabId = tab.id;
         service.status = 'connected';
+        logger.info(`Successfully focused existing tab for ${service.name}`);
       } else {
-        // Create new tab
+        // Create new tab - set active based on shouldFocus directly
+        logger.info(
+          `Creating new tab for ${service.name}, active: ${shouldFocus}`,
+        );
         const tab = await chrome.tabs.create({
           url: service.url,
-          active: false,
+          active: shouldFocus,
         });
+        logger.info(`Created new tab ${tab.id} for ${service.name}`);
 
         service.tabId = tab.id;
         service.status = 'loading';
 
-        // Wait for the tab to fully load with extended timeout for new tabs
+        // If focusing, also ensure window is focused
+        if (shouldFocus) {
+          logger.info(`Bringing window to front for new tab ${tab.id}`);
+          await chrome.windows.update(tab.windowId, { focused: true });
+        }
+
+        // Wait for the tab to fully load
+        logger.info(`Waiting for tab ${tab.id} to be ready`);
         await this.waitForTabReady(tab.id!);
         service.status = 'connected';
+        logger.info(`Tab ${tab.id} is ready for ${service.name}`);
       }
     } catch (error) {
       logger.error(`Failed to open/focus tab for ${service.name}:`, error);
@@ -236,11 +263,54 @@ class BackgroundService {
     // First, ensure all tabs are open and ready
     await this.openAllTabs();
 
+    // Focus the first service that's available immediately after opening tabs
+    await this.focusFirstAvailableService(payload);
+
     // Remove hardcoded delays - let content script readiness detection handle timing
     // Now send messages to all services immediately
     await this.sendMessageToServices(payload);
   }
 
+  private async focusFirstAvailableService(payload: SendMessagePayload): Promise<void> {
+    // Check if any AI service tab is already active/focused
+    const currentTab = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    let currentlyFocusedService: string | null = null;
+
+    if (currentTab[0]) {
+      const currentUrl = currentTab[0].url || '';
+      // Check if current tab belongs to any AI service that's in the enabled list for this message
+      for (const serviceId of payload.services) {
+        const service = this.services[serviceId as keyof ServiceConfig];
+        if (service && service.enabled && currentUrl.includes(service.url.split('/')[2])) {
+          currentlyFocusedService = serviceId;
+          logger.info(`Current tab is ${serviceId} which is in the message target list`);
+          break;
+        }
+      }
+    }
+
+    // Only focus if no AI service is currently focused
+    if (!currentlyFocusedService) {
+      // Focus the first service that has an open tab (not waiting for connection status)
+      const enabledServices = payload.services.filter(
+        (serviceId) => this.services[serviceId as keyof ServiceConfig]?.enabled,
+      );
+      
+      for (const serviceId of enabledServices) {
+        const service = this.services[serviceId as keyof ServiceConfig];
+        if (service && service.tabId) {
+          logger.info(`Focusing first available service: ${serviceId}`);
+          await this.focusTab(serviceId);
+          break;
+        }
+      }
+    } else {
+      logger.info(`Not switching focus - ${currentlyFocusedService} is already active`);
+    }
+  }
   private async sendMessageToServices(
     payload: SendMessagePayload,
   ): Promise<void> {
@@ -277,7 +347,7 @@ class BackgroundService {
 
       // If no tabs exist, open one first
       if (tabs.length === 0) {
-        await this.openOrFocusTab(service);
+        await this.openOrFocusTab(service, false);
         // Query again after opening
         tabs = await chrome.tabs.query({ url: service.url + '*' });
       }
@@ -324,18 +394,49 @@ class BackgroundService {
         });
 
         if (response && response.ready) {
+          logger.info(
+            `Content script ready for tab ${tabId} after ${attempt} attempts`,
+          );
           return;
         }
+
+        logger.info(
+          `Content script not ready for tab ${tabId}, attempt ${attempt}/${maxReadinessAttempts}`,
+        );
 
         // If not ready, wait before next attempt
         if (attempt < maxReadinessAttempts) {
           await sleep(readinessCheckDelay);
         }
-      } catch {
+      } catch (error) {
+        logger.warn(
+          `Content script check failed for tab ${tabId}, attempt ${attempt}/${maxReadinessAttempts}:`,
+          error,
+        );
+
+        // For Gemini and other services that might take longer, try injecting content script manually
+        if (attempt === Math.floor(maxReadinessAttempts / 2)) {
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId },
+              files: ['dist/content/content.js'],
+            });
+            logger.info(`Manually injected content script for tab ${tabId}`);
+          } catch (injectError) {
+            logger.warn(
+              `Failed to manually inject content script for tab ${tabId}:`,
+              injectError,
+            );
+          }
+        }
+
         // Content script might not be loaded yet, wait and retry
         if (attempt < maxReadinessAttempts) {
           await sleep(readinessCheckDelay);
         } else {
+          logger.error(
+            `Content script failed to respond after ${maxReadinessAttempts} attempts for tab ${tabId}`,
+          );
           // Proceed anyway after max attempts - content script might still work
         }
       }
@@ -406,9 +507,31 @@ class BackgroundService {
       service.enabled = payload.enabled;
       await this.saveUserPreferences();
 
-      // If disabling service and tab is open, optionally close it
-      if (!payload.enabled && service.tabId) {
-        // Could implement auto-close here if desired
+      logger.info(
+        `Service ${payload.serviceId}: enabled=${payload.enabled}, tabId=${service.tabId}`,
+      );
+
+      if (payload.enabled) {
+        // If enabling service, launch and focus the tab
+        try {
+          logger.info(`Launching and focusing tab for enabled service ${service.name}`);
+          await this.focusTab(payload.serviceId);
+        } catch (error) {
+          logger.error(`Failed to launch and focus tab for ${service.name}:`, error);
+        }
+      } else if (service.tabId) {
+        // If disabling service and has an open tab, close it
+        try {
+          logger.info(
+            `Closing tab ${service.tabId} for disabled service ${service.name}`,
+          );
+          await chrome.tabs.remove(service.tabId);
+          service.tabId = undefined;
+          service.status = 'disconnected';
+          logger.info(`Successfully closed tab for ${service.name}`);
+        } catch (error) {
+          logger.error(`Failed to close tab for ${service.name}:`, error);
+        }
       }
     }
   }
@@ -468,24 +591,36 @@ class BackgroundService {
   }
 
   private async focusTab(serviceId: string): Promise<void> {
+    logger.info(`focusTab called for serviceId: ${serviceId}`);
     const service = this.services[serviceId as keyof ServiceConfig];
+
     if (service && service.tabId) {
+      logger.info(`Service has existing tabId: ${service.tabId}`);
       try {
         // Focus the tab and bring its window to front
         await chrome.tabs.update(service.tabId, { active: true });
         const tab = await chrome.tabs.get(service.tabId);
         await chrome.windows.update(tab.windowId, { focused: true });
+        logger.info(`Successfully focused existing tab for ${service.name}`);
       } catch (error) {
         logger.error(`Failed to focus tab for ${service.name}:`, error);
-        // If tab doesn't exist anymore, try to open it
+        // If tab doesn't exist anymore, try to open it with focus
         const errorMessage = error instanceof Error ? error.message : '';
         if (errorMessage.includes('No tab with id')) {
-          await this.openOrFocusTab(service);
+          logger.info(
+            `Tab no longer exists, opening new tab with focus for ${service.name}`,
+          );
+          await this.openOrFocusTab(service, true);
         }
       }
     } else if (service) {
-      // If tab doesn't exist, open it
-      await this.openOrFocusTab(service);
+      logger.info(
+        `Service has no tabId, opening new tab with focus for ${service.name}`,
+      );
+      // If tab doesn't exist, open it with focus
+      await this.openOrFocusTab(service, true);
+    } else {
+      logger.error(`Service not found for serviceId: ${serviceId}`);
     }
   }
 

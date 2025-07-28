@@ -5,7 +5,6 @@ import { AIService, AIServiceId } from '../../shared/types';
 interface AIServicesSectionProps {
   services: Record<AIServiceId, AIService>;
   onServiceToggle: (serviceId: AIServiceId, enabled: boolean) => void;
-  onCloseTab: (serviceId: AIServiceId) => void;
   onFocusTab: (serviceId: AIServiceId) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;
@@ -14,7 +13,6 @@ interface AIServicesSectionProps {
 export function AIServicesSection({
   services,
   onServiceToggle,
-  onCloseTab,
   onFocusTab,
   onCloseAllTabs,
   closeAllLoading,
@@ -44,7 +42,6 @@ export function AIServicesSection({
             key={service.id}
             service={service}
             onToggle={onServiceToggle}
-            onCloseTab={onCloseTab}
             onFocusTab={onFocusTab}
           />
         ))}

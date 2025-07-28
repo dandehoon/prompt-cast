@@ -10,6 +10,11 @@ interface StatusIndicatorProps {
 export function StatusIndicator({ toasts, isLoading }: StatusIndicatorProps) {
   const latestToast = toasts[toasts.length - 1];
 
+  // Hide indicator when inactive (no loading and no toasts)
+  if (!isLoading && !latestToast) {
+    return null;
+  }
+
   const getStatusIcon = () => {
     if (isLoading) {
       return (

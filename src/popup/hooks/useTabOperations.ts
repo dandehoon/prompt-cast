@@ -32,6 +32,8 @@ export function useTabOperations({
   const handleServiceToggle = useCallback(
     async (serviceId: AIServiceId, enabled: boolean) => {
       try {
+        const service = services[serviceId];
+
         // Update local state immediately
         toggleService(serviceId, enabled);
 
@@ -45,7 +47,6 @@ export function useTabOperations({
           payload,
         } as ExtensionMessage);
 
-        const service = services[serviceId];
         showToast(
           `${service.name} ${enabled ? 'enabled' : 'disabled'}`,
           'info',
@@ -58,29 +59,6 @@ export function useTabOperations({
       }
     },
     [services, toggleService, updateServiceEnabled, showToast],
-  );
-
-  const handleCloseTab = useCallback(
-    async (serviceId: AIServiceId) => {
-      try {
-        const response = await ChromeMessaging.sendMessage({
-          type: EXTENSION_MESSAGE_TYPES.CLOSE_TAB,
-          payload: { serviceId },
-        } as ExtensionMessage);
-
-        if (response.success) {
-          const service = services[serviceId];
-          showToast(`${service.name} tab closed`, 'info');
-          await refreshServiceStates();
-        } else {
-          throw new Error(response.error || 'Failed to close tab');
-        }
-      } catch (error) {
-        logger.error('Failed to close tab:', error);
-        showToast('Failed to close tab', 'error');
-      }
-    },
-    [services, refreshServiceStates, showToast],
   );
 
   const handleFocusTab = useCallback(
@@ -138,7 +116,6 @@ export function useTabOperations({
   return {
     closeAllLoading,
     handleServiceToggle,
-    handleCloseTab,
     handleFocusTab,
     handleCloseAllTabs,
   };
