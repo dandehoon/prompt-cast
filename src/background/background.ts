@@ -2,11 +2,16 @@ import {
   AIService,
   ServiceConfig,
   ExtensionMessage,
+  ContentMessage,
   SendMessagePayload,
   ServiceTogglePayload,
   UserPreferences,
+  Response,
 } from '../shared/types';
-import { EXTENSION_MESSAGE_TYPES, CONTENT_MESSAGE_TYPES } from '../shared/constants';
+import {
+  EXTENSION_MESSAGE_TYPES,
+  CONTENT_MESSAGE_TYPES,
+} from '../shared/constants';
 import { SERVICE_CONFIGS } from '../shared/serviceConfig';
 
 class BackgroundService {
@@ -51,7 +56,7 @@ class BackgroundService {
       (
         message: ExtensionMessage,
         sender: chrome.runtime.MessageSender,
-        sendResponse: (response?: any) => void,
+        sendResponse: (response?: Response) => void,
       ) => {
         this.handleMessage(message, sender, sendResponse);
         return true; // Keep message channel open for async response
@@ -79,7 +84,7 @@ class BackgroundService {
   private async handleMessage(
     message: ExtensionMessage,
     sender: chrome.runtime.MessageSender,
-    sendResponse: (response?: any) => void,
+    sendResponse: (response?: Response) => void,
   ): Promise<void> {
     try {
       switch (message.type) {
@@ -101,7 +106,9 @@ class BackgroundService {
           break;
 
         case EXTENSION_MESSAGE_TYPES.CLOSE_TAB:
-          await this.closeTab((message.payload as { serviceId: string }).serviceId);
+          await this.closeTab(
+            (message.payload as { serviceId: string }).serviceId,
+          );
           sendResponse({ success: true });
           break;
 
@@ -111,7 +118,9 @@ class BackgroundService {
           break;
 
         case EXTENSION_MESSAGE_TYPES.FOCUS_TAB:
-          await this.focusTab((message.payload as { serviceId: string }).serviceId);
+          await this.focusTab(
+            (message.payload as { serviceId: string }).serviceId,
+          );
           sendResponse({ success: true });
           break;
 
@@ -373,7 +382,7 @@ class BackgroundService {
 
   private async sendMessageWithRetry(
     tabId: number,
-    message: any,
+    message: ContentMessage,
     maxRetries: number = 5,
   ): Promise<void> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -510,4 +519,5 @@ class BackgroundService {
 const backgroundService = new BackgroundService();
 
 // Export for testing purposes
-(globalThis as any).backgroundService = backgroundService;
+(globalThis as { backgroundService?: BackgroundService }).backgroundService =
+  backgroundService;

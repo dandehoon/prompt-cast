@@ -29,7 +29,7 @@ describe('useStorage', () => {
 
     // Wait for async operation to complete
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
 
     expect(result.current.loading).toBe(false);
@@ -46,7 +46,7 @@ describe('useStorage', () => {
     const { result } = renderHook(() => useStorage());
 
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
 
     expect(result.current.loading).toBe(false);
@@ -91,7 +91,7 @@ describe('useStorage', () => {
     await act(async () => {
       try {
         await result.current.savePreferences(mockPreferences);
-      } catch (error) {
+      } catch (_error) {
         // Expected to throw
       }
     });
@@ -112,7 +112,7 @@ describe('useStorage', () => {
     const { result } = renderHook(() => useStorage());
 
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
 
     await act(async () => {
@@ -140,7 +140,7 @@ describe('useStorage', () => {
     const { result } = renderHook(() => useStorage());
 
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
 
     expect(result.current.preferences).toBeNull();

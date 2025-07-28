@@ -209,13 +209,13 @@ describe('useServices', () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
     mockChromeMessaging.queryTabs.mockRejectedValue(new Error('Query failed'));
 
-    const { result } = renderHook(() => useServices());
+    renderHook(() => useServices());
 
     // Wait for the initial useEffect to complete (which will fail)
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith(
         'Failed to refresh service states:',
-        expect.any(Error)
+        expect.any(Error),
       );
     });
 
@@ -225,7 +225,7 @@ describe('useServices', () => {
   it('should handle service refresh gracefully', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
     mockChromeMessaging.queryTabs.mockRejectedValueOnce(
-      new Error('Test error')
+      new Error('Test error'),
     );
 
     renderHook(() => useServices());
@@ -233,7 +233,7 @@ describe('useServices', () => {
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith(
         'Failed to refresh service states:',
-        expect.any(Error)
+        expect.any(Error),
       );
     });
 

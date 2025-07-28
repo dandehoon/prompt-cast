@@ -1,7 +1,7 @@
-import { 
-  ExtensionMessageType, 
-  ContentMessageType, 
-  ToastType, 
+import {
+  ExtensionMessageType,
+  ContentMessageType,
+  ToastType,
   ServiceStatusType,
 } from './constants';
 

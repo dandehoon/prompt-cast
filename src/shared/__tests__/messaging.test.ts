@@ -25,7 +25,9 @@ describe('ChromeMessaging', () => {
 
     it('should handle send message failure', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      const mockMessage: ExtensionMessage = { type: EXTENSION_MESSAGE_TYPES.OPEN_TABS };
+      const mockMessage: ExtensionMessage = {
+        type: EXTENSION_MESSAGE_TYPES.OPEN_TABS,
+      };
       const error = new Error('Send failed');
 
       (chrome.runtime.sendMessage as jest.Mock).mockRejectedValue(error);
@@ -62,7 +64,7 @@ describe('ChromeMessaging', () => {
     it('should handle send to tab failure', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const tabId = 123;
-      const mockMessage = { type: EXTENSION_MESSAGE_TYPES.FOCUS_TAB };
+      const mockMessage = { type: CONTENT_MESSAGE_TYPES.STATUS_CHECK };
       const error = new Error('Tab send failed');
 
       (chrome.tabs.sendMessage as jest.Mock).mockRejectedValue(error);

@@ -1,7 +1,12 @@
 import { useState, useCallback } from 'react';
 import { ChromeMessaging } from '../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../shared/constants';
-import { AIServiceId, AIService, ExtensionMessage, ServiceTogglePayload } from '../../shared/types';
+import {
+  AIServiceId,
+  AIService,
+  ExtensionMessage,
+  ServiceTogglePayload,
+} from '../../shared/types';
 
 interface UseTabOperationsProps {
   services: Record<AIServiceId, AIService>;

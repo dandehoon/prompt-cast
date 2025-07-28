@@ -10,11 +10,11 @@ export const EXTENSION_MESSAGE_TYPES = {
   CLOSE_TAB: 'CLOSE_TAB',
   CLOSE_ALL_TABS: 'CLOSE_ALL_TABS',
   FOCUS_TAB: 'FOCUS_TAB',
-  
+
   // Service operations
   SERVICE_TOGGLE: 'SERVICE_TOGGLE',
   SEND_MESSAGE: 'SEND_MESSAGE',
-  
+
   // Status updates
   TAB_STATUS_UPDATE: 'TAB_STATUS_UPDATE',
 } as const;
@@ -42,7 +42,10 @@ export const SERVICE_STATUS = {
 } as const;
 
 // Export type definitions for TypeScript
-export type ExtensionMessageType = typeof EXTENSION_MESSAGE_TYPES[keyof typeof EXTENSION_MESSAGE_TYPES];
-export type ContentMessageType = typeof CONTENT_MESSAGE_TYPES[keyof typeof CONTENT_MESSAGE_TYPES];
-export type ToastType = typeof TOAST_TYPES[keyof typeof TOAST_TYPES];
-export type ServiceStatusType = typeof SERVICE_STATUS[keyof typeof SERVICE_STATUS];
+export type ExtensionMessageType =
+  (typeof EXTENSION_MESSAGE_TYPES)[keyof typeof EXTENSION_MESSAGE_TYPES];
+export type ContentMessageType =
+  (typeof CONTENT_MESSAGE_TYPES)[keyof typeof CONTENT_MESSAGE_TYPES];
+export type ToastType = (typeof TOAST_TYPES)[keyof typeof TOAST_TYPES];
+export type ServiceStatusType =
+  (typeof SERVICE_STATUS)[keyof typeof SERVICE_STATUS];

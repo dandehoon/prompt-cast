@@ -1,10 +1,10 @@
-import { ExtensionMessage, Response } from './types';
+import { ExtensionMessage, ContentMessage, Response } from './types';
 
 export class ChromeMessaging {
   /**
    * Send message to background script and wait for response
    */
-  static async sendMessage<T = any>(
+  static async sendMessage<T = unknown>(
     message: ExtensionMessage,
   ): Promise<Response<T>> {
     try {
@@ -22,9 +22,9 @@ export class ChromeMessaging {
   /**
    * Send message to content script in specific tab
    */
-  static async sendToTab<T = any>(
+  static async sendToTab<T = unknown>(
     tabId: number,
-    message: any,
+    message: ContentMessage,
   ): Promise<Response<T>> {
     try {
       const response = await chrome.tabs.sendMessage(tabId, message);
