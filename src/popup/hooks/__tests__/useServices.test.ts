@@ -1,6 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useServices } from '../useServices';
 import { ChromeMessaging } from '../../../shared/messaging';
+import { logger } from '../../../shared/logger';
 
 // Mock the ChromeMessaging module
 jest.mock('../../../shared/messaging');
@@ -206,24 +207,24 @@ describe('useServices', () => {
   });
 
   it('should handle refresh service states error', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
     mockChromeMessaging.queryTabs.mockRejectedValue(new Error('Query failed'));
 
     renderHook(() => useServices());
 
     // Wait for the initial useEffect to complete (which will fail)
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         'Failed to refresh service states:',
         expect.any(Error),
       );
     });
 
-    consoleSpy.mockRestore();
+    loggerSpy.mockRestore();
   });
 
   it('should handle service refresh gracefully', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
     mockChromeMessaging.queryTabs.mockRejectedValueOnce(
       new Error('Test error'),
     );
@@ -231,12 +232,12 @@ describe('useServices', () => {
     renderHook(() => useServices());
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         'Failed to refresh service states:',
         expect.any(Error),
       );
     });
 
-    consoleSpy.mockRestore();
+    loggerSpy.mockRestore();
   });
 });

@@ -1,23 +1,23 @@
 const js = require('@eslint/js');
-const tsPlugin = require('@typescript-eslint/eslint-plugin');
-const tsParser = require('@typescript-eslint/parser');
-const reactPlugin = require('eslint-plugin-react');
-const reactHooksPlugin = require('eslint-plugin-react-hooks');
+const tseslint = require('@typescript-eslint/eslint-plugin');
+const tsparser = require('@typescript-eslint/parser');
+const react = require('eslint-plugin-react');
+const reactHooks = require('eslint-plugin-react-hooks');
 
 module.exports = [
   js.configs.recommended,
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
-      parser: tsParser,
+      parser: tsparser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
-        ecmaFeatures: {
-          jsx: true,
-        },
+        ecmaFeatures: { jsx: true },
       },
       globals: {
+        // Chrome extension globals
+        chrome: 'readonly',
         // Browser globals
         window: 'readonly',
         document: 'readonly',
@@ -25,13 +25,6 @@ module.exports = [
         setTimeout: 'readonly',
         setInterval: 'readonly',
         clearInterval: 'readonly',
-        // Chrome extension globals
-        chrome: 'readonly',
-        // Node.js globals for config files
-        module: 'readonly',
-        require: 'readonly',
-        process: 'readonly',
-        __dirname: 'readonly',
         // DOM types
         HTMLElement: 'readonly',
         HTMLTextAreaElement: 'readonly',
@@ -42,43 +35,39 @@ module.exports = [
         KeyboardEvent: 'readonly',
         MouseEvent: 'readonly',
         CompositionEvent: 'readonly',
+        // Node.js globals for config files
+        module: 'readonly',
+        require: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly',
       },
     },
     plugins: {
-      '@typescript-eslint': tsPlugin,
-      react: reactPlugin,
-      'react-hooks': reactHooksPlugin,
+      '@typescript-eslint': tseslint,
+      react,
+      'react-hooks': reactHooks,
     },
     rules: {
-      ...tsPlugin.configs.recommended.rules,
-      ...reactPlugin.configs.recommended.rules,
-      ...reactHooksPlugin.configs.recommended.rules,
+      ...tseslint.configs.recommended.rules,
+      ...react.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-        },
+        { argsIgnorePattern: '^_' },
       ],
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-case-declarations': 'off',
     },
     settings: {
-      react: {
-        version: 'detect',
-      },
+      react: { version: 'detect' },
     },
   },
   {
-    files: ['**/*.test.{js,jsx,ts,tsx}', '**/test-utils/**/*.{js,jsx,ts,tsx}'],
+    files: ['**/*.test.{ts,tsx}', '**/test-utils/**/*.{ts,tsx}'],
     languageOptions: {
       globals: {
-        // Jest globals
         describe: 'readonly',
         it: 'readonly',
         test: 'readonly',

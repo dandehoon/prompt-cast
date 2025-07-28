@@ -1,5 +1,6 @@
 import { ChromeStorage } from '../storage';
 import { UserPreferences } from '../types';
+import { logger } from '../logger';
 
 describe('ChromeStorage', () => {
   beforeEach(() => {
@@ -34,7 +35,7 @@ describe('ChromeStorage', () => {
     });
 
     it('should return null and log error on failure', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
       (chrome.storage.sync.get as jest.Mock).mockRejectedValue(
         new Error('Storage error'),
       );
@@ -42,12 +43,12 @@ describe('ChromeStorage', () => {
       const result = await ChromeStorage.getUserPreferences();
 
       expect(result).toBeNull();
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         'Failed to load user preferences:',
         expect.any(Error),
       );
 
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
     });
   });
 
@@ -69,7 +70,7 @@ describe('ChromeStorage', () => {
     });
 
     it('should throw error on save failure', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
       const mockPreferences: UserPreferences = { services: {} };
       const error = new Error('Save failed');
 
@@ -78,12 +79,12 @@ describe('ChromeStorage', () => {
       await expect(
         ChromeStorage.saveUserPreferences(mockPreferences),
       ).rejects.toThrow(error);
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         'Failed to save user preferences:',
         error,
       );
 
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
     });
   });
 
@@ -97,18 +98,15 @@ describe('ChromeStorage', () => {
     });
 
     it('should throw error on clear failure', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
       const error = new Error('Clear failed');
 
       (chrome.storage.sync.clear as jest.Mock).mockRejectedValue(error);
 
       await expect(ChromeStorage.clear()).rejects.toThrow(error);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to clear storage:',
-        error,
-      );
+      expect(loggerSpy).toHaveBeenCalledWith('Failed to clear storage:', error);
 
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
     });
   });
 });

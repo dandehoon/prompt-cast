@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AIServiceId, ServiceConfig } from '../../shared/types';
 import { ChromeMessaging } from '../../shared/messaging';
+import { logger } from '../../shared/logger';
 
 const defaultServices: ServiceConfig = {
   chatgpt: {
@@ -40,18 +41,18 @@ export function useServices() {
     try {
       const tabs = await ChromeMessaging.queryTabs({});
 
-      setServices(prevServices => {
+      setServices((prevServices) => {
         const newServices = { ...prevServices };
 
         // Reset all services to disconnected
-        Object.values(newServices).forEach(service => {
+        Object.values(newServices).forEach((service) => {
           service.status = 'disconnected';
           service.tabId = undefined;
         });
 
         // Check which services have open tabs
-        tabs.forEach(tab => {
-          Object.values(newServices).forEach(service => {
+        tabs.forEach((tab) => {
+          Object.values(newServices).forEach((service) => {
             if (tab.url && tab.url.startsWith(service.url)) {
               service.status = 'connected';
               service.tabId = tab.id;
@@ -62,13 +63,13 @@ export function useServices() {
         return newServices;
       });
     } catch (error) {
-      console.error('Failed to refresh service states:', error);
+      logger.error('Failed to refresh service states:', error);
     }
   }, []);
 
   const toggleService = useCallback(
     (serviceId: AIServiceId, enabled: boolean) => {
-      setServices(prev => ({
+      setServices((prev) => ({
         ...prev,
         [serviceId]: {
           ...prev[serviceId],
@@ -76,21 +77,22 @@ export function useServices() {
         },
       }));
     },
-    []
+    [],
   );
 
   const getEnabledServices = useCallback(() => {
     return Object.keys(services).filter(
-      serviceId => services[serviceId as AIServiceId].enabled
+      (serviceId) => services[serviceId as AIServiceId].enabled,
     );
   }, [services]);
 
   const getConnectedCount = useCallback(() => {
-    return Object.values(services).filter(s => s.status === 'connected').length;
+    return Object.values(services).filter((s) => s.status === 'connected')
+      .length;
   }, [services]);
 
   const getEnabledCount = useCallback(() => {
-    return Object.values(services).filter(s => s.enabled).length;
+    return Object.values(services).filter((s) => s.enabled).length;
   }, [services]);
 
   useEffect(() => {

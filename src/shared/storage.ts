@@ -1,4 +1,5 @@
 import { UserPreferences } from './types';
+import { logger } from './logger';
 
 export class ChromeStorage {
   /**
@@ -9,7 +10,7 @@ export class ChromeStorage {
       const result = await chrome.storage.sync.get(['userPreferences']);
       return result.userPreferences || null;
     } catch (error) {
-      console.error('Failed to load user preferences:', error);
+      logger.error('Failed to load user preferences:', error);
       return null;
     }
   }
@@ -23,7 +24,7 @@ export class ChromeStorage {
     try {
       await chrome.storage.sync.set({ userPreferences: preferences });
     } catch (error) {
-      console.error('Failed to save user preferences:', error);
+      logger.error('Failed to save user preferences:', error);
       throw error;
     }
   }
@@ -35,7 +36,7 @@ export class ChromeStorage {
     try {
       await chrome.storage.sync.clear();
     } catch (error) {
-      console.error('Failed to clear storage:', error);
+      logger.error('Failed to clear storage:', error);
       throw error;
     }
   }

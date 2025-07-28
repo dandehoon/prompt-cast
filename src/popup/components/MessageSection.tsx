@@ -25,7 +25,6 @@ export function MessageSection({
 
   return (
     <footer className="p-4 border-t border-ai-border space-y-3">
-      {/* Message Input */}
       <MessageInput
         ref={messageInputRef}
         value={message}
@@ -34,7 +33,6 @@ export function MessageSection({
         disabled={sendLoading}
       />
 
-      {/* Send Button */}
       <button
         onClick={onSend}
         disabled={!hasMessage || sendLoading}
@@ -43,7 +41,6 @@ export function MessageSection({
         {sendLoading ? 'Sending...' : 'Send'}
       </button>
 
-      {/* Status Bar */}
       <StatusBar connectedCount={connectedCount} enabledCount={enabledCount} />
     </footer>
   );

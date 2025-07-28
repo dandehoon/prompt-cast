@@ -3,6 +3,7 @@ import { ChromeMessaging } from '../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../shared/constants';
 import { ExtensionMessage, SendMessagePayload } from '../../shared/types';
 import { CONFIG } from '../../shared/config';
+import { logger } from '../../shared/logger';
 
 interface UseMessageHandlerProps {
   getEnabledServices: () => string[];
@@ -63,7 +64,7 @@ export function useMessageHandler({
           throw new Error(response.error || 'Failed to send message');
         }
       } catch (error) {
-        console.error('Failed to send message:', error);
+        logger.error('Failed to send message:', error);
         showToast('Failed to send message', 'error');
         return false;
       } finally {

@@ -22,7 +22,7 @@ export function AIServicesSection({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium">AI Sites</h2>
+        <h2 className="text-sm font-medium">Sites</h2>
         <button
           onClick={onCloseAllTabs}
           disabled={closeAllLoading}

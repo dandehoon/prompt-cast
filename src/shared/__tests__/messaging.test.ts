@@ -1,6 +1,7 @@
 import { ChromeMessaging } from '../messaging';
 import { EXTENSION_MESSAGE_TYPES, CONTENT_MESSAGE_TYPES } from '../constants';
 import { ExtensionMessage } from '../types';
+import { logger } from '../logger';
 
 describe('ChromeMessaging', () => {
   beforeEach(() => {
@@ -24,7 +25,7 @@ describe('ChromeMessaging', () => {
     });
 
     it('should handle send message failure', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
       const mockMessage: ExtensionMessage = {
         type: EXTENSION_MESSAGE_TYPES.OPEN_TABS,
       };
@@ -38,12 +39,12 @@ describe('ChromeMessaging', () => {
         success: false,
         error: 'Send failed',
       });
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         'Failed to send message to background script:',
         error,
       );
 
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
     });
   });
 
@@ -62,7 +63,7 @@ describe('ChromeMessaging', () => {
     });
 
     it('should handle send to tab failure', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
       const tabId = 123;
       const mockMessage = { type: CONTENT_MESSAGE_TYPES.STATUS_CHECK };
       const error = new Error('Tab send failed');
@@ -75,12 +76,12 @@ describe('ChromeMessaging', () => {
         success: false,
         error: 'Tab send failed',
       });
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         'Failed to send message to tab:',
         error,
       );
 
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
     });
   });
 
@@ -101,7 +102,7 @@ describe('ChromeMessaging', () => {
     });
 
     it('should handle query tabs failure', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
       const queryInfo = { url: '*://*/*' };
       const error = new Error('Query failed');
 
@@ -110,9 +111,9 @@ describe('ChromeMessaging', () => {
       const result = await ChromeMessaging.queryTabs(queryInfo);
 
       expect(result).toEqual([]);
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to query tabs:', error);
+      expect(loggerSpy).toHaveBeenCalledWith('Failed to query tabs:', error);
 
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
     });
   });
 });

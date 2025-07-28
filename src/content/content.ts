@@ -2,6 +2,8 @@ import { ContentMessage } from '../shared/types';
 import { CONTENT_MESSAGE_TYPES } from '../shared/constants';
 import { getServiceByHostname, ServiceConfig } from '../shared/serviceConfig';
 import { CONFIG } from '../shared/config';
+import { sleep } from '../shared/utils';
+import { logger } from '../shared/logger';
 
 class ContentScript {
   private currentServiceConfig: ServiceConfig | null = null;
@@ -69,7 +71,7 @@ class ContentScript {
           sendResponse({ success: false, error: 'Unknown message type' });
       }
     } catch (error) {
-      console.error(`AI Hub Content Script error:`, error);
+      logger.error(`AI Hub Content Script error:`, error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error occurred';
       sendResponse({ success: false, error: errorMessage });
@@ -87,7 +89,7 @@ class ContentScript {
       }
 
       // Wait between attempts for faster response
-      await new Promise((resolve) => setTimeout(resolve, detectionDelay));
+      await sleep(detectionDelay);
     }
 
     return false;
@@ -105,7 +107,7 @@ class ContentScript {
       }
 
       // Wait between attempts for faster response
-      await new Promise((resolve) => setTimeout(resolve, detectionDelay));
+      await sleep(detectionDelay);
     }
 
     if (!inputElement) {
@@ -127,7 +129,7 @@ class ContentScript {
       } else {
         return false;
       }
-    } catch (_error) {
+    } catch {
       return false;
     }
   }
@@ -141,7 +143,7 @@ class ContentScript {
 
       // Focus the element first
       element.focus();
-      await new Promise((resolve) => setTimeout(resolve, focusDelay));
+      await sleep(focusDelay);
 
       // Set the value using multiple approaches
       const nativeValueSetter =
@@ -171,7 +173,7 @@ class ContentScript {
       events.forEach((event) => element.dispatchEvent(event));
 
       // Wait a bit and then try to find and click send button
-      await new Promise((resolve) => setTimeout(resolve, injectionDelay));
+      await sleep(injectionDelay);
 
       // Try to find and click the send button
       const sendButtonClicked = await this.clickSendButton();
@@ -190,7 +192,7 @@ class ContentScript {
       }
 
       return true;
-    } catch (_error) {
+    } catch {
       return false;
     }
   }
@@ -204,7 +206,7 @@ class ContentScript {
 
       // Focus the element first
       element.focus();
-      await new Promise((resolve) => setTimeout(resolve, focusDelay));
+      await sleep(focusDelay);
 
       // Clear existing content and set new content
       element.innerHTML = '';
@@ -257,7 +259,7 @@ class ContentScript {
       events.forEach((event) => element.dispatchEvent(event));
 
       // Wait and try to send
-      await new Promise((resolve) => setTimeout(resolve, injectionDelay));
+      await sleep(injectionDelay);
 
       // Try to find and click send button
       const sendButtonClicked = await this.clickSendButton();
@@ -276,7 +278,7 @@ class ContentScript {
       }
 
       return true;
-    } catch (_error) {
+    } catch {
       return false;
     }
   }
@@ -292,7 +294,7 @@ class ContentScript {
         try {
           button.click();
           return true;
-        } catch (_error) {
+        } catch {
           // Continue to next selector
         }
       }
@@ -403,7 +405,7 @@ class ContentScript {
               },
             })
             .catch(() => {}); // Ignore errors
-        } catch (_error) {
+        } catch {
           // Ignore messaging errors
         }
       }
@@ -450,7 +452,7 @@ class ContentScript {
                       },
                     })
                     .catch(() => {}); // Ignore errors
-                } catch (_error) {
+                } catch {
                   // Ignore messaging errors
                 }
                 return;

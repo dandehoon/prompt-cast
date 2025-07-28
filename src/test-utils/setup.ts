@@ -58,30 +58,18 @@ Object.defineProperty(document, 'querySelectorAll', {
   writable: true,
 });
 
-// Reset all mocks before each test
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
-// Suppress React act warnings during tests
-const originalError = console.error;
-beforeAll(() => {
-  console.error = (...args: any[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      (args[0].includes('Warning: ReactDOMTestUtils.act is deprecated') ||
-        args[0].includes(
-          'Warning: An update to TestComponent inside a test was not wrapped in act',
-        ))
-    ) {
-      return;
-    }
-    originalError.call(console, ...args);
+// Mock logger to prevent console noise in tests
+jest.mock('../shared/logger', () => {
+  const mockLogger = {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
   };
-});
-
-afterAll(() => {
-  console.error = originalError;
+  return {
+    logger: mockLogger,
+    Logger: jest.fn(() => mockLogger),
+  };
 });
 
 // Reset all mocks before each test

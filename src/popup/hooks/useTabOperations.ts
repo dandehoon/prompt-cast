@@ -7,6 +7,7 @@ import {
   ExtensionMessage,
   ServiceTogglePayload,
 } from '../../shared/types';
+import { logger } from '../../shared/logger';
 
 interface UseTabOperationsProps {
   services: Record<AIServiceId, AIService>;
@@ -50,7 +51,7 @@ export function useTabOperations({
           'info',
         );
       } catch (error) {
-        console.error('Failed to toggle service:', error);
+        logger.error('Failed to toggle service:', error);
         showToast('Failed to update service', 'error');
         // Revert local state on error
         toggleService(serviceId, !enabled);
@@ -75,7 +76,7 @@ export function useTabOperations({
           throw new Error(response.error || 'Failed to close tab');
         }
       } catch (error) {
-        console.error('Failed to close tab:', error);
+        logger.error('Failed to close tab:', error);
         showToast('Failed to close tab', 'error');
       }
     },
@@ -105,7 +106,7 @@ export function useTabOperations({
           throw new Error(response.error || 'Failed to focus tab');
         }
       } catch (error) {
-        console.error('Failed to focus tab:', error);
+        logger.error('Failed to focus tab:', error);
         showToast('Failed to focus tab', 'error');
       }
     },
@@ -127,7 +128,7 @@ export function useTabOperations({
         throw new Error(response.error || 'Failed to close tabs');
       }
     } catch (error) {
-      console.error('Failed to close tabs:', error);
+      logger.error('Failed to close tabs:', error);
       showToast('Failed to close tabs', 'error');
     } finally {
       setCloseAllLoading(false);

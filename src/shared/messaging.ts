@@ -1,4 +1,5 @@
 import { ExtensionMessage, ContentMessage, Response } from './types';
+import { logger } from './logger';
 
 export class ChromeMessaging {
   /**
@@ -11,7 +12,7 @@ export class ChromeMessaging {
       const response = await chrome.runtime.sendMessage(message);
       return response;
     } catch (error) {
-      console.error('Failed to send message to background script:', error);
+      logger.error('Failed to send message to background script:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -30,7 +31,7 @@ export class ChromeMessaging {
       const response = await chrome.tabs.sendMessage(tabId, message);
       return response;
     } catch (error) {
-      console.error('Failed to send message to tab:', error);
+      logger.error('Failed to send message to tab:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -47,7 +48,7 @@ export class ChromeMessaging {
     try {
       return await chrome.tabs.query(queryInfo);
     } catch (error) {
-      console.error('Failed to query tabs:', error);
+      logger.error('Failed to query tabs:', error);
       return [];
     }
   }

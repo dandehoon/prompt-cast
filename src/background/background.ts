@@ -14,6 +14,8 @@ import {
 } from '../shared/constants';
 import { SERVICE_CONFIGS } from '../shared/serviceConfig';
 import { CONFIG } from '../shared/config';
+import { sleep } from '../shared/utils';
+import { logger } from '../shared/logger';
 
 class BackgroundService {
   private services: ServiceConfig = {
@@ -133,7 +135,7 @@ class BackgroundService {
           sendResponse({ success: false, error: 'Unknown message type' });
       }
     } catch (error) {
-      console.error('Background script error:', error);
+      logger.error('Background script error:', error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error occurred';
       sendResponse({ success: false, error: errorMessage });
@@ -155,7 +157,7 @@ class BackgroundService {
         });
       }
     } catch (error) {
-      console.error('Failed to load user preferences:', error);
+      logger.error('Failed to load user preferences:', error);
     }
   }
 
@@ -174,7 +176,7 @@ class BackgroundService {
 
       await chrome.storage.sync.set({ userPreferences: preferences });
     } catch (error) {
-      console.error('Failed to save user preferences:', error);
+      logger.error('Failed to save user preferences:', error);
     }
   }
 
@@ -186,7 +188,7 @@ class BackgroundService {
     // Open all tabs concurrently
     const openPromises = enabledServices.map(([_serviceId, service]) =>
       this.openOrFocusTab(service).catch((error) => {
-        console.error(`Failed to open tab for ${service.name}:`, error);
+        logger.error(`Failed to open tab for ${service.name}:`, error);
         return null;
       }),
     );
@@ -223,7 +225,7 @@ class BackgroundService {
         service.status = 'connected';
       }
     } catch (error) {
-      console.error(`Failed to open/focus tab for ${service.name}:`, error);
+      logger.error(`Failed to open/focus tab for ${service.name}:`, error);
       service.status = 'error';
     }
   }
@@ -258,7 +260,7 @@ class BackgroundService {
     results.forEach((result, index) => {
       const serviceId = enabledServices[index];
       if (result.status === 'rejected') {
-        console.error(`Failed to send message to ${serviceId}:`, result.reason);
+        logger.error(`Failed to send message to ${serviceId}:`, result.reason);
       }
     });
   }
@@ -300,7 +302,7 @@ class BackgroundService {
         throw new Error(`Failed to open or find ${service.name} tab`);
       }
     } catch (error) {
-      console.error(`Failed to send message to ${service.name}:`, error);
+      logger.error(`Failed to send message to ${service.name}:`, error);
       service.status = 'error';
       service.tabId = undefined;
       throw error;
@@ -327,16 +329,12 @@ class BackgroundService {
 
         // If not ready, wait before next attempt
         if (attempt < maxReadinessAttempts) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, readinessCheckDelay),
-          );
+          await sleep(readinessCheckDelay);
         }
-      } catch (_error) {
+      } catch {
         // Content script might not be loaded yet, wait and retry
         if (attempt < maxReadinessAttempts) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, readinessCheckDelay),
-          );
+          await sleep(readinessCheckDelay);
         } else {
           // Proceed anyway after max attempts - content script might still work
         }
@@ -365,7 +363,7 @@ class BackgroundService {
           } else {
             resolve(); // Give up after max attempts
           }
-        } catch (_error) {
+        } catch {
           resolve(); // Tab might be closed, just resolve
         }
       };
@@ -394,7 +392,7 @@ class BackgroundService {
         if (attempt < retryCount) {
           // Wait before retry, with exponential backoff
           const delay = Math.min(attempt * baseDelay, maxDelay);
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await sleep(delay);
         } else {
           throw error; // Final attempt failed
         }
@@ -423,7 +421,7 @@ class BackgroundService {
         service.tabId = undefined;
         service.status = 'disconnected';
       } catch (error) {
-        console.error(`Failed to close tab for ${service.name}:`, error);
+        logger.error(`Failed to close tab for ${service.name}:`, error);
       }
     }
   }
@@ -463,7 +461,7 @@ class BackgroundService {
       try {
         await chrome.tabs.remove(tabIds);
       } catch (error) {
-        console.error('Failed to close all tabs:', error);
+        logger.error('Failed to close all tabs:', error);
         throw error;
       }
     }
@@ -478,7 +476,7 @@ class BackgroundService {
         const tab = await chrome.tabs.get(service.tabId);
         await chrome.windows.update(tab.windowId, { focused: true });
       } catch (error) {
-        console.error(`Failed to focus tab for ${service.name}:`, error);
+        logger.error(`Failed to focus tab for ${service.name}:`, error);
         // If tab doesn't exist anymore, try to open it
         const errorMessage = error instanceof Error ? error.message : '';
         if (errorMessage.includes('No tab with id')) {

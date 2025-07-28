@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useMessageHandler } from '../useMessageHandler';
 import { ChromeMessaging } from '../../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../../shared/constants';
+import { sleep } from '../../../shared/utils';
 
 // Mock Chrome messaging
 jest.mock('../../../shared/messaging');
@@ -106,7 +107,7 @@ describe('useMessageHandler', () => {
     mockGetEnabledServices.mockReturnValue(['chatgpt']);
     mockChromeMessaging.sendMessage.mockImplementation(
       () =>
-        new Promise(resolve =>
+        new Promise((resolve) =>
           setTimeout(() => resolve({ success: true }), 100),
         ),
     );
@@ -124,7 +125,7 @@ describe('useMessageHandler', () => {
 
     // Wait for promise to resolve
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await sleep(150);
     });
 
     // Loading should be false after completion
