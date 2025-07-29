@@ -3,7 +3,6 @@ import { useTabOperations } from '../useTabOperations';
 import { ChromeMessaging } from '../../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../../shared/constants';
 import { CONFIG } from '../../../shared/config';
-import { AIServiceId } from '../../../shared/types';
 
 // Mock Chrome messaging
 jest.mock('../../../shared/messaging');
@@ -19,28 +18,28 @@ describe('useTabOperations', () => {
 
   const mockServices = {
     chatgpt: {
-      id: 'chatgpt' as AIServiceId,
+      id: 'chatgpt',
       name: 'ChatGPT',
       url: 'https://chat.openai.com',
       enabled: true,
       status: 'connected' as const,
     },
     claude: {
-      id: 'claude' as AIServiceId,
+      id: 'claude',
       name: 'Claude',
       url: 'https://claude.ai',
       enabled: false,
       status: 'disconnected' as const,
     },
     gemini: {
-      id: 'gemini' as AIServiceId,
+      id: 'gemini',
       name: 'Gemini',
       url: 'https://gemini.google.com',
       enabled: false,
       status: 'disconnected' as const,
     },
     grok: {
-      id: 'grok' as AIServiceId,
+      id: 'grok',
       name: 'Grok',
       url: 'https://x.com/i/grok',
       enabled: false,

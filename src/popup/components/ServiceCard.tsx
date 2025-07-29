@@ -1,10 +1,10 @@
 import React from 'react';
 import { SERVICE_STATUS } from '../../shared/constants';
-import { AIService, AIServiceId } from '../../shared/types';
+import { AIService } from '../../shared/types';
 
 interface ServiceCardProps {
   service: AIService;
-  onFocusTab: (serviceId: AIServiceId) => void;
+  onFocusTab: (serviceId: string) => void;
 }
 
 export function ServiceCard({ service, onFocusTab }: ServiceCardProps) {

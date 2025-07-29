@@ -1,11 +1,11 @@
 import React, { RefObject } from 'react';
 import { AIServicesSection } from './AIServicesSection';
 import { MessageSection } from './MessageSection';
-import { AIService, AIServiceId, ToastMessage } from '../../shared/types';
+import { AIService, ToastMessage } from '../../shared/types';
 
 interface HomeProps {
-  services: Record<AIServiceId, AIService>;
-  onFocusTab: (serviceId: AIServiceId) => void;
+  services: Record<string, AIService>;
+  onFocusTab: (serviceId: string) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;
   message: string;

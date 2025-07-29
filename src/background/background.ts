@@ -18,7 +18,6 @@ class BackgroundService {
   constructor() {
     this.serviceManager = new ServiceManager();
     this.tabManager = new TabManager(this.serviceManager.services);
-    this.serviceManager.setTabManager(this.tabManager);
     this.messageHandler = new MessageHandler(
       this.serviceManager.services,
       this.tabManager,

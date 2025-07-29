@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Home } from '../Home';
-import { AIService, AIServiceId, ToastMessage } from '../../../shared/types';
+import { AIService, ToastMessage } from '../../../shared/types';
 
 // Mock child components
 jest.mock('../AIServicesSection', () => ({
@@ -46,7 +46,7 @@ describe('Home', () => {
   const mockOnSend = jest.fn();
   const mockMessageInputRef = { current: null } as React.RefObject<HTMLTextAreaElement>;
 
-  const mockServices: Record<AIServiceId, AIService> = {
+  const mockServices: Record<string, AIService> = {
     chatgpt: {
       id: 'chatgpt',
       name: 'ChatGPT',

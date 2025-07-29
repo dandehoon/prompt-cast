@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AIServiceId, ServiceConfig } from '../../shared/types';
+import { ServiceConfig } from '../../shared/types';
 import { ChromeMessaging } from '../../shared/messaging';
 import { logger } from '../../shared/logger';
 
@@ -67,22 +67,19 @@ export function useServices() {
     }
   }, []);
 
-  const toggleService = useCallback(
-    (serviceId: AIServiceId, enabled: boolean) => {
-      setServices((prev) => ({
-        ...prev,
-        [serviceId]: {
-          ...prev[serviceId],
-          enabled,
-        },
-      }));
-    },
-    [],
-  );
+  const toggleService = useCallback((serviceId: string, enabled: boolean) => {
+    setServices((prev) => ({
+      ...prev,
+      [serviceId]: {
+        ...prev[serviceId],
+        enabled,
+      },
+    }));
+  }, []);
 
   const getEnabledServices = useCallback(() => {
     return Object.keys(services).filter(
-      (serviceId) => services[serviceId as AIServiceId].enabled,
+      (serviceId) => services[serviceId].enabled,
     );
   }, [services]);
 

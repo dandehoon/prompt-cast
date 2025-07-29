@@ -1,14 +1,14 @@
 import React from 'react';
-import { AIService, AIServiceId } from '../../shared/types';
+import { AIService } from '../../shared/types';
 import { SERVICE_STATUS } from '../../shared/constants';
 
 interface SettingsProps {
-  services: Record<AIServiceId, AIService>;
-  onServiceToggle: (serviceId: AIServiceId, enabled: boolean) => void;
+  services: Record<string, AIService>;
+  onServiceToggle: (serviceId: string, enabled: boolean) => void;
 }
 
 export function Settings({ services, onServiceToggle }: SettingsProps) {
-  const getServiceLogoColor = (serviceId: AIServiceId) => {
+  const getServiceLogoColor = (serviceId: string) => {
     switch (serviceId) {
       case 'chatgpt':
         return 'bg-green-500';

@@ -7,7 +7,7 @@ import { useStorage } from '../hooks/useStorage';
 import { useToast } from '../hooks/useToast';
 import { useMessageHandler } from '../hooks/useMessageHandler';
 import { useTabOperations } from '../hooks/useTabOperations';
-import { AIServiceId, TabId } from '../../shared/types';
+import { TabId } from '../../shared/types';
 
 export function PopupApp() {
   const [message, setMessage] = useState('');
@@ -57,7 +57,7 @@ export function PopupApp() {
     if (preferences?.services) {
       Object.entries(preferences.services).forEach(([serviceId, config]) => {
         if (config && 'enabled' in config && config.enabled !== undefined) {
-          toggleService(serviceId as AIServiceId, config.enabled);
+          toggleService(serviceId, config.enabled);
         }
       });
     }

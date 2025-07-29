@@ -1,10 +1,10 @@
 import React from 'react';
 import { ServiceCard } from './ServiceCard';
-import { AIService, AIServiceId } from '../../shared/types';
+import { AIService } from '../../shared/types';
 
 interface AIServicesSectionProps {
-  services: Record<AIServiceId, AIService>;
-  onFocusTab: (serviceId: AIServiceId) => void;
+  services: Record<string, AIService>;
+  onFocusTab: (serviceId: string) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;
 }

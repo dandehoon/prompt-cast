@@ -2,12 +2,12 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Settings } from '../Settings';
-import { AIService, AIServiceId } from '../../../shared/types';
+import { AIService } from '../../../shared/types';
 
 describe('Settings', () => {
   const mockOnServiceToggle = jest.fn();
 
-  const mockServices: Record<AIServiceId, AIService> = {
+  const mockServices: Record<string, AIService> = {
     chatgpt: {
       id: 'chatgpt',
       name: 'ChatGPT',

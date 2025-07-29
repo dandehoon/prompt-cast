@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { ChromeMessaging } from '../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../shared/constants';
 import {
-  AIServiceId,
   AIService,
   ExtensionMessage,
   ServiceTogglePayload,
@@ -10,12 +9,9 @@ import {
 import { logger } from '../../shared/logger';
 
 interface UseTabOperationsProps {
-  services: Record<AIServiceId, AIService>;
-  toggleService: (serviceId: AIServiceId, enabled: boolean) => void;
-  updateServiceEnabled: (
-    serviceId: AIServiceId,
-    enabled: boolean,
-  ) => Promise<void>;
+  services: Record<string, AIService>;
+  toggleService: (serviceId: string, enabled: boolean) => void;
+  updateServiceEnabled: (serviceId: string, enabled: boolean) => Promise<void>;
   refreshServiceStates: () => Promise<void>;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
@@ -30,7 +26,7 @@ export function useTabOperations({
   const [closeAllLoading, setCloseAllLoading] = useState(false);
 
   const handleServiceToggle = useCallback(
-    async (serviceId: AIServiceId, enabled: boolean) => {
+    async (serviceId: string, enabled: boolean) => {
       try {
         const service = services[serviceId];
 
@@ -62,7 +58,7 @@ export function useTabOperations({
   );
 
   const handleFocusTab = useCallback(
-    async (serviceId: AIServiceId) => {
+    async (serviceId: string) => {
       try {
         const service = services[serviceId];
 

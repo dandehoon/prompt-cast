@@ -17,11 +17,8 @@ export interface Response<T = unknown> {
   data?: T;
 }
 
-// AI Service Types
-export type AIServiceId = 'chatgpt' | 'claude' | 'gemini' | 'grok';
-
 export interface AIService {
-  id: AIServiceId;
+  id: string;
   name: string;
   url: string;
   enabled: boolean;
@@ -29,7 +26,7 @@ export interface AIService {
   tabId?: number;
 }
 
-export type ServiceConfig = Record<AIServiceId, AIService>;
+export type ServiceConfig = Record<string, AIService>;
 
 // Content Script Message Types
 export interface ContentMessage {
@@ -52,7 +49,7 @@ export interface ServiceTogglePayload {
 
 // Storage Types
 export interface UserPreferences {
-  services: Partial<Record<AIServiceId, { enabled: boolean }>>;
+  services: Partial<Record<string, { enabled: boolean }>>;
   lastMessage?: string;
 }
 

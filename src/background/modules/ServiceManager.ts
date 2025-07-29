@@ -2,54 +2,29 @@ import {
   ServiceTogglePayload,
   AIService,
   UserPreferences,
-  AIServiceId,
 } from '../../shared/types';
 import { SERVICE_CONFIGS } from '../../shared/serviceConfig';
 import { logger } from '../../shared/logger';
-import { TabManager } from './TabManager';
 
 export class ServiceManager {
-  private tabManager?: TabManager;
-  public services: Record<string, AIService> = {
-    chatgpt: {
-      id: 'chatgpt',
-      name: SERVICE_CONFIGS.chatgpt.name,
-      url: SERVICE_CONFIGS.chatgpt.url,
-      enabled: true,
-      status: 'disconnected',
-    },
-    claude: {
-      id: 'claude',
-      name: SERVICE_CONFIGS.claude.name,
-      url: SERVICE_CONFIGS.claude.url,
-      enabled: true,
-      status: 'disconnected',
-    },
-    gemini: {
-      id: 'gemini',
-      name: SERVICE_CONFIGS.gemini.name,
-      url: SERVICE_CONFIGS.gemini.url,
-      enabled: true,
-      status: 'disconnected',
-    },
-    grok: {
-      id: 'grok',
-      name: SERVICE_CONFIGS.grok.name,
-      url: SERVICE_CONFIGS.grok.url,
-      enabled: true,
-      status: 'disconnected',
-    },
-  };
+  public services: Record<string, AIService> = {};
 
-  constructor(tabManager?: TabManager) {
-    if (tabManager) {
-      this.tabManager = tabManager;
-    }
+  constructor() {
+    this.initializeServices();
     this.loadUserPreferences();
   }
 
-  setTabManager(tabManager: TabManager): void {
-    this.tabManager = tabManager;
+  private initializeServices(): void {
+    // Dynamically create services from SERVICE_CONFIGS
+    Object.values(SERVICE_CONFIGS).forEach((config) => {
+      this.services[config.id] = {
+        id: config.id,
+        name: config.name,
+        url: config.url,
+        enabled: config.enabled, // Use config's enabled instead of hardcoded true
+        status: 'disconnected',
+      };
+    });
   }
 
   async toggleService(payload: ServiceTogglePayload): Promise<void> {
@@ -79,7 +54,7 @@ export class ServiceManager {
         const prefs: UserPreferences = result.userPreferences;
         // Update service enabled states from saved preferences
         Object.keys(this.services).forEach((serviceId) => {
-          const typedServiceId = serviceId as AIServiceId;
+          const typedServiceId = serviceId;
           if (prefs.services && prefs.services[typedServiceId]) {
             this.services[typedServiceId].enabled =
               prefs.services[typedServiceId]!.enabled;
@@ -98,7 +73,7 @@ export class ServiceManager {
       };
 
       Object.keys(this.services).forEach((serviceId) => {
-        const typedServiceId = serviceId as AIServiceId;
+        const typedServiceId = serviceId;
         preferences.services[typedServiceId] = {
           enabled: this.services[typedServiceId].enabled,
         };
