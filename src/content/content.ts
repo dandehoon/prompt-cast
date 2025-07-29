@@ -67,7 +67,8 @@ class ContentScript {
         case CONTENT_MESSAGE_TYPES.STATUS_CHECK:
           if (this.readinessChecker) {
             // Use enhanced input detection with retries
-            const isInputReady = await this.readinessChecker.checkInputWithRetries();
+            const isInputReady =
+              await this.readinessChecker.checkInputWithRetries();
             sendResponse({
               ready: isInputReady,
               service: this.currentServiceConfig?.id,

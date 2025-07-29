@@ -1,6 +1,7 @@
 import React from 'react';
 import { SERVICE_STATUS } from '../../shared/constants';
 import { AIService } from '../../shared/types';
+import { getServiceById } from '../../shared/serviceConfig';
 
 interface ServiceCardProps {
   service: AIService;
@@ -9,18 +10,8 @@ interface ServiceCardProps {
 
 export function ServiceCard({ service, onFocusTab }: ServiceCardProps) {
   const getServiceLogoColor = () => {
-    switch (service.id) {
-      case 'chatgpt':
-        return 'bg-green-500';
-      case 'claude':
-        return 'bg-orange-500';
-      case 'gemini':
-        return 'bg-blue-500';
-      case 'grok':
-        return 'bg-purple-500';
-      default:
-        return 'bg-gray-500';
-    }
+    const serviceConfig = getServiceById(service.id);
+    return serviceConfig?.color || 'bg-gray-500';
   };
 
   const handleCardClick = () => {

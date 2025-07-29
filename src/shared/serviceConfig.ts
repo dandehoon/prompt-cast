@@ -3,6 +3,7 @@ export interface ServiceConfig {
   name: string;
   url: string;
   enabled: boolean;
+  color: string;
   hostPatterns: string[];
   inputSelectors: string[];
   submitSelectors: string[];
@@ -14,6 +15,7 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     name: 'ChatGPT',
     url: 'https://chatgpt.com/',
     enabled: true,
+    color: 'bg-green-500',
     hostPatterns: ['chatgpt.com'],
     inputSelectors: ['div#prompt-textarea'],
     submitSelectors: ['button#composer-submit-button'],
@@ -24,6 +26,7 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     name: 'Claude',
     url: 'https://claude.ai/',
     enabled: true,
+    color: 'bg-orange-500',
     hostPatterns: ['claude.ai'],
     inputSelectors: ['div[contenteditable]'],
     submitSelectors: ['button[aria-label="Send message"]'],
@@ -34,6 +37,7 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     name: 'Gemini',
     url: 'https://gemini.google.com/',
     enabled: true,
+    color: 'bg-blue-500',
     hostPatterns: ['gemini.google.com'],
     inputSelectors: ['div.ql-editor[contenteditable]'],
     submitSelectors: ['button.send-button'],
@@ -44,20 +48,22 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     name: 'Grok',
     url: 'https://grok.com/',
     enabled: true,
-    hostPatterns: ['grok.com', 'x.com', 'twitter.com'],
+    color: 'bg-purple-500',
+    hostPatterns: ['grok.com'],
     inputSelectors: ['textarea[dir="auto"]'],
     submitSelectors: ['form button[type="submit"]'],
   },
 
-  perplexity: {
-    id: 'perplexity',
-    name: 'Perplexity',
-    url: 'https://perplexity.ai/',
-    enabled: true,
-    hostPatterns: ['perplexity.ai'],
-    inputSelectors: ['div[contenteditable]'],
-    submitSelectors: ['button[data-testid="submit-button"]'],
-  },
+  // perplexity: {
+  //   id: 'perplexity',
+  //   name: 'Perplexity',
+  //   url: 'https://www.perplexity.ai/',
+  //   enabled: true,
+  //   color: 'bg-teal-500',
+  //   hostPatterns: ['perplexity.ai'],
+  //   inputSelectors: ['div#ask-input'],
+  //   submitSelectors: ['button[data-testid="submit-button"]'],
+  // },
 };
 
 export function getServiceByHostname(hostname: string): ServiceConfig | null {
@@ -67,4 +73,8 @@ export function getServiceByHostname(hostname: string): ServiceConfig | null {
     }
   }
   return null;
+}
+
+export function getServiceById(serviceId: string): ServiceConfig | null {
+  return SERVICE_CONFIGS[serviceId] || null;
 }

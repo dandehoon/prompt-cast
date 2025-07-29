@@ -1,6 +1,7 @@
 import React from 'react';
 import { AIService } from '../../shared/types';
 import { SERVICE_STATUS } from '../../shared/constants';
+import { getServiceById } from '../../shared/serviceConfig';
 
 interface SettingsProps {
   services: Record<string, AIService>;
@@ -9,18 +10,8 @@ interface SettingsProps {
 
 export function Settings({ services, onServiceToggle }: SettingsProps) {
   const getServiceLogoColor = (serviceId: string) => {
-    switch (serviceId) {
-      case 'chatgpt':
-        return 'bg-green-500';
-      case 'claude':
-        return 'bg-orange-500';
-      case 'gemini':
-        return 'bg-blue-500';
-      case 'grok':
-        return 'bg-purple-500';
-      default:
-        return 'bg-gray-500';
-    }
+    const serviceConfig = getServiceById(serviceId);
+    return serviceConfig?.color || 'bg-gray-500';
   };
 
   const getStatusColor = (status: string) => {
@@ -56,7 +47,7 @@ export function Settings({ services, onServiceToggle }: SettingsProps) {
       <h2 className="text-lg font-semibold text-ai-text">AI Services Settings</h2>
 
       <div className="space-y-3">
-        {(Object.values(services) as AIService[]).map((service) => (
+        {(Object.values(services)).map((service) => (
           <div
             key={service.id}
             className="flex items-center justify-between p-3 bg-ai-card border border-ai-border rounded-lg"

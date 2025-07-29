@@ -1,41 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ServiceConfig } from '../../shared/types';
+import { SERVICE_CONFIGS } from '../../shared/serviceConfig';
 import { ChromeMessaging } from '../../shared/messaging';
 import { logger } from '../../shared/logger';
 
-const defaultServices: ServiceConfig = {
-  chatgpt: {
-    id: 'chatgpt',
-    name: 'ChatGPT',
-    url: 'https://chatgpt.com/',
-    enabled: true,
-    status: 'disconnected',
-  },
-  claude: {
-    id: 'claude',
-    name: 'Claude',
-    url: 'https://claude.ai/',
-    enabled: true,
-    status: 'disconnected',
-  },
-  gemini: {
-    id: 'gemini',
-    name: 'Gemini',
-    url: 'https://gemini.google.com/',
-    enabled: true,
-    status: 'disconnected',
-  },
-  grok: {
-    id: 'grok',
-    name: 'Grok',
-    url: 'https://grok.com/',
-    enabled: true,
-    status: 'disconnected',
-  },
-};
+// Initialize services from centralized SERVICE_CONFIGS
+function createDefaultServices(): ServiceConfig {
+  const services: ServiceConfig = {};
+
+  Object.values(SERVICE_CONFIGS).forEach((config) => {
+    services[config.id] = {
+      id: config.id,
+      name: config.name,
+      url: config.url,
+      enabled: config.enabled,
+      status: 'disconnected',
+    };
+  });
+
+  return services;
+}
 
 export function useServices() {
-  const [services, setServices] = useState<ServiceConfig>(defaultServices);
+  const [services, setServices] = useState<ServiceConfig>(
+    createDefaultServices(),
+  );
 
   const refreshServiceStates = useCallback(async () => {
     try {
