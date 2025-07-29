@@ -58,19 +58,8 @@ export class ServiceManager {
       service.enabled = payload.enabled;
       await this.saveUserPreferences();
 
-      if (payload.enabled) {
-        // If enabling service, launch and focus the tab
-        try {
-          if (this.tabManager) {
-            await this.tabManager.focusTab(payload.serviceId);
-          }
-        } catch (error) {
-          logger.error(
-            `Failed to launch and focus tab for ${service.name}:`,
-            error,
-          );
-        }
-      } else if (service.tabId) {
+      // Only close tab when disabling service, don't open when enabling
+      if (!payload.enabled && service.tabId) {
         // If disabling service and has an open tab, close it
         try {
           await chrome.tabs.remove(service.tabId);

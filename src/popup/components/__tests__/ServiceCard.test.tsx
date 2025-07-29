@@ -30,30 +30,7 @@ describe('ServiceCard', () => {
     expect(screen.getByText('ChatGPT')).toBeInTheDocument();
   });
 
-  it('should have reduced opacity when disabled', () => {
-    const disabledService = { ...baseService, enabled: false };
-    const { container } = render(<ServiceCard {...defaultProps} service={disabledService} />);
-
-    const card = container.querySelector('.service-card');
-    expect(card).toHaveClass('opacity-50');
-  });
-
-  it('should have reduced opacity when disconnected', () => {
-    const { container } = render(<ServiceCard {...defaultProps} />);
-
-    const card = container.querySelector('.service-card');
-    expect(card).toHaveClass('opacity-50'); // disconnected state
-  });
-
-  it('should have full opacity when enabled and connected', () => {
-    const connectedService = { ...baseService, status: 'connected' as const };
-    const { container } = render(<ServiceCard {...defaultProps} service={connectedService} />);
-
-    const card = container.querySelector('.service-card');
-    expect(card).toHaveClass('opacity-100');
-  });
-
-  it('should have default cursor when disabled or disconnected', () => {
+  it('should have default cursor when disabled', () => {
     const disabledService = { ...baseService, enabled: false };
     const { container } = render(<ServiceCard {...defaultProps} service={disabledService} />);
 
@@ -61,12 +38,21 @@ describe('ServiceCard', () => {
     expect(card).toHaveClass('cursor-default');
   });
 
-  it('should have pointer cursor when enabled and connected', () => {
-    const connectedService = { ...baseService, status: 'connected' as const };
-    const { container } = render(<ServiceCard {...defaultProps} service={connectedService} />);
+  it('should have pointer cursor when enabled (regardless of connection status)', () => {
+    const { container } = render(<ServiceCard {...defaultProps} />);
 
     const card = container.querySelector('.service-card');
     expect(card).toHaveClass('cursor-pointer');
+  });
+
+  it('should call onFocusTab when clicking enabled service card (regardless of status)', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<ServiceCard {...defaultProps} />);
+
+    const card = container.querySelector('.service-card');
+    await user.click(card!);
+
+    expect(mockOnFocusTab).toHaveBeenCalledWith('chatgpt');
   });
 
   it('should call onFocusTab when clicking enabled and connected service card', async () => {
@@ -80,20 +66,21 @@ describe('ServiceCard', () => {
     expect(mockOnFocusTab).toHaveBeenCalledWith('chatgpt');
   });
 
-  it('should not call onFocusTab when clicking disabled service card', async () => {
+  it('should call onFocusTab when clicking enabled but loading service card', async () => {
     const user = userEvent.setup();
-    const disabledService = { ...baseService, enabled: false };
-    const { container } = render(<ServiceCard {...defaultProps} service={disabledService} />);
+    const loadingService = { ...baseService, status: 'loading' as const };
+    const { container } = render(<ServiceCard {...defaultProps} service={loadingService} />);
 
     const card = container.querySelector('.service-card');
     await user.click(card!);
 
-    expect(mockOnFocusTab).not.toHaveBeenCalled();
+    expect(mockOnFocusTab).toHaveBeenCalledWith('chatgpt');
   });
 
-  it('should not call onFocusTab when clicking disconnected service card', async () => {
+  it('should not call onFocusTab when clicking disabled service card', async () => {
     const user = userEvent.setup();
-    const { container } = render(<ServiceCard {...defaultProps} />);
+    const disabledService = { ...baseService, enabled: false };
+    const { container } = render(<ServiceCard {...defaultProps} service={disabledService} />);
 
     const card = container.querySelector('.service-card');
     await user.click(card!);

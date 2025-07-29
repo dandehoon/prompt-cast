@@ -24,20 +24,17 @@ export function ServiceCard({ service, onFocusTab }: ServiceCardProps) {
   };
 
   const handleCardClick = () => {
-    // Focus the service tab if enabled and connected
-    if (service.enabled && service.status === SERVICE_STATUS.CONNECTED) {
+    // Focus the service tab if enabled (regardless of connection status)
+    if (service.enabled) {
       onFocusTab(service.id);
     }
   };
 
-  // Lower brightness when disabled or not connected
-  const isInactive = !service.enabled || service.status !== SERVICE_STATUS.CONNECTED;
-  const cardOpacity = isInactive ? 'opacity-50' : 'opacity-100';
-  const cursorStyle = service.enabled && service.status === SERVICE_STATUS.CONNECTED ? 'cursor-pointer' : 'cursor-default';
+  const cursorStyle = service.enabled ? 'cursor-pointer' : 'cursor-default';
 
   return (
     <div
-      className={`service-card bg-ai-card border border-ai-border rounded-lg p-3 transition-all ${cardOpacity} ${cursorStyle}`}
+      className={`service-card bg-ai-card border border-ai-border rounded-lg p-3 transition-all ${cursorStyle}`}
       onClick={handleCardClick}
     >
       <div className="flex items-center justify-between">
