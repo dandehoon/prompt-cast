@@ -4,7 +4,6 @@ import { AIService, AIServiceId } from '../../shared/types';
 
 interface AIServicesSectionProps {
   services: Record<AIServiceId, AIService>;
-  onServiceToggle: (serviceId: AIServiceId, enabled: boolean) => void;
   onFocusTab: (serviceId: AIServiceId) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;
@@ -12,7 +11,6 @@ interface AIServicesSectionProps {
 
 export function AIServicesSection({
   services,
-  onServiceToggle,
   onFocusTab,
   onCloseAllTabs,
   closeAllLoading,
@@ -37,14 +35,15 @@ export function AIServicesSection({
         </button>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {(Object.values(services) as AIService[]).map((service) => (
-          <ServiceCard
-            key={service.id}
-            service={service}
-            onToggle={onServiceToggle}
-            onFocusTab={onFocusTab}
-          />
-        ))}
+        {(Object.values(services) as AIService[])
+          .filter(service => service.enabled)
+          .map((service) => (
+            <ServiceCard
+              key={service.id}
+              service={service}
+              onFocusTab={onFocusTab}
+            />
+          ))}
       </div>
     </div>
   );

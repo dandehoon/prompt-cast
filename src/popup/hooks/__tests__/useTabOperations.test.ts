@@ -111,9 +111,36 @@ describe('useTabOperations', () => {
     expect(mockRefreshServiceStates).toHaveBeenCalled();
   });
 
-  it('should handle focus tab for disconnected service', async () => {
-    mockChromeMessaging.sendMessage.mockResolvedValue({ success: true });
+  it('should handle focus tab for disabled service', async () => {
     const { result } = renderHook(() => useTabOperations(defaultProps));
+
+    await act(async () => {
+      result.current.handleFocusTab('claude');
+    });
+
+    expect(mockShowToast).toHaveBeenCalledWith('Claude is disabled', 'error');
+    expect(mockChromeMessaging.sendMessage).not.toHaveBeenCalled();
+    expect(mockRefreshServiceStates).not.toHaveBeenCalled();
+  });
+
+  it('should handle focus tab for enabled but disconnected service', async () => {
+    // Create services with an enabled but disconnected service
+    const servicesWithEnabledDisconnected = {
+      ...mockServices,
+      claude: {
+        ...mockServices.claude,
+        enabled: true,
+        status: 'disconnected' as const,
+      },
+    };
+
+    mockChromeMessaging.sendMessage.mockResolvedValue({ success: true });
+    const { result } = renderHook(() =>
+      useTabOperations({
+        ...defaultProps,
+        services: servicesWithEnabledDisconnected,
+      }),
+    );
 
     await act(async () => {
       result.current.handleFocusTab('claude');

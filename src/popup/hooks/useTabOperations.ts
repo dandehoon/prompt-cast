@@ -66,6 +66,12 @@ export function useTabOperations({
       try {
         const service = services[serviceId];
 
+        // Don't focus disabled services
+        if (!service.enabled) {
+          showToast(`${service.name} is disabled`, 'error');
+          return;
+        }
+
         if (service.status === 'disconnected') {
           showToast(`Opening ${service.name}...`, 'info');
         }

@@ -46,7 +46,10 @@ export class TabManager {
 
   async focusTab(serviceId: string): Promise<void> {
     const service = this.services[serviceId];
-    if (!service) return;
+    if (!service || !service.enabled) {
+      logger.warn(`Cannot focus tab for disabled service: ${serviceId}`);
+      return;
+    }
 
     try {
       if (service.status === 'disconnected') {

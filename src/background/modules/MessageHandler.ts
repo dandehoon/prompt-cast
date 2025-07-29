@@ -23,8 +23,9 @@ export class MessageHandler {
   private async openAllTabsWithInstantFocus(
     payload: SendMessagePayload,
   ): Promise<void> {
-    const enabledServices = Object.entries(this.services).filter(
-      ([_, service]) => service.enabled,
+    // Only open tabs for services that are both enabled and requested for this message
+    const servicesToOpen = payload.services.filter(
+      (serviceId) => this.services[serviceId]?.enabled,
     );
 
     let focusApplied = false;
@@ -38,7 +39,7 @@ export class MessageHandler {
     if (currentTab[0]) {
       const currentUrl = currentTab[0].url || '';
       // Check if current tab belongs to any AI service that's in the enabled list for this message
-      for (const serviceId of payload.services) {
+      for (const serviceId of servicesToOpen) {
         const service = this.services[serviceId];
         if (
           service &&
@@ -51,16 +52,15 @@ export class MessageHandler {
       }
     }
 
-    // Open all tabs concurrently, but focus the first one immediately
-    const openPromises = enabledServices.map(async ([serviceId, service]) => {
+    // Open only the required tabs concurrently, but focus the first one immediately
+    const openPromises = servicesToOpen.map(async (serviceId) => {
+      const service = this.services[serviceId];
+      if (!service) return;
+
       await this.tabManager.openOrFocusTab(service, false);
 
       // Focus the first available service immediately after it opens (if no current focus)
-      if (
-        !focusApplied &&
-        payload.services.includes(serviceId) &&
-        service.tabId
-      ) {
+      if (!focusApplied && service.tabId) {
         await this.tabManager.focusTab(serviceId);
         focusApplied = true;
       }

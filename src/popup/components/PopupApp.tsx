@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppHeader } from './AppHeader';
-import { AIServicesSection } from './AIServicesSection';
-import { MessageSection } from './MessageSection';
+import { Home } from './Home';
+import { Settings } from './Settings';
 import { useServices } from '../hooks/useServices';
 import { useStorage } from '../hooks/useStorage';
 import { useToast } from '../hooks/useToast';
 import { useMessageHandler } from '../hooks/useMessageHandler';
 import { useTabOperations } from '../hooks/useTabOperations';
-import { AIServiceId } from '../../shared/types';
+import { AIServiceId, TabId } from '../../shared/types';
 
 export function PopupApp() {
   const [message, setMessage] = useState('');
+  const [activeTab, setActiveTab] = useState<TabId>('home');
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const {
@@ -76,27 +77,35 @@ export function PopupApp() {
   return (
     <div className="w-80 min-h-0 bg-ai-dark text-ai-text">
       <div className="flex flex-col">
-        <AppHeader toasts={toasts} isLoading={isLoading} />
-
-        <main className="p-4 space-y-4">
-          <AIServicesSection
-            services={services}
-            onServiceToggle={handleServiceToggle}
-            onFocusTab={handleFocusTab}
-            onCloseAllTabs={handleCloseAllTabs}
-            closeAllLoading={closeAllLoading}
-          />
-        </main>
-
-        <MessageSection
-          message={message}
-          onMessageChange={setMessage}
-          onSend={onSendMessage}
-          sendLoading={sendLoading}
-          messageInputRef={messageInputRef}
-          connectedCount={connectedCount}
-          enabledCount={enabledCount}
-        />
+        <AppHeader
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />        <div className="flex-1">
+          {activeTab === 'home' ? (
+            <Home
+              services={services}
+              onFocusTab={handleFocusTab}
+              onCloseAllTabs={handleCloseAllTabs}
+              closeAllLoading={closeAllLoading}
+              message={message}
+              onMessageChange={setMessage}
+              onSend={onSendMessage}
+              sendLoading={sendLoading}
+              messageInputRef={messageInputRef}
+              toasts={toasts}
+              isLoading={isLoading}
+              connectedCount={connectedCount}
+              enabledCount={enabledCount}
+            />
+          ) : (
+            <main className="p-4">
+              <Settings
+                services={services}
+                onServiceToggle={handleServiceToggle}
+              />
+            </main>
+          )}
+        </div>
       </div>
     </div>
   );

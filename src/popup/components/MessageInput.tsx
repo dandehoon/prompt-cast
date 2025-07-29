@@ -44,9 +44,6 @@ export const MessageInput = forwardRef<HTMLTextAreaElement, MessageInputProps>((
         disabled={disabled}
         className="w-full h-20 p-3 bg-ai-card border border-ai-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-ai-text placeholder-ai-text-secondary disabled:opacity-50 disabled:cursor-not-allowed"
       />
-      <div className="text-xs text-ai-text-secondary">
-        Press Enter to send, Shift+Enter for new line
-      </div>
     </div>
   );
 });

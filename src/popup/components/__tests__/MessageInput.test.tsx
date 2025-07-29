@@ -11,7 +11,7 @@ describe('MessageInput', () => {
     jest.clearAllMocks();
   });
 
-  it('should render textarea with label and hint', () => {
+  it('should render textarea with label', () => {
     render(
       <MessageInput
         value=""
@@ -22,7 +22,6 @@ describe('MessageInput', () => {
     );
 
     expect(screen.getByLabelText('Prompt')).toBeInTheDocument();
-    expect(screen.getByText('Press Enter to send, Shift+Enter for new line')).toBeInTheDocument();
   });
 
   it('should call onChange when typing', async () => {

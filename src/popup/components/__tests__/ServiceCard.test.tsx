@@ -5,7 +5,6 @@ import { ServiceCard } from '../ServiceCard';
 import { AIService } from '../../../shared/types';
 
 describe('ServiceCard', () => {
-  const mockOnToggle = jest.fn();
   const mockOnFocusTab = jest.fn();
 
   const baseService: AIService = {
@@ -18,7 +17,6 @@ describe('ServiceCard', () => {
 
   const defaultProps = {
     service: baseService,
-    onToggle: mockOnToggle,
     onFocusTab: mockOnFocusTab,
   };
 
@@ -30,21 +28,6 @@ describe('ServiceCard', () => {
     render(<ServiceCard {...defaultProps} />);
 
     expect(screen.getByText('ChatGPT')).toBeInTheDocument();
-  });
-
-  it('should be enabled by default', () => {
-    render(<ServiceCard {...defaultProps} />);
-
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toBeChecked();
-  });
-
-  it('should show disabled state', () => {
-    const disabledService = { ...baseService, enabled: false };
-    render(<ServiceCard {...defaultProps} service={disabledService} />);
-
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).not.toBeChecked();
   });
 
   it('should have reduced opacity when disabled', () => {
@@ -70,28 +53,34 @@ describe('ServiceCard', () => {
     expect(card).toHaveClass('opacity-100');
   });
 
-  it('should call onToggle when checkbox clicked', async () => {
-    const user = userEvent.setup();
-    render(<ServiceCard {...defaultProps} />);
-
-    const checkbox = screen.getByRole('checkbox');
-    await user.click(checkbox);
-
-    expect(mockOnToggle).toHaveBeenCalledWith('chatgpt', false);
-  });
-
-  it('should call onToggle when enabling disabled service', async () => {
-    const user = userEvent.setup();
+  it('should have default cursor when disabled or disconnected', () => {
     const disabledService = { ...baseService, enabled: false };
-    render(<ServiceCard {...defaultProps} service={disabledService} />);
+    const { container } = render(<ServiceCard {...defaultProps} service={disabledService} />);
 
-    const checkbox = screen.getByRole('checkbox');
-    await user.click(checkbox);
-
-    expect(mockOnToggle).toHaveBeenCalledWith('chatgpt', true);
+    const card = container.querySelector('.service-card');
+    expect(card).toHaveClass('cursor-default');
   });
 
-  it('should call onToggle when clicking disabled service card', async () => {
+  it('should have pointer cursor when enabled and connected', () => {
+    const connectedService = { ...baseService, status: 'connected' as const };
+    const { container } = render(<ServiceCard {...defaultProps} service={connectedService} />);
+
+    const card = container.querySelector('.service-card');
+    expect(card).toHaveClass('cursor-pointer');
+  });
+
+  it('should call onFocusTab when clicking enabled and connected service card', async () => {
+    const user = userEvent.setup();
+    const connectedService = { ...baseService, status: 'connected' as const };
+    const { container } = render(<ServiceCard {...defaultProps} service={connectedService} />);
+
+    const card = container.querySelector('.service-card');
+    await user.click(card!);
+
+    expect(mockOnFocusTab).toHaveBeenCalledWith('chatgpt');
+  });
+
+  it('should not call onFocusTab when clicking disabled service card', async () => {
     const user = userEvent.setup();
     const disabledService = { ...baseService, enabled: false };
     const { container } = render(<ServiceCard {...defaultProps} service={disabledService} />);
@@ -99,29 +88,46 @@ describe('ServiceCard', () => {
     const card = container.querySelector('.service-card');
     await user.click(card!);
 
-    expect(mockOnToggle).toHaveBeenCalledWith('chatgpt', true);
     expect(mockOnFocusTab).not.toHaveBeenCalled();
   });
 
-  it('should call onFocusTab when clicking enabled service card', async () => {
+  it('should not call onFocusTab when clicking disconnected service card', async () => {
     const user = userEvent.setup();
     const { container } = render(<ServiceCard {...defaultProps} />);
 
     const card = container.querySelector('.service-card');
     await user.click(card!);
 
-    expect(mockOnFocusTab).toHaveBeenCalledWith('chatgpt');
-    expect(mockOnToggle).not.toHaveBeenCalled();
+    expect(mockOnFocusTab).not.toHaveBeenCalled();
   });
 
-  it('should not call onFocusTab when clicking on toggle', async () => {
-    const user = userEvent.setup();
-    render(<ServiceCard {...defaultProps} />);
+  it('should display status indicator dot', () => {
+    const { container } = render(<ServiceCard {...defaultProps} />);
 
-    const checkbox = screen.getByRole('checkbox');
-    await user.click(checkbox);
+    const statusDot = container.querySelector('.w-2.h-2.rounded-full');
+    expect(statusDot).toBeInTheDocument();
+  });
 
-    expect(mockOnFocusTab).not.toHaveBeenCalled();
-    expect(mockOnToggle).toHaveBeenCalled();
+  it('should show green status dot for connected service', () => {
+    const connectedService = { ...baseService, status: 'connected' as const };
+    const { container } = render(<ServiceCard {...defaultProps} service={connectedService} />);
+
+    const statusDot = container.querySelector('.bg-green-500');
+    expect(statusDot).toBeInTheDocument();
+  });
+
+  it('should show yellow status dot for loading service', () => {
+    const loadingService = { ...baseService, status: 'loading' as const };
+    const { container } = render(<ServiceCard {...defaultProps} service={loadingService} />);
+
+    const statusDot = container.querySelector('.bg-yellow-500');
+    expect(statusDot).toBeInTheDocument();
+  });
+
+  it('should show gray status dot for disconnected service', () => {
+    const { container } = render(<ServiceCard {...defaultProps} />);
+
+    const statusDot = container.querySelector('.bg-gray-500');
+    expect(statusDot).toBeInTheDocument();
   });
 });

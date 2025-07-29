@@ -1,6 +1,7 @@
 import React, { RefObject } from 'react';
 import { MessageInput } from './MessageInput';
-import { StatusBar } from './StatusBar';
+import { StatusIndicator } from './StatusIndicator';
+import { ToastMessage } from '../../shared/types';
 
 interface MessageSectionProps {
   message: string;
@@ -8,6 +9,8 @@ interface MessageSectionProps {
   onSend: () => void;
   sendLoading: boolean;
   messageInputRef: RefObject<HTMLTextAreaElement>;
+  toasts: ToastMessage[];
+  isLoading: boolean;
   connectedCount: number;
   enabledCount: number;
 }
@@ -18,6 +21,8 @@ export function MessageSection({
   onSend,
   sendLoading,
   messageInputRef,
+  toasts,
+  isLoading,
   connectedCount,
   enabledCount,
 }: MessageSectionProps) {
@@ -25,13 +30,17 @@ export function MessageSection({
 
   return (
     <footer className="p-4 border-t border-ai-border space-y-3">
-      <MessageInput
-        ref={messageInputRef}
-        value={message}
-        onChange={onMessageChange}
-        onSend={onSend}
-        disabled={sendLoading}
-      />
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <MessageInput
+            ref={messageInputRef}
+            value={message}
+            onChange={onMessageChange}
+            onSend={onSend}
+            disabled={sendLoading}
+          />
+        </div>
+      </div>
 
       <button
         onClick={onSend}
@@ -41,7 +50,14 @@ export function MessageSection({
         {sendLoading ? 'Sending...' : 'Send'}
       </button>
 
-      <StatusBar connectedCount={connectedCount} enabledCount={enabledCount} />
+      <div className="flex items-center justify-end">
+        <StatusIndicator
+          toasts={toasts}
+          isLoading={isLoading}
+          connectedCount={connectedCount}
+          enabledCount={enabledCount}
+        />
+      </div>
     </footer>
   );
 }

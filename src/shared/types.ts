@@ -50,9 +50,6 @@ export interface ServiceTogglePayload {
   enabled: boolean;
 }
 
-// Service Selectors for Content Script (DEPRECATED - moved to serviceConfig.ts)
-// export type ServiceSelectors = Record<AIServiceId, string[]>;
-
 // Storage Types
 export interface UserPreferences {
   services: Partial<Record<AIServiceId, { enabled: boolean }>>;
@@ -65,4 +62,13 @@ export interface ToastMessage {
   message: string;
   type: ToastType;
   duration?: number;
+}
+
+// Tab Types
+export type TabId = 'home' | 'settings';
+
+export interface Tab {
+  id: TabId;
+  label: string;
+  icon?: string;
 }

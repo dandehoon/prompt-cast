@@ -1,20 +1,34 @@
 import React from 'react';
-import { StatusIndicator } from './StatusIndicator';
-import { ToastMessage } from '../../shared/types';
+import { TabId } from '../../shared/types';
 
 interface AppHeaderProps {
-  toasts: ToastMessage[];
-  isLoading: boolean;
+  activeTab: TabId;
+  onTabChange: (tabId: TabId) => void;
 }
 
-export function AppHeader({ toasts, isLoading }: AppHeaderProps) {
+const tabs: { id: TabId; label: string; icon: string }[] = [
+  { id: 'home', label: 'Home', icon: '🏠' },
+  { id: 'settings', label: 'Settings', icon: '⚙️' },
+];
+
+export function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
   return (
-    <header className="flex items-center justify-between p-3 border-b border-ai-border">
-      <div className="flex items-center space-x-2">
-        <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-600 rounded"></div>
-        <h1 className="text-base font-semibold">Prompt Cast</h1>
+    <header className="border-b border-ai-border">
+      <div className="flex">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 text-sm font-medium transition-colors focus:outline-none focus:ring-0 ${activeTab === tab.id
+                ? 'bg-ai-card text-ai-text border-b-2 border-blue-500'
+                : 'text-ai-text-secondary hover:text-ai-text hover:bg-ai-card'
+              }`}
+          >
+            <span className="text-base">{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
       </div>
-      <StatusIndicator toasts={toasts} isLoading={isLoading} />
     </header>
   );
 }

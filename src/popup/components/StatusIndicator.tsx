@@ -5,15 +5,30 @@ import { ToastMessage } from '../../shared/types';
 interface StatusIndicatorProps {
   toasts: ToastMessage[];
   isLoading?: boolean;
+  connectedCount?: number;
+  enabledCount?: number;
 }
 
-export function StatusIndicator({ toasts, isLoading }: StatusIndicatorProps) {
+export function StatusIndicator({ toasts, isLoading, connectedCount = 0, enabledCount = 0 }: StatusIndicatorProps) {
   const latestToast = toasts[toasts.length - 1];
 
-  // Hide indicator when inactive (no loading and no toasts)
-  if (!isLoading && !latestToast) {
+  // Hide indicator when inactive (no loading and no toasts and no services)
+  if (!isLoading && !latestToast && enabledCount === 0) {
     return null;
   }
+
+  const getDefaultMessage = () => {
+    if (isLoading) {
+      return 'Loading...';
+    }
+    if (enabledCount === 0) {
+      return 'No services enabled';
+    }
+    if (connectedCount === 0) {
+      return `${enabledCount} services enabled`;
+    }
+    return `${connectedCount}/${enabledCount} services ready`;
+  };
 
   const getStatusIcon = () => {
     if (isLoading) {
@@ -58,13 +73,23 @@ export function StatusIndicator({ toasts, isLoading }: StatusIndicatorProps) {
   };
 
   return (
-    <div className="relative">
-      {getStatusIcon()}
+    <div className="flex items-center space-x-2">
+      {/* Always show status message on the left */}
+      <span className="text-xs text-ai-text-secondary max-w-48 truncate">
+        {latestToast ? latestToast.message : getDefaultMessage()}
+      </span>
 
-      {/* Toast count badge */}
-      {toasts.length > 1 && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-          <span className="text-white text-xs font-bold leading-none">{toasts.length}</span>
+      {/* Only show icon when there are toasts */}
+      {latestToast && (
+        <div className="relative">
+          {getStatusIcon()}
+
+          {/* Toast count badge */}
+          {toasts.length > 1 && (
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-bold leading-none">{toasts.length}</span>
+            </div>
+          )}
         </div>
       )}
     </div>
