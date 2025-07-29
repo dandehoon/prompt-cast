@@ -1,5 +1,9 @@
 # Prompt Cast
 
+[![Test](https://github.com/dandehoon/prompt-cast/actions/workflows/test.yml/badge.svg)](https://github.com/dandehoon/prompt-cast/actions/workflows/test.yml)
+[![Version](https://img.shields.io/github/v/release/dandehoon/prompt-cast)](https://github.com/dandehoon/prompt-cast/releases)
+[![License](https://img.shields.io/github/license/dandehoon/prompt-cast)](LICENSE)
+
 Chrome extension for sending messages to multiple AI services simultaneously with React TSX interface.
 
 ## Features
@@ -53,10 +57,43 @@ src/
 ## Development
 
 ```bash
-pnpm run build        # Production
-pnpm run watch        # Development
-pnpm run type-check   # TypeScript
+# Install dependencies
+pnpm install
+
+# Development with hot reload
+pnpm run watch
+
+# Build for production
+pnpm run build
+
+# Type check
+pnpm run type-check
+
+# Run tests
+pnpm run test
+
+# Run tests in watch mode
+pnpm run test:watch
+
+# Run tests with coverage
+pnpm run test:coverage
+
+# Lint and fix
+pnpm run lint
+
+# Run all checks (type-check + lint + test + build)
+pnpm check
 ```
+
+### Quality Control
+
+Before submitting PRs, always run:
+
+```bash
+pnpm check
+```
+
+This runs the complete pipeline: type checking, linting, testing, and building.
 
 ## Tech Stack
 

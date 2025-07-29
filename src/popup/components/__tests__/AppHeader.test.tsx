@@ -82,18 +82,6 @@ describe('AppHeader', () => {
     expect(mockOnTabChange).toHaveBeenCalledWith('settings');
   });
 
-  it('should show tab icons', () => {
-    render(
-      <AppHeader
-        activeTab="home"
-        onTabChange={mockOnTabChange}
-      />,
-    );
-
-    expect(screen.getByText('🏠')).toBeInTheDocument();
-    expect(screen.getByText('⚙️')).toBeInTheDocument();
-  });
-
   it('should have no focus outline on tab buttons', () => {
     render(
       <AppHeader

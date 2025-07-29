@@ -22,7 +22,7 @@ export function AIServicesSection({
         <button
           onClick={onCloseAllTabs}
           disabled={closeAllLoading}
-          className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-1 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           title="Close All AI Tabs"
         >
           {closeAllLoading ? (
