@@ -18,12 +18,14 @@ Chrome extension for sending messages to multiple AI services simultaneously wit
 ## Quick Start
 
 ```bash
-git clone <repo>
+git clone https://github.com/dandehoon/prompt-cast
 cd prompt-cast
 pnpm install && pnpm run build
 ```
 
-Load in Chrome: `chrome://extensions/` → "Load unpacked" → select folder
+Load in Chrome: `chrome://extensions/` → "Load unpacked" → select the `dist` folder
+
+The extension will appear in your toolbar with the Prompt Cast icon.
 
 ## Usage
 
@@ -36,6 +38,7 @@ Load in Chrome: `chrome://extensions/` → "Load unpacked" → select folder
 
 ```
 src/
+├── manifest.json
 ├── shared/           # Types & utilities
 ├── popup/
 │   ├── components/   # React TSX components
