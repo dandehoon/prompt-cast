@@ -7,7 +7,7 @@ interface AppHeaderProps {
 }
 
 const tabs: { id: TabId; label: string }[] = [
-  { id: 'home', label: 'Home' },
+  { id: 'home', label: 'Compose' },
   { id: 'settings', label: 'Settings' },
 ];
 
