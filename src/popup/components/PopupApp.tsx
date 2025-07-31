@@ -64,10 +64,8 @@ export function PopupApp() {
   // Save message to storage when it changes (debounced)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (message.trim()) {
-        updateLastMessage(message);
-      }
-    }, 500); // 500ms debounce
+      updateLastMessage(message);
+    }, 200);
 
     return () => window.clearTimeout(timeoutId);
   }, [message, updateLastMessage]);
@@ -87,6 +85,8 @@ export function PopupApp() {
     const success = await handleSendMessage(message);
     if (success) {
       setMessage('');
+      // Clear the saved message from storage when successfully sent
+      updateLastMessage('');
     }
   };
 
