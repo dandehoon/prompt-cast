@@ -50,10 +50,13 @@ describe('ThemeSelector', () => {
     expect(darkRadio).toBeChecked();
   });
 
-  it('should show auto description', () => {
+  it('should show auto theme icon', () => {
     render(<ThemeSelector {...defaultProps} />);
 
-    expect(screen.getByText(/Automatically switch between light and dark/)).toBeInTheDocument();
+    // Check that auto theme has the split light/dark preview icon
+    const { container } = render(<ThemeSelector {...defaultProps} />);
+    expect(container.querySelector('.bg-ai-warning')).toBeInTheDocument();
+    expect(container.querySelector('.bg-ai-text-disabled')).toBeInTheDocument();
   });
 
   it.skip('should call onThemeChange when option is clicked', () => {
