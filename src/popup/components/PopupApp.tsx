@@ -7,6 +7,7 @@ import { useStorage } from '../hooks/useStorage';
 import { useToast } from '../hooks/useToast';
 import { useMessageHandler } from '../hooks/useMessageHandler';
 import { useTabOperations } from '../hooks/useTabOperations';
+import { useTheme } from '../hooks/useTheme';
 import { TabId } from '../../shared/types';
 
 export function PopupApp() {
@@ -25,6 +26,7 @@ export function PopupApp() {
 
   const { preferences, updateServiceEnabled } = useStorage();
   const { toasts, showToast } = useToast();
+  const { currentTheme, themeOptions, changeTheme } = useTheme();
 
   const { sendLoading, handleSendMessage } = useMessageHandler({
     getEnabledServices,
@@ -75,7 +77,7 @@ export function PopupApp() {
   const isLoading = sendLoading || closeAllLoading;
 
   return (
-    <div className="w-80 min-h-0 bg-ai-dark text-ai-text">
+    <div className="w-80 min-h-0 bg-ai-bg-primary text-ai-text-primary">
       <div className="flex flex-col">
         <AppHeader
           activeTab={activeTab}
@@ -102,6 +104,9 @@ export function PopupApp() {
               <Settings
                 services={services}
                 onServiceToggle={handleServiceToggle}
+                currentTheme={currentTheme}
+                themeOptions={themeOptions}
+                onThemeChange={changeTheme}
               />
             </main>
           )}

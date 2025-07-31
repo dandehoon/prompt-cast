@@ -3,6 +3,7 @@ import {
   ContentMessageType,
   ToastType,
   ServiceStatusType,
+  ThemeOption,
 } from './constants';
 
 // Chrome Extension Message Types
@@ -51,6 +52,7 @@ export interface ServiceTogglePayload {
 export interface UserPreferences {
   services: Partial<Record<string, { enabled: boolean }>>;
   lastMessage?: string;
+  theme?: ThemeOption;
 }
 
 // UI State Types

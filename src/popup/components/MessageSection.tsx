@@ -45,7 +45,7 @@ export function MessageSection({
       <button
         onClick={onSend}
         disabled={!hasMessage || sendLoading}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        className="w-full bg-ai-accent hover:bg-ai-accent-hover disabled:bg-ai-text-disabled disabled:cursor-not-allowed text-ai-text-inverted px-4 py-2 rounded-lg text-sm font-medium transition-colors"
       >
         {sendLoading ? 'Sending...' : 'Send'}
       </button>

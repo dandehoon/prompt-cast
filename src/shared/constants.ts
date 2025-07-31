@@ -41,6 +41,13 @@ export const SERVICE_STATUS = {
   ERROR: 'error',
 } as const;
 
+// Theme Types
+export const THEME_OPTIONS = {
+  AUTO: 'auto',
+  LIGHT: 'light',
+  DARK: 'dark',
+} as const;
+
 // Export type definitions for TypeScript
 export type ExtensionMessageType =
   (typeof EXTENSION_MESSAGE_TYPES)[keyof typeof EXTENSION_MESSAGE_TYPES];
@@ -49,3 +56,4 @@ export type ContentMessageType =
 export type ToastType = (typeof TOAST_TYPES)[keyof typeof TOAST_TYPES];
 export type ServiceStatusType =
   (typeof SERVICE_STATUS)[keyof typeof SERVICE_STATUS];
+export type ThemeOption = (typeof THEME_OPTIONS)[keyof typeof THEME_OPTIONS];

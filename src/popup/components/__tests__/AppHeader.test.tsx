@@ -18,7 +18,7 @@ describe('AppHeader', () => {
       />,
     );
 
-    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getByText('Compose')).toBeInTheDocument();
     expect(screen.getByText('Settings')).toBeInTheDocument();
   });
 
@@ -30,10 +30,10 @@ describe('AppHeader', () => {
       />,
     );
 
-    const homeTab = screen.getByText('Home').closest('button');
+    const homeTab = screen.getByText('Compose').closest('button');
     const settingsTab = screen.getByText('Settings').closest('button');
 
-    expect(homeTab).toHaveClass('bg-ai-card', 'text-ai-text', 'border-b-2', 'border-blue-500');
+    expect(homeTab).toHaveClass('bg-ai-bg-card', 'text-ai-text-primary', 'border-b-2', 'border-ai-accent');
     expect(settingsTab).toHaveClass('text-ai-text-secondary');
   });
 
@@ -45,10 +45,10 @@ describe('AppHeader', () => {
       />,
     );
 
-    const homeTab = screen.getByText('Home').closest('button');
+    const homeTab = screen.getByText('Compose').closest('button');
     const settingsTab = screen.getByText('Settings').closest('button');
 
-    expect(settingsTab).toHaveClass('bg-ai-card', 'text-ai-text', 'border-b-2', 'border-blue-500');
+    expect(settingsTab).toHaveClass('bg-ai-bg-card', 'text-ai-text-primary', 'border-b-2', 'border-ai-accent');
     expect(homeTab).toHaveClass('text-ai-text-secondary');
   });
 
@@ -61,7 +61,7 @@ describe('AppHeader', () => {
       />,
     );
 
-    const homeTab = screen.getByText('Home');
+    const homeTab = screen.getByText('Compose');
     await user.click(homeTab);
 
     expect(mockOnTabChange).toHaveBeenCalledWith('home');
@@ -90,7 +90,7 @@ describe('AppHeader', () => {
       />,
     );
 
-    const homeTab = screen.getByText('Home').closest('button');
+    const homeTab = screen.getByText('Compose').closest('button');
     expect(homeTab).toHaveClass('focus:outline-none', 'focus:ring-0');
   });
 });

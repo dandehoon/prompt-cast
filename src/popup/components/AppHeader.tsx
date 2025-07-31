@@ -20,8 +20,8 @@ export function AppHeader({ activeTab, onTabChange }: AppHeaderProps) {
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={`flex-1 flex items-center justify-center py-2 px-4 text-sm font-medium transition-colors focus:outline-none focus:ring-0 ${activeTab === tab.id
-              ? 'bg-ai-card text-ai-text border-b-2 border-blue-500'
-              : 'text-ai-text-secondary hover:text-ai-text hover:bg-ai-card'
+              ? 'bg-ai-bg-card text-ai-text-primary border-b-2 border-ai-accent'
+              : 'text-ai-text-secondary hover:text-ai-text-primary hover:bg-ai-bg-card'
               }`}
           >
             <span>{tab.label}</span>

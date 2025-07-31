@@ -99,7 +99,7 @@ describe('ServiceCard', () => {
     const connectedService = { ...baseService, status: 'connected' as const };
     const { container } = render(<ServiceCard {...defaultProps} service={connectedService} />);
 
-    const statusDot = container.querySelector('.bg-green-500');
+    const statusDot = container.querySelector('.bg-ai-success');
     expect(statusDot).toBeInTheDocument();
   });
 
@@ -107,14 +107,14 @@ describe('ServiceCard', () => {
     const loadingService = { ...baseService, status: 'loading' as const };
     const { container } = render(<ServiceCard {...defaultProps} service={loadingService} />);
 
-    const statusDot = container.querySelector('.bg-yellow-500');
+    const statusDot = container.querySelector('.bg-ai-warning');
     expect(statusDot).toBeInTheDocument();
   });
 
   it('should show gray status dot for disconnected service', () => {
     const { container } = render(<ServiceCard {...defaultProps} />);
 
-    const statusDot = container.querySelector('.bg-gray-500');
+    const statusDot = container.querySelector('.bg-ai-text-disabled');
     expect(statusDot).toBeInTheDocument();
   });
 });
