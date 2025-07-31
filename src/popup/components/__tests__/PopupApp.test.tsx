@@ -134,7 +134,7 @@ describe('PopupApp', () => {
 
   it('should save empty string when message is cleared', async () => {
     const user = userEvent.setup();
-    
+
     // Mock initial preferences with a saved message
     mockUseStorage.mockReturnValue({
       preferences: { sites: {}, lastMessage: 'Previous message' },
@@ -190,7 +190,7 @@ describe('PopupApp', () => {
 
     // Type a message
     await user.type(messageInput, 'Test message');
-    
+
     // Send the message
     await user.click(sendButton);
 
@@ -201,7 +201,7 @@ describe('PopupApp', () => {
 
     // Should clear local state
     expect(messageInput).toHaveValue('');
-    
+
     // Should clear storage
     expect(mockUpdateLastMessage).toHaveBeenCalledWith('');
   });
@@ -217,7 +217,7 @@ describe('PopupApp', () => {
 
     // Type a message
     await user.type(messageInput, 'Test message');
-    
+
     // Send the message (will fail)
     await user.click(sendButton);
 
@@ -228,7 +228,7 @@ describe('PopupApp', () => {
 
     // Should keep the message
     expect(messageInput).toHaveValue('Test message');
-    
+
     // Should not clear storage
     expect(mockUpdateLastMessage).not.toHaveBeenCalledWith('');
   });
@@ -260,13 +260,13 @@ describe('PopupApp', () => {
 
     // Switch to settings
     await user.click(screen.getByText('Settings'));
-    
+
     expect(screen.queryByTestId('compose')).not.toBeInTheDocument();
     expect(screen.getByTestId('settings')).toBeInTheDocument();
 
     // Switch back to home
     await user.click(screen.getByText('Home'));
-    
+
     expect(screen.getByTestId('compose')).toBeInTheDocument();
     expect(screen.queryByTestId('settings')).not.toBeInTheDocument();
   });
