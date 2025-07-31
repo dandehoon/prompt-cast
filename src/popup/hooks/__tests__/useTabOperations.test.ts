@@ -11,12 +11,12 @@ const mockChromeMessaging = ChromeMessaging as jest.Mocked<
 >;
 
 describe('useTabOperations', () => {
-  const mockToggleService = jest.fn();
-  const mockUpdateServiceEnabled = jest.fn();
-  const mockRefreshServiceStates = jest.fn();
+  const mockToggleSite = jest.fn();
+  const mockUpdateSiteEnabled = jest.fn();
+  const mockRefreshSiteStates = jest.fn();
   const mockShowToast = jest.fn();
 
-  const mockServices = {
+  const mockSites = {
     chatgpt: {
       id: 'chatgpt',
       name: 'ChatGPT',
@@ -48,53 +48,53 @@ describe('useTabOperations', () => {
   };
 
   const defaultProps = {
-    services: mockServices,
-    toggleService: mockToggleService,
-    updateServiceEnabled: mockUpdateServiceEnabled,
-    refreshServiceStates: mockRefreshServiceStates,
+    sites: mockSites,
+    toggleSite: mockToggleSite,
+    updateSiteEnabled: mockUpdateSiteEnabled,
+    refreshSiteStates: mockRefreshSiteStates,
     showToast: mockShowToast,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUpdateServiceEnabled.mockResolvedValue(undefined);
-    mockRefreshServiceStates.mockResolvedValue(undefined);
+    mockUpdateSiteEnabled.mockResolvedValue(undefined);
+    mockRefreshSiteStates.mockResolvedValue(undefined);
   });
 
-  it('should toggle service enabled state', async () => {
+  it('should toggle site enabled state', async () => {
     mockChromeMessaging.sendMessage.mockResolvedValue({ success: true });
     const { result } = renderHook(() => useTabOperations(defaultProps));
 
     await act(async () => {
-      result.current.handleServiceToggle('chatgpt', false);
+      result.current.handleSiteToggle('chatgpt', false);
     });
 
-    expect(mockToggleService).toHaveBeenCalledWith('chatgpt', false);
-    expect(mockUpdateServiceEnabled).toHaveBeenCalledWith('chatgpt', false);
+    expect(mockToggleSite).toHaveBeenCalledWith('chatgpt', false);
+    expect(mockUpdateSiteEnabled).toHaveBeenCalledWith('chatgpt', false);
     expect(mockChromeMessaging.sendMessage).toHaveBeenCalledWith({
-      type: EXTENSION_MESSAGE_TYPES.SERVICE_TOGGLE,
-      payload: { serviceId: 'chatgpt', enabled: false },
+      type: EXTENSION_MESSAGE_TYPES.SITE_TOGGLE,
+      payload: { siteId: 'chatgpt', enabled: false },
     });
     expect(mockShowToast).toHaveBeenCalledWith('ChatGPT disabled', 'info');
   });
 
-  it('should handle service toggle error and revert state', async () => {
-    mockUpdateServiceEnabled.mockRejectedValue(new Error('Storage error'));
+  it('should handle site toggle error and revert state', async () => {
+    mockUpdateSiteEnabled.mockRejectedValue(new Error('Storage error'));
     const { result } = renderHook(() => useTabOperations(defaultProps));
 
     await act(async () => {
-      result.current.handleServiceToggle('claude', true);
+      result.current.handleSiteToggle('claude', true);
     });
 
-    expect(mockToggleService).toHaveBeenCalledWith('claude', true);
-    expect(mockToggleService).toHaveBeenCalledWith('claude', false); // Revert call
+    expect(mockToggleSite).toHaveBeenCalledWith('claude', true);
+    expect(mockToggleSite).toHaveBeenCalledWith('claude', false); // Revert call
     expect(mockShowToast).toHaveBeenCalledWith(
-      'Failed to update service',
+      'Failed to update site',
       'error',
     );
   });
 
-  it('should handle focus tab for connected service', async () => {
+  it('should handle focus tab for connected site', async () => {
     mockChromeMessaging.sendMessage.mockResolvedValue({ success: true });
     const { result } = renderHook(() => useTabOperations(defaultProps));
 
@@ -104,13 +104,13 @@ describe('useTabOperations', () => {
 
     expect(mockChromeMessaging.sendMessage).toHaveBeenCalledWith({
       type: EXTENSION_MESSAGE_TYPES.FOCUS_TAB,
-      payload: { serviceId: 'chatgpt' },
+      payload: { siteId: 'chatgpt' },
     });
     expect(mockShowToast).toHaveBeenCalledWith('Switched to ChatGPT', 'info');
-    expect(mockRefreshServiceStates).toHaveBeenCalled();
+    expect(mockRefreshSiteStates).toHaveBeenCalled();
   });
 
-  it('should handle focus tab for disabled service', async () => {
+  it('should handle focus tab for disabled site', async () => {
     const { result } = renderHook(() => useTabOperations(defaultProps));
 
     await act(async () => {
@@ -119,15 +119,15 @@ describe('useTabOperations', () => {
 
     expect(mockShowToast).toHaveBeenCalledWith('Claude is disabled', 'error');
     expect(mockChromeMessaging.sendMessage).not.toHaveBeenCalled();
-    expect(mockRefreshServiceStates).not.toHaveBeenCalled();
+    expect(mockRefreshSiteStates).not.toHaveBeenCalled();
   });
 
-  it('should handle focus tab for enabled but disconnected service', async () => {
-    // Create services with an enabled but disconnected service
-    const servicesWithEnabledDisconnected = {
-      ...mockServices,
+  it('should handle focus tab for enabled but disconnected site', async () => {
+    // Create sites with an enabled but disconnected site
+    const sitesWithEnabledDisconnected = {
+      ...mockSites,
       claude: {
-        ...mockServices.claude,
+        ...mockSites.claude,
         enabled: true,
         status: 'disconnected' as const,
       },
@@ -137,7 +137,7 @@ describe('useTabOperations', () => {
     const { result } = renderHook(() =>
       useTabOperations({
         ...defaultProps,
-        services: servicesWithEnabledDisconnected,
+        sites: sitesWithEnabledDisconnected,
       }),
     );
 
@@ -148,9 +148,9 @@ describe('useTabOperations', () => {
     expect(mockShowToast).toHaveBeenCalledWith('Opening Claude...', 'info');
     expect(mockChromeMessaging.sendMessage).toHaveBeenCalledWith({
       type: EXTENSION_MESSAGE_TYPES.FOCUS_TAB,
-      payload: { serviceId: 'claude' },
+      payload: { siteId: 'claude' },
     });
-    expect(mockRefreshServiceStates).toHaveBeenCalled();
+    expect(mockRefreshSiteStates).toHaveBeenCalled();
   });
 
   it('should handle focus tab error', async () => {
@@ -165,7 +165,7 @@ describe('useTabOperations', () => {
     });
 
     expect(mockShowToast).toHaveBeenCalledWith('Failed to focus tab', 'error');
-    expect(mockRefreshServiceStates).not.toHaveBeenCalled();
+    expect(mockRefreshSiteStates).not.toHaveBeenCalled();
   });
 
   it('should close all tabs successfully', async () => {
@@ -180,8 +180,7 @@ describe('useTabOperations', () => {
     expect(mockChromeMessaging.sendMessage).toHaveBeenCalledWith({
       type: EXTENSION_MESSAGE_TYPES.CLOSE_ALL_TABS,
     });
-    expect(mockShowToast).toHaveBeenCalledWith('All AI tabs closed', 'info');
-    expect(mockRefreshServiceStates).toHaveBeenCalled();
+    expect(mockRefreshSiteStates).toHaveBeenCalled();
   });
 
   it('should handle close all tabs error', async () => {

@@ -1,11 +1,11 @@
 import React, { RefObject } from 'react';
 import { SitesSection } from './SitesSection';
 import { MessageSection } from './MessageSection';
-import { AIService, ToastMessage } from '../../shared/types';
+import { AISite, ToastMessage } from '../../shared/types';
 
 interface ComposeProps {
-  services: Record<string, AIService>;
-  onFocusTab: (serviceId: string) => void;
+  sites: Record<string, AISite>;
+  onFocusTab: (siteId: string) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;
   message: string;
@@ -20,7 +20,7 @@ interface ComposeProps {
 }
 
 export function Compose({
-  services,
+  sites,
   onFocusTab,
   onCloseAllTabs,
   closeAllLoading,
@@ -38,7 +38,7 @@ export function Compose({
     <>
       <main className="p-4 space-y-4">
         <SitesSection
-          services={services}
+          sites={sites}
           onFocusTab={onFocusTab}
           onCloseAllTabs={onCloseAllTabs}
           closeAllLoading={closeAllLoading}

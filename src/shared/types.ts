@@ -2,7 +2,7 @@ import {
   ExtensionMessageType,
   ContentMessageType,
   ToastType,
-  ServiceStatusType,
+  SiteStatusType,
   ThemeOption,
 } from './constants';
 
@@ -18,16 +18,16 @@ export interface Response<T = unknown> {
   data?: T;
 }
 
-export interface AIService {
+export interface AISite {
   id: string;
   name: string;
   url: string;
   enabled: boolean;
-  status: ServiceStatusType;
+  status: SiteStatusType;
   tabId?: number;
 }
 
-export type ServiceConfig = Record<string, AIService>;
+export type SiteConfig = Record<string, AISite>;
 
 // Content Script Message Types
 export interface ContentMessage {
@@ -40,17 +40,17 @@ export interface ContentMessage {
 // Background Script Message Types
 export interface SendMessagePayload {
   message: string;
-  services: string[];
+  sites: string[];
 }
 
-export interface ServiceTogglePayload {
-  serviceId: string;
+export interface SiteTogglePayload {
+  siteId: string;
   enabled: boolean;
 }
 
 // Storage Types
 export interface UserPreferences {
-  services: Partial<Record<string, { enabled: boolean }>>;
+  sites: Partial<Record<string, { enabled: boolean }>>;
   lastMessage?: string;
   theme?: ThemeOption;
 }

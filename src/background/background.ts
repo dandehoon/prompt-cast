@@ -1,25 +1,25 @@
 import {
   ExtensionMessage,
   SendMessagePayload,
-  ServiceTogglePayload,
+  SiteTogglePayload,
   Response,
 } from '../shared/types';
 import { EXTENSION_MESSAGE_TYPES } from '../shared/constants';
 import { logger } from '../shared/logger';
 import { TabManager } from './modules/TabManager';
 import { MessageHandler } from './modules/MessageHandler';
-import { ServiceManager } from './modules/ServiceManager';
+import { SiteManager } from './modules/SiteManager';
 
-class BackgroundService {
+class BackgroundSite {
   private tabManager: TabManager;
   private messageHandler: MessageHandler;
-  private serviceManager: ServiceManager;
+  private siteManager: SiteManager;
 
   constructor() {
-    this.serviceManager = new ServiceManager();
-    this.tabManager = new TabManager(this.serviceManager.services);
+    this.siteManager = new SiteManager();
+    this.tabManager = new TabManager(this.siteManager.sites);
     this.messageHandler = new MessageHandler(
-      this.serviceManager.services,
+      this.siteManager.sites,
       this.tabManager,
     );
     this.initializeListeners();
@@ -37,12 +37,12 @@ class BackgroundService {
       },
     );
 
-    // Handle tab closing to update service state
+    // Handle tab closing to update site state
     chrome.tabs.onRemoved.addListener((tabId: number) => {
-      Object.values(this.serviceManager.services).forEach((service) => {
-        if (service.tabId === tabId) {
-          service.tabId = undefined;
-          service.status = 'disconnected';
+      Object.values(this.siteManager.sites).forEach((site) => {
+        if (site.tabId === tabId) {
+          site.tabId = undefined;
+          site.status = 'disconnected';
         }
       });
     });
@@ -55,22 +55,22 @@ class BackgroundService {
     try {
       switch (message.type) {
         case EXTENSION_MESSAGE_TYPES.SEND_MESSAGE:
-          await this.messageHandler.sendMessageToServicesRobust(
+          await this.messageHandler.sendMessageToSitesRobust(
             message.payload as SendMessagePayload,
           );
           sendResponse({ success: true });
           break;
 
-        case EXTENSION_MESSAGE_TYPES.SERVICE_TOGGLE:
-          await this.serviceManager.toggleService(
-            message.payload as ServiceTogglePayload,
+        case EXTENSION_MESSAGE_TYPES.SITE_TOGGLE:
+          await this.siteManager.toggleSite(
+            message.payload as SiteTogglePayload,
           );
           sendResponse({ success: true });
           break;
 
         case EXTENSION_MESSAGE_TYPES.FOCUS_TAB:
           await this.tabManager.focusTab(
-            (message.payload as { serviceId: string }).serviceId,
+            (message.payload as { siteId: string }).siteId,
           );
           sendResponse({ success: true });
           break;
@@ -84,7 +84,7 @@ class BackgroundService {
           sendResponse({ success: false, error: 'Unknown message type' });
       }
     } catch (error) {
-      logger.error('BackgroundService error:', error);
+      logger.error('BackgroundSite error:', error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error occurred';
       sendResponse({ success: false, error: errorMessage });
@@ -92,5 +92,5 @@ class BackgroundService {
   }
 }
 
-// Initialize background service
-new BackgroundService();
+// Initialize background site
+new BackgroundSite();

@@ -2,86 +2,83 @@ import { useState, useCallback } from 'react';
 import { ChromeMessaging } from '../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../shared/constants';
 import {
-  AIService,
+  AISite,
   ExtensionMessage,
-  ServiceTogglePayload,
+  SiteTogglePayload,
 } from '../../shared/types';
 import { logger } from '../../shared/logger';
 
 interface UseTabOperationsProps {
-  services: Record<string, AIService>;
-  toggleService: (serviceId: string, enabled: boolean) => void;
-  updateServiceEnabled: (serviceId: string, enabled: boolean) => Promise<void>;
-  refreshServiceStates: () => Promise<void>;
+  sites: Record<string, AISite>;
+  toggleSite: (siteId: string, enabled: boolean) => void;
+  updateSiteEnabled: (siteId: string, enabled: boolean) => Promise<void>;
+  refreshSiteStates: () => Promise<void>;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 export function useTabOperations({
-  services,
-  toggleService,
-  updateServiceEnabled,
-  refreshServiceStates,
+  sites,
+  toggleSite,
+  updateSiteEnabled,
+  refreshSiteStates,
   showToast,
 }: UseTabOperationsProps) {
   const [closeAllLoading, setCloseAllLoading] = useState(false);
 
-  const handleServiceToggle = useCallback(
-    async (serviceId: string, enabled: boolean) => {
+  const handleSiteToggle = useCallback(
+    async (siteId: string, enabled: boolean) => {
       try {
-        const service = services[serviceId];
+        const site = sites[siteId];
 
         // Update local state immediately
-        toggleService(serviceId, enabled);
+        toggleSite(siteId, enabled);
 
         // Update storage
-        await updateServiceEnabled(serviceId, enabled);
+        await updateSiteEnabled(siteId, enabled);
 
         // Notify background script
-        const payload: ServiceTogglePayload = { serviceId, enabled };
+        const payload: SiteTogglePayload = { siteId: siteId, enabled };
         await ChromeMessaging.sendMessage({
-          type: EXTENSION_MESSAGE_TYPES.SERVICE_TOGGLE,
+          type: EXTENSION_MESSAGE_TYPES.SITE_TOGGLE,
           payload,
         } as ExtensionMessage);
 
-        showToast(
-          `${service.name} ${enabled ? 'enabled' : 'disabled'}`,
-          'info',
-        );
+        showToast(`${site.name} ${enabled ? 'enabled' : 'disabled'}`, 'info');
       } catch (error) {
-        logger.error('Failed to toggle service:', error);
-        showToast('Failed to update service', 'error');
+        logger.error('Failed to toggle site:', error);
+        showToast('Failed to update site', 'error');
         // Revert local state on error
-        toggleService(serviceId, !enabled);
+        toggleSite(siteId, !enabled);
       }
     },
-    [services, toggleService, updateServiceEnabled, showToast],
+    [sites, toggleSite, updateSiteEnabled, showToast],
   );
 
   const handleFocusTab = useCallback(
-    async (serviceId: string) => {
+    async (siteId: string) => {
       try {
-        const service = services[serviceId];
+        const site = sites[siteId];
 
-        // Don't focus disabled services
-        if (!service.enabled) {
-          showToast(`${service.name} is disabled`, 'error');
+        // Don't focus disabled sites
+        if (!site.enabled) {
+          showToast(`${site.name} is disabled`, 'error');
           return;
         }
 
-        if (service.status === 'disconnected') {
-          showToast(`Opening ${service.name}...`, 'info');
+        if (site.status === 'disconnected') {
+          showToast(`Opening ${site.name}...`, 'info');
         }
 
         const response = await ChromeMessaging.sendMessage({
           type: EXTENSION_MESSAGE_TYPES.FOCUS_TAB,
-          payload: { serviceId },
+          payload: { siteId },
         } as ExtensionMessage);
 
         if (response.success) {
-          if (service.status === 'connected') {
-            showToast(`Switched to ${service.name}`, 'info');
+          if (site.status === 'connected') {
+            showToast(`Switched to ${site.name}`, 'info');
           }
-          await refreshServiceStates();
+          await refreshSiteStates();
         } else {
           throw new Error(response.error || 'Failed to focus tab');
         }
@@ -90,7 +87,7 @@ export function useTabOperations({
         showToast('Failed to focus tab', 'error');
       }
     },
-    [services, refreshServiceStates, showToast],
+    [sites, refreshSiteStates, showToast],
   );
 
   const handleCloseAllTabs = useCallback(async () => {
@@ -102,8 +99,7 @@ export function useTabOperations({
       } as ExtensionMessage);
 
       if (response.success) {
-        showToast('All AI tabs closed', 'info');
-        await refreshServiceStates();
+        await refreshSiteStates();
       } else {
         throw new Error(response.error || 'Failed to close tabs');
       }
@@ -113,11 +109,11 @@ export function useTabOperations({
     } finally {
       setCloseAllLoading(false);
     }
-  }, [refreshServiceStates, showToast]);
+  }, [refreshSiteStates, showToast]);
 
   return {
     closeAllLoading,
-    handleServiceToggle,
+    handleSiteToggle,
     handleFocusTab,
     handleCloseAllTabs,
   };

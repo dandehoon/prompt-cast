@@ -11,13 +11,13 @@ const mockChromeMessaging = ChromeMessaging as jest.Mocked<
 >;
 
 describe('useMessageHandler', () => {
-  const mockGetEnabledServices = jest.fn();
-  const mockRefreshServiceStates = jest.fn();
+  const mockGetEnabledSites = jest.fn();
+  const mockRefreshSiteStates = jest.fn();
   const mockShowToast = jest.fn();
 
   const defaultProps = {
-    getEnabledServices: mockGetEnabledServices,
-    refreshServiceStates: mockRefreshServiceStates,
+    getEnabledSites: mockGetEnabledSites,
+    refreshSiteStates: mockRefreshSiteStates,
     showToast: mockShowToast,
   };
 
@@ -39,8 +39,8 @@ describe('useMessageHandler', () => {
     );
   });
 
-  it('should handle no enabled services', async () => {
-    mockGetEnabledServices.mockReturnValue([]);
+  it('should handle no enabled sites', async () => {
+    mockGetEnabledSites.mockReturnValue([]);
 
     const { result } = renderHook(() => useMessageHandler(defaultProps));
 
@@ -50,13 +50,13 @@ describe('useMessageHandler', () => {
 
     expect(success).toBe(false);
     expect(mockShowToast).toHaveBeenCalledWith(
-      'Please enable at least one service',
+      'Please enable at least one site',
       'error',
     );
   });
 
   it('should successfully send message', async () => {
-    mockGetEnabledServices.mockReturnValue(['chatgpt', 'claude']);
+    mockGetEnabledSites.mockReturnValue(['chatgpt', 'claude']);
     mockChromeMessaging.sendMessage.mockResolvedValue({ success: true });
 
     const { result } = renderHook(() => useMessageHandler(defaultProps));
@@ -71,20 +71,20 @@ describe('useMessageHandler', () => {
       'info',
     );
     expect(mockShowToast).toHaveBeenCalledWith(
-      'Message sent to 2 services',
+      'Message sent to 2 sites',
       'success',
     );
     expect(mockChromeMessaging.sendMessage).toHaveBeenCalledWith({
       type: EXTENSION_MESSAGE_TYPES.SEND_MESSAGE,
       payload: {
         message: 'test message',
-        services: ['chatgpt', 'claude'],
+        sites: ['chatgpt', 'claude'],
       },
     });
   });
 
   it('should handle send failure', async () => {
-    mockGetEnabledServices.mockReturnValue(['chatgpt']);
+    mockGetEnabledSites.mockReturnValue(['chatgpt']);
     mockChromeMessaging.sendMessage.mockResolvedValue({
       success: false,
       error: 'Network error',
@@ -104,7 +104,7 @@ describe('useMessageHandler', () => {
   });
 
   it('should manage loading state correctly', async () => {
-    mockGetEnabledServices.mockReturnValue(['chatgpt']);
+    mockGetEnabledSites.mockReturnValue(['chatgpt']);
     mockChromeMessaging.sendMessage.mockImplementation(
       () =>
         new Promise((resolve) =>

@@ -1,15 +1,15 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Compose } from '../Compose';
-import { AIService, ToastMessage } from '../../../shared/types';
+import { AISite, ToastMessage } from '../../../shared/types';
 
 // Mock child components
 jest.mock('../SitesSection', () => ({
-  SitesSection: jest.fn(({ services, onFocusTab, onCloseAllTabs, closeAllLoading }) => (
+  SitesSection: jest.fn(({ sites, onFocusTab, onCloseAllTabs, closeAllLoading }) => (
     <div data-testid="sites-section">
-      <div data-testid="services-data">{JSON.stringify(services)}</div>
+      <div data-testid="sites-data">{JSON.stringify(sites)}</div>
       <div data-testid="close-all-loading">{closeAllLoading.toString()}</div>
-      <button onClick={() => onFocusTab('chatgpt')}>Focus Service</button>
+      <button onClick={() => onFocusTab('chatgpt')}>Focus Site</button>
       <button onClick={onCloseAllTabs}>Close All</button>
     </div>
   )),
@@ -46,7 +46,7 @@ describe('Home', () => {
   const mockOnSend = jest.fn();
   const mockMessageInputRef = { current: null } as React.RefObject<HTMLTextAreaElement>;
 
-  const mockServices: Record<string, AIService> = {
+  const mockSites: Record<string, AISite> = {
     chatgpt: {
       id: 'chatgpt',
       name: 'ChatGPT',
@@ -82,7 +82,7 @@ describe('Home', () => {
   ];
 
   const defaultProps = {
-    services: mockServices,
+    sites: mockSites,
     onFocusTab: mockOnFocusTab,
     onCloseAllTabs: mockOnCloseAllTabs,
     closeAllLoading: false,
@@ -107,12 +107,12 @@ describe('Home', () => {
     expect(screen.getByTestId('sites-section')).toBeInTheDocument();
     expect(screen.getByTestId('close-all-loading')).toHaveTextContent('false');
 
-    // Services should be passed as-is (no filtering in Home component)
-    const servicesData = JSON.parse(screen.getByTestId('services-data').textContent || '{}');
-    expect(servicesData).toHaveProperty('chatgpt');
-    expect(servicesData).toHaveProperty('claude');
-    expect(servicesData).toHaveProperty('gemini');
-    expect(servicesData).toHaveProperty('grok');
+    // Sites should be passed as-is (no filtering in Home component)
+    const sitesData = JSON.parse(screen.getByTestId('sites-data').textContent || '{}');
+    expect(sitesData).toHaveProperty('chatgpt');
+    expect(sitesData).toHaveProperty('claude');
+    expect(sitesData).toHaveProperty('gemini');
+    expect(sitesData).toHaveProperty('grok');
   });
 
   it('should render MessageSection with correct props', () => {
@@ -167,18 +167,18 @@ describe('Home', () => {
     expect(screen.getByTestId('enabled-count')).toHaveTextContent('3');
   });
 
-  it('should pass services unchanged to SitesSection', () => {
-    const customServices = {
-      ...mockServices,
+  it('should pass sites unchanged to SitesSection', () => {
+    const customSites = {
+      ...mockSites,
       chatgpt: {
-        ...mockServices.chatgpt,
+        ...mockSites.chatgpt,
         status: 'error' as const,
       },
     };
 
-    render(<Compose {...defaultProps} services={customServices} />);
+    render(<Compose {...defaultProps} sites={customSites} />);
 
-    const servicesData = JSON.parse(screen.getByTestId('services-data').textContent || '{}');
-    expect(servicesData.chatgpt.status).toBe('error');
+    const sitesData = JSON.parse(screen.getByTestId('sites-data').textContent || '{}');
+    expect(sitesData.chatgpt.status).toBe('error');
   });
 });

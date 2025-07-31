@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AppHeader } from './AppHeader';
 import { Compose } from './Compose';
 import { Settings } from './Settings';
-import { useServices } from '../hooks/useServices';
+import { useSites } from '../hooks/useSites';
 import { useStorage } from '../hooks/useStorage';
 import { useToast } from '../hooks/useToast';
 import { useMessageHandler } from '../hooks/useMessageHandler';
@@ -16,34 +16,34 @@ export function PopupApp() {
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const {
-    services,
-    toggleService,
-    refreshServiceStates,
-    getEnabledServices,
+    sites: sites,
+    toggleSite,
+    refreshSiteStates: refreshSiteStates,
+    getEnabledSites: getEnabledSites,
     getConnectedCount,
     getEnabledCount,
-  } = useServices();
+  } = useSites();
 
-  const { preferences, updateServiceEnabled } = useStorage();
+  const { preferences, updateSiteEnabled } = useStorage();
   const { toasts, showToast } = useToast();
   const { currentTheme, themeOptions, changeTheme } = useTheme();
 
   const { sendLoading, handleSendMessage } = useMessageHandler({
-    getEnabledServices,
-    refreshServiceStates,
+    getEnabledSites,
+    refreshSiteStates,
     showToast,
   });
 
   const {
     closeAllLoading,
-    handleServiceToggle,
+    handleSiteToggle,
     handleFocusTab,
     handleCloseAllTabs,
   } = useTabOperations({
-    services,
-    toggleService,
-    updateServiceEnabled,
-    refreshServiceStates,
+    sites,
+    toggleSite,
+    updateSiteEnabled,
+    refreshSiteStates,
     showToast,
   });
 
@@ -54,16 +54,16 @@ export function PopupApp() {
     }
   }, []);
 
-  // Sync service enabled states with storage
+  // Sync site enabled states with storage
   useEffect(() => {
-    if (preferences?.services) {
-      Object.entries(preferences.services).forEach(([serviceId, config]) => {
+    if (preferences?.sites) {
+      Object.entries(preferences.sites).forEach(([siteId, config]) => {
         if (config && 'enabled' in config && config.enabled !== undefined) {
-          toggleService(serviceId, config.enabled);
+          toggleSite(siteId, config.enabled);
         }
       });
     }
-  }, [preferences, toggleService]);
+  }, [preferences, toggleSite]);
 
   const onSendMessage = async () => {
     const success = await handleSendMessage(message);
@@ -85,7 +85,7 @@ export function PopupApp() {
         />        <div className="flex-1">
           {activeTab === 'home' ? (
             <Compose
-              services={services}
+              sites={sites}
               onFocusTab={handleFocusTab}
               onCloseAllTabs={handleCloseAllTabs}
               closeAllLoading={closeAllLoading}
@@ -102,8 +102,8 @@ export function PopupApp() {
           ) : (
             <main className="p-4 space-y-4">
               <Settings
-                services={services}
-                onServiceToggle={handleServiceToggle}
+                sites={sites}
+                onSiteToggle={handleSiteToggle}
                 currentTheme={currentTheme}
                 themeOptions={themeOptions}
                 onThemeChange={changeTheme}

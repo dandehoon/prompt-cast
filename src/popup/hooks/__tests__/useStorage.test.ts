@@ -16,7 +16,7 @@ describe('useStorage', () => {
 
   it('should load preferences on mount', async () => {
     const mockPreferences: UserPreferences = {
-      services: {
+      sites: {
         chatgpt: { enabled: true },
         claude: { enabled: false },
       },
@@ -57,7 +57,7 @@ describe('useStorage', () => {
 
   it('should save preferences', async () => {
     const mockPreferences: UserPreferences = {
-      services: {
+      sites: {
         chatgpt: { enabled: true },
       },
     };
@@ -79,7 +79,7 @@ describe('useStorage', () => {
   });
 
   it('should handle save error', async () => {
-    const mockPreferences: UserPreferences = { services: {} };
+    const mockPreferences: UserPreferences = { sites: {} };
     const errorMessage = 'Save failed';
 
     mockChromeStorage.getUserPreferences.mockResolvedValue(null);
@@ -100,9 +100,9 @@ describe('useStorage', () => {
     expect(result.current.error).toBe(errorMessage);
   });
 
-  it('should update service enabled state', async () => {
+  it('should update site enabled state', async () => {
     const initialPreferences: UserPreferences = {
-      services: {
+      sites: {
         chatgpt: { enabled: false },
       },
     };
@@ -117,11 +117,11 @@ describe('useStorage', () => {
     });
 
     await act(async () => {
-      await result.current.updateServiceEnabled('chatgpt', true);
+      await result.current.updateSiteEnabled('chatgpt', true);
     });
 
     expect(mockChromeStorage.saveUserPreferences).toHaveBeenCalledWith({
-      services: {
+      sites: {
         chatgpt: { enabled: true },
       },
     });
@@ -129,7 +129,7 @@ describe('useStorage', () => {
 
   it('should reload preferences', async () => {
     const mockPreferences: UserPreferences = {
-      services: {
+      sites: {
         claude: { enabled: true },
       },
     };

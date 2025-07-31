@@ -12,7 +12,7 @@ interface StatusIndicatorProps {
 export function StatusIndicator({ toasts, isLoading, connectedCount = 0, enabledCount = 0 }: StatusIndicatorProps) {
   const latestToast = toasts[toasts.length - 1];
 
-  // Hide indicator when inactive (no loading and no toasts and no services)
+  // Hide indicator when inactive (no loading and no toasts and no sites)
   if (!isLoading && !latestToast && enabledCount === 0) {
     return null;
   }
@@ -22,12 +22,12 @@ export function StatusIndicator({ toasts, isLoading, connectedCount = 0, enabled
       return 'Loading...';
     }
     if (enabledCount === 0) {
-      return 'No services enabled';
+      return 'No sites enabled';
     }
     if (connectedCount === 0) {
-      return `${enabledCount} services enabled`;
+      return `${enabledCount} sites enabled`;
     }
-    return `${connectedCount}/${enabledCount} services ready`;
+    return `${connectedCount}/${enabledCount} sites ready`;
   };
 
   const getStatusIcon = () => {

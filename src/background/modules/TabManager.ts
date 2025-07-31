@@ -1,4 +1,4 @@
-import { AIService } from '../../shared/types';
+import { AISite } from '../../shared/types';
 import { CONFIG } from '../../shared/config';
 import { sleep } from '../../shared/utils';
 import { logger } from '../../shared/logger';
@@ -6,16 +6,16 @@ import { CONTENT_MESSAGE_TYPES } from '../../shared/constants';
 import { ContentMessage } from '../../shared/types';
 
 export class TabManager {
-  constructor(private services: Record<string, AIService>) {}
+  constructor(private sites: Record<string, AISite>) {}
 
-  async openOrFocusTab(service: AIService, shouldFocus = false): Promise<void> {
+  async openOrFocusTab(site: AISite, shouldFocus = false): Promise<void> {
     try {
-      const tabs = await chrome.tabs.query({ url: service.url + '*' });
+      const tabs = await chrome.tabs.query({ url: site.url + '*' });
 
       if (tabs.length > 0) {
         const tab = tabs[0];
-        service.tabId = tab.id;
-        service.status = 'loading';
+        site.tabId = tab.id;
+        site.status = 'loading';
 
         // Focus existing tab if needed
         if (shouldFocus && tab.id) {
@@ -26,11 +26,11 @@ export class TabManager {
       } else {
         // Create new tab
         const tab = shouldFocus
-          ? await chrome.tabs.create({ url: service.url, active: true })
-          : await chrome.tabs.create({ url: service.url, active: false });
+          ? await chrome.tabs.create({ url: site.url, active: true })
+          : await chrome.tabs.create({ url: site.url, active: false });
 
-        service.tabId = tab.id;
-        service.status = 'loading';
+        site.tabId = tab.id;
+        site.status = 'loading';
 
         if (shouldFocus && tab.id) {
           await this.waitForTabReady(tab.id);
@@ -39,58 +39,58 @@ export class TabManager {
         }
       }
     } catch (error) {
-      logger.error(`Failed to open/focus tab for ${service.name}:`, error);
-      service.status = 'error';
+      logger.error(`Failed to open/focus tab for ${site.name}:`, error);
+      site.status = 'error';
     }
   }
 
-  async focusTab(serviceId: string): Promise<void> {
-    const service = this.services[serviceId];
-    if (!service || !service.enabled) {
-      logger.warn(`Cannot focus tab for disabled service: ${serviceId}`);
+  async focusTab(siteId: string): Promise<void> {
+    const site = this.sites[siteId];
+    if (!site || !site.enabled) {
+      logger.warn(`Cannot focus tab for disabled site: ${siteId}`);
       return;
     }
 
     try {
-      if (service.status === 'disconnected') {
-        await this.openOrFocusTab(service, true);
-      } else if (service.tabId) {
-        await chrome.tabs.update(service.tabId, { active: true });
-        const tab = await chrome.tabs.get(service.tabId);
+      if (site.status === 'disconnected') {
+        await this.openOrFocusTab(site, true);
+      } else if (site.tabId) {
+        await chrome.tabs.update(site.tabId, { active: true });
+        const tab = await chrome.tabs.get(site.tabId);
         if (tab.windowId) {
           await chrome.windows.update(tab.windowId, { focused: true });
         }
       }
     } catch (error) {
-      logger.error(`Failed to focus tab for ${service.name}:`, error);
-      service.status = 'error';
+      logger.error(`Failed to focus tab for ${site.name}:`, error);
+      site.status = 'error';
     }
   }
 
-  async closeTab(serviceId: string): Promise<void> {
-    const service = this.services[serviceId];
-    if (service && service.tabId) {
+  async closeTab(siteId: string): Promise<void> {
+    const site = this.sites[siteId];
+    if (site && site.tabId) {
       try {
-        await chrome.tabs.remove(service.tabId);
-        service.tabId = undefined;
-        service.status = 'disconnected';
+        await chrome.tabs.remove(site.tabId);
+        site.tabId = undefined;
+        site.status = 'disconnected';
       } catch (error) {
-        logger.error(`Failed to close tab for ${service.name}:`, error);
+        logger.error(`Failed to close tab for ${site.name}:`, error);
       }
     }
   }
 
   async closeAllTabs(): Promise<void> {
-    const tabIds = Object.values(this.services)
-      .filter((service) => service.tabId)
-      .map((service) => service.tabId!);
+    const tabIds = Object.values(this.sites)
+      .filter((site) => site.tabId)
+      .map((site) => site.tabId!);
 
     if (tabIds.length > 0) {
       try {
         await chrome.tabs.remove(tabIds);
-        Object.values(this.services).forEach((service) => {
-          service.tabId = undefined;
-          service.status = 'disconnected';
+        Object.values(this.sites).forEach((site) => {
+          site.tabId = undefined;
+          site.status = 'disconnected';
         });
       } catch (error) {
         logger.error('Failed to close tabs:', error);
@@ -154,7 +154,7 @@ export class TabManager {
           await sleep(readinessCheckDelay);
         }
       } catch {
-        // For Gemini and other services that might take longer, try injecting content script manually
+        // For Gemini and other sites that might take longer, try injecting content script manually
         if (attempt === Math.floor(maxReadinessAttempts / 2)) {
           try {
             await chrome.scripting.executeScript({

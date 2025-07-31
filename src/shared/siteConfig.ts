@@ -1,4 +1,4 @@
-export interface ServiceConfig {
+export interface SiteConfig {
   id: string;
   name: string;
   url: string;
@@ -9,13 +9,13 @@ export interface ServiceConfig {
   submitSelectors: string[];
 }
 
-export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
+export const SITE_CONFIGS: Record<string, SiteConfig> = {
   chatgpt: {
     id: 'chatgpt',
     name: 'ChatGPT',
     url: 'https://chatgpt.com/',
     enabled: true,
-    color: 'bg-ai-service-chatgpt',
+    color: 'bg-ai-site-chatgpt',
     hostPatterns: ['chatgpt.com'],
     inputSelectors: ['div#prompt-textarea'],
     submitSelectors: ['button#composer-submit-button'],
@@ -26,7 +26,7 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     name: 'Claude',
     url: 'https://claude.ai/',
     enabled: true,
-    color: 'bg-ai-service-claude',
+    color: 'bg-ai-site-claude',
     hostPatterns: ['claude.ai'],
     inputSelectors: ['div[contenteditable]'],
     submitSelectors: ['button[aria-label="Send message"]'],
@@ -37,7 +37,7 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     name: 'Gemini',
     url: 'https://gemini.google.com/',
     enabled: true,
-    color: 'bg-ai-service-gemini',
+    color: 'bg-ai-site-gemini',
     hostPatterns: ['gemini.google.com'],
     inputSelectors: ['div.ql-editor[contenteditable]'],
     submitSelectors: ['button.send-button'],
@@ -48,7 +48,7 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     name: 'Grok',
     url: 'https://grok.com/',
     enabled: true,
-    color: 'bg-ai-service-grok',
+    color: 'bg-ai-site-grok',
     hostPatterns: ['grok.com'],
     inputSelectors: ['textarea[dir="auto"]'],
     submitSelectors: ['form button[type="submit"]'],
@@ -66,8 +66,8 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
   // },
 };
 
-export function getServiceByHostname(hostname: string): ServiceConfig | null {
-  for (const config of Object.values(SERVICE_CONFIGS)) {
+export function getSiteByHostname(hostname: string): SiteConfig | null {
+  for (const config of Object.values(SITE_CONFIGS)) {
     if (config.hostPatterns.some((pattern) => hostname.includes(pattern))) {
       return config;
     }
@@ -75,6 +75,6 @@ export function getServiceByHostname(hostname: string): ServiceConfig | null {
   return null;
 }
 
-export function getServiceById(serviceId: string): ServiceConfig | null {
-  return SERVICE_CONFIGS[serviceId] || null;
+export function getSiteById(siteId: string): SiteConfig | null {
+  return SITE_CONFIGS[siteId] || null;
 }

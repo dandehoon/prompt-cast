@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useServices } from '../useServices';
+import { useSites } from '../useSites';
 import { ChromeMessaging } from '../../../shared/messaging';
 import { logger } from '../../../shared/logger';
 
@@ -10,22 +10,22 @@ const mockChromeMessaging = ChromeMessaging as jest.Mocked<
   typeof ChromeMessaging
 >;
 
-describe('useServices', () => {
+describe('useSites', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Setup default mock to return empty tabs
     mockChromeMessaging.queryTabs.mockResolvedValue([]);
   });
 
-  it('should initialize with default services', async () => {
-    const { result } = renderHook(() => useServices());
+  it('should initialize with default sites', async () => {
+    const { result } = renderHook(() => useSites());
 
     // Wait for the initial useEffect to complete
     await waitFor(() => {
       expect(mockChromeMessaging.queryTabs).toHaveBeenCalled();
     });
 
-    expect(result.current.services).toMatchObject({
+    expect(result.current.sites).toMatchObject({
       chatgpt: {
         id: 'chatgpt',
         name: 'ChatGPT',
@@ -53,7 +53,7 @@ describe('useServices', () => {
     });
   });
 
-  it('should refresh service states from tabs', async () => {
+  it('should refresh site states from tabs', async () => {
     const mockTabs = [
       {
         id: 1,
@@ -87,22 +87,22 @@ describe('useServices', () => {
 
     mockChromeMessaging.queryTabs.mockResolvedValue(mockTabs);
 
-    const { result } = renderHook(() => useServices());
+    const { result } = renderHook(() => useSites());
 
     await act(async () => {
-      await result.current.refreshServiceStates();
+      await result.current.refreshSiteStates();
     });
 
-    expect(result.current.services.chatgpt.status).toBe('connected');
-    expect(result.current.services.chatgpt.tabId).toBe(1);
-    expect(result.current.services.claude.status).toBe('connected');
-    expect(result.current.services.claude.tabId).toBe(2);
-    expect(result.current.services.gemini.status).toBe('disconnected');
-    expect(result.current.services.grok.status).toBe('disconnected');
+    expect(result.current.sites.chatgpt.status).toBe('connected');
+    expect(result.current.sites.chatgpt.tabId).toBe(1);
+    expect(result.current.sites.claude.status).toBe('connected');
+    expect(result.current.sites.claude.tabId).toBe(2);
+    expect(result.current.sites.gemini.status).toBe('disconnected');
+    expect(result.current.sites.grok.status).toBe('disconnected');
   });
 
-  it('should toggle service enabled state', async () => {
-    const { result } = renderHook(() => useServices());
+  it('should toggle site enabled state', async () => {
+    const { result } = renderHook(() => useSites());
 
     // Wait for the initial useEffect to complete
     await waitFor(() => {
@@ -110,28 +110,28 @@ describe('useServices', () => {
     });
 
     act(() => {
-      result.current.toggleService('chatgpt', false);
+      result.current.toggleSite('chatgpt', false);
     });
 
-    expect(result.current.services.chatgpt.enabled).toBe(false);
+    expect(result.current.sites.chatgpt.enabled).toBe(false);
 
     act(() => {
-      result.current.toggleService('chatgpt', true);
+      result.current.toggleSite('chatgpt', true);
     });
 
-    expect(result.current.services.chatgpt.enabled).toBe(true);
+    expect(result.current.sites.chatgpt.enabled).toBe(true);
   });
 
-  it('should get enabled services', async () => {
-    const { result } = renderHook(() => useServices());
+  it('should get enabled sites', async () => {
+    const { result } = renderHook(() => useSites());
 
     // Wait for the initial useEffect to complete
     await waitFor(() => {
       expect(mockChromeMessaging.queryTabs).toHaveBeenCalled();
     });
 
-    // Initially all services are enabled
-    expect(result.current.getEnabledServices()).toEqual([
+    // Initially all sites are enabled
+    expect(result.current.getEnabledSites()).toEqual([
       'chatgpt',
       'claude',
       'gemini',
@@ -139,11 +139,11 @@ describe('useServices', () => {
     ]);
 
     act(() => {
-      result.current.toggleService('claude', false);
-      result.current.toggleService('grok', false);
+      result.current.toggleSite('claude', false);
+      result.current.toggleSite('grok', false);
     });
 
-    expect(result.current.getEnabledServices()).toEqual(['chatgpt', 'gemini']);
+    expect(result.current.getEnabledSites()).toEqual(['chatgpt', 'gemini']);
   });
 
   it('should get connected count', async () => {
@@ -180,17 +180,17 @@ describe('useServices', () => {
 
     mockChromeMessaging.queryTabs.mockResolvedValue(mockTabs);
 
-    const { result } = renderHook(() => useServices());
+    const { result } = renderHook(() => useSites());
 
     await act(async () => {
-      await result.current.refreshServiceStates();
+      await result.current.refreshSiteStates();
     });
 
     expect(result.current.getConnectedCount()).toBe(2);
   });
 
   it('should get enabled count', async () => {
-    const { result } = renderHook(() => useServices());
+    const { result } = renderHook(() => useSites());
 
     // Wait for the initial useEffect to complete
     await waitFor(() => {
@@ -200,22 +200,22 @@ describe('useServices', () => {
     expect(result.current.getEnabledCount()).toBe(4);
 
     act(() => {
-      result.current.toggleService('chatgpt', false);
+      result.current.toggleSite('chatgpt', false);
     });
 
     expect(result.current.getEnabledCount()).toBe(3);
   });
 
-  it('should handle refresh service states error', async () => {
+  it('should handle refresh site states error', async () => {
     const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
     mockChromeMessaging.queryTabs.mockRejectedValue(new Error('Query failed'));
 
-    renderHook(() => useServices());
+    renderHook(() => useSites());
 
     // Wait for the initial useEffect to complete (which will fail)
     await waitFor(() => {
       expect(loggerSpy).toHaveBeenCalledWith(
-        'Failed to refresh service states:',
+        'Failed to refresh site states:',
         expect.any(Error),
       );
     });
@@ -223,17 +223,17 @@ describe('useServices', () => {
     loggerSpy.mockRestore();
   });
 
-  it('should handle service refresh gracefully', async () => {
+  it('should handle site refresh gracefully', async () => {
     const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
     mockChromeMessaging.queryTabs.mockRejectedValueOnce(
       new Error('Test error'),
     );
 
-    renderHook(() => useServices());
+    renderHook(() => useSites());
 
     await waitFor(() => {
       expect(loggerSpy).toHaveBeenCalledWith(
-        'Failed to refresh service states:',
+        'Failed to refresh site states:',
         expect.any(Error),
       );
     });

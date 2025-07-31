@@ -13,22 +13,22 @@ describe('StatusIndicator', () => {
 
   it('should render default message when no toasts', () => {
     render(
-      <StatusIndicator 
-        toasts={[]} 
-        isLoading={false} 
+      <StatusIndicator
+        toasts={[]}
+        isLoading={false}
         connectedCount={2}
         enabledCount={4}
       />,
     );
 
-    expect(screen.getByText('2/4 services ready')).toBeInTheDocument();
+    expect(screen.getByText('2/4 sites ready')).toBeInTheDocument();
   });
 
   it('should show toast message when toast present', () => {
     const { container } = render(
-      <StatusIndicator 
-        toasts={[infoToast]} 
-        isLoading={false} 
+      <StatusIndicator
+        toasts={[infoToast]}
+        isLoading={false}
         connectedCount={2}
         enabledCount={4}
       />,

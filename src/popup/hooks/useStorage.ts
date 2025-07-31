@@ -38,14 +38,14 @@ export function useStorage() {
     [],
   );
 
-  const updateServiceEnabled = useCallback(
-    async (serviceId: string, enabled: boolean) => {
-      const currentPrefs = preferences || { services: {} };
+  const updateSiteEnabled = useCallback(
+    async (siteId: string, enabled: boolean) => {
+      const currentPrefs = preferences || { sites: {} };
       const newPreferences: UserPreferences = {
         ...currentPrefs,
-        services: {
-          ...currentPrefs.services,
-          [serviceId]: { enabled },
+        sites: {
+          ...currentPrefs.sites,
+          [siteId]: { enabled },
         },
       };
       await savePreferences(newPreferences);
@@ -62,7 +62,7 @@ export function useStorage() {
     loading,
     error,
     savePreferences,
-    updateServiceEnabled,
+    updateSiteEnabled,
     reload: loadPreferences,
   };
 }

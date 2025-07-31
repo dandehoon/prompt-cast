@@ -58,7 +58,7 @@ export function useTheme() {
         applyTheme(resolved);
 
         // Save to storage
-        const currentPrefs = preferences || { services: {} };
+        const currentPrefs = preferences || { sites: {} };
         await savePreferences({
           ...currentPrefs,
           theme: newTheme,

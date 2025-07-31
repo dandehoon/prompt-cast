@@ -1,11 +1,11 @@
-import { ServiceConfig } from '../../shared/serviceConfig';
+import { SiteConfig } from '../../shared/siteConfig';
 import { CONFIG } from '../../shared/config';
 import { sleep } from '../../shared/utils';
 import { CONTENT_MESSAGE_TYPES } from '../../shared/constants';
 
 export class ReadinessChecker {
   constructor(
-    private serviceConfig: ServiceConfig,
+    private siteConfig: SiteConfig,
     private findInputElement: () => Element | null,
   ) {}
 
@@ -57,7 +57,7 @@ export class ReadinessChecker {
               type: CONTENT_MESSAGE_TYPES.INPUT_READY,
               payload: {
                 ready: !!inputElement,
-                service: this.serviceConfig.id,
+                site: this.siteConfig.id,
                 attempts,
               },
             })
@@ -82,7 +82,7 @@ export class ReadinessChecker {
             if (node.nodeType === window.Node.ELEMENT_NODE) {
               const element = node as Element;
               // Check if this element or its children match our input selectors
-              const hasInputElement = this.serviceConfig.inputSelectors.some(
+              const hasInputElement = this.siteConfig.inputSelectors.some(
                 (selector) => {
                   return (
                     element.matches &&
@@ -101,7 +101,7 @@ export class ReadinessChecker {
                       type: CONTENT_MESSAGE_TYPES.INPUT_READY,
                       payload: {
                         ready: true,
-                        service: this.serviceConfig.id,
+                        site: this.siteConfig.id,
                         dynamicallyDetected: true,
                       },
                     })

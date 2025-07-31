@@ -2,22 +2,22 @@
 
 ## Project Overview
 
-Chrome extension (manifest v3) that broadcasts messages to multiple AI services simultaneously (ChatGPT, Claude, Gemini, Grok) with React TSX popup interface.
+Chrome extension (manifest v3) that broadcasts messages to multiple AI sites simultaneously (ChatGPT, Claude, Gemini, Grok) with React TSX popup interface.
 
 ## Architecture Pattern
 
 3-layer Chrome extension architecture with sophisticated messaging system:
 
-- **Background service worker** (`src/background/`) - Service orchestration, tab management, retry logic
-- **Content scripts** (`src/content/`) - DOM injection per AI service with service-specific configs
+- **Background site worker** (`src/background/`) - Site orchestration, tab management, retry logic
+- **Content scripts** (`src/content/`) - DOM injection per AI site with site-specific configs
 - **React popup** (`src/popup/`) - User interface with hooks-based state management
 
-## Critical Service Configuration
+## Critical Site Configuration
 
-Each AI service uses different DOM patterns - all config centralized in `src/shared/serviceConfig.ts`:
+Each AI site uses different DOM patterns - all config centralized in `src/shared/siteConfig.ts`:
 
 ```typescript
-SERVICE_CONFIGS = {
+SITE_CONFIGS = {
   chatgpt: {
     inputSelectors: ['div#prompt-textarea'],
     usesContentEditable: true,
@@ -26,7 +26,7 @@ SERVICE_CONFIGS = {
     inputSelectors: ['div[contenteditable]'],
     extraEvents: ['beforeinput'],
   },
-  // ... service-specific injection patterns
+  // ... site-specific injection patterns
 };
 ```
 
@@ -37,7 +37,7 @@ Content scripts handle complex DOM scenarios:
 - **ChatGPT/Claude**: contentEditable divs requiring selection API and composition events
 - **Grok**: Standard textarea with native value setter
 - **Gemini**: Rich text editor (ql-editor) needing innerHTML updates
-- All services use retry logic with exponential backoff for reliability
+- All sites use retry logic with exponential backoff for reliability
 
 ## Build System
 
@@ -51,7 +51,7 @@ Custom esbuild config (`esbuild.config.js`) with:
 
 React hooks architecture in `src/popup/hooks/`:
 
-- `useServices` - Service state, connection status, toggle logic
+- `useSites` - Site state, connection status, toggle logic
 - `useStorage` - Chrome storage sync with preferences persistence
 - `useMessageHandler` - Send logic with loading states and error handling
 - Each hook handles specific domain, composed in `PopupApp.tsx`
@@ -100,9 +100,9 @@ This command is **MANDATORY** as the final verification step for any:
 - `pnpm run build` - Build extension for production
 - `pnpm check` - **Complete quality pipeline** (type-check + lint + test + build)
 
-## Service Status System
+## Site Status System
 
-Real-time connection tracking via background service:
+Real-time connection tracking via background site:
 
 - `connected` - Tab open and content script responding
 - `loading` - Tab opening or content script initializing
@@ -111,10 +111,10 @@ Real-time connection tracking via background service:
 
 ## Chrome Extension Gotchas
 
-- Service worker lifecycle: State persisted in class instance, not globals
+- Site worker lifecycle: State persisted in class instance, not globals
 - Content script injection timing: Always use retry logic with `waitForContentScriptReady()`
 - Tab management: Track tabIds, handle manual tab closures via `chrome.tabs.onRemoved`
-- Permissions: Host permissions in manifest.json must match exact service domains
+- Permissions: Host permissions in manifest.json must match exact site domains
 
 ## Component Patterns
 
@@ -125,7 +125,7 @@ Real-time connection tracking via background service:
 
 ## Key Files for Architecture Understanding
 
-- `src/shared/serviceConfig.ts` - Service definitions and DOM selectors
+- `src/shared/siteConfig.ts` - Site definitions and DOM selectors
 - `src/background/background.ts` - Core orchestration and retry logic
-- `src/content/content.ts` - DOM injection patterns per service
+- `src/content/content.ts` - DOM injection patterns per site
 - `src/popup/components/PopupApp.tsx` - Main component composition

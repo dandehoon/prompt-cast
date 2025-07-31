@@ -1,16 +1,16 @@
 import React from 'react';
-import { ServiceCard } from './ServiceCard';
-import { AIService } from '../../shared/types';
+import { SiteCard } from './SiteCard';
+import { AISite } from '../../shared/types';
 
 interface SitesSectionProps {
-  services: Record<string, AIService>;
-  onFocusTab: (serviceId: string) => void;
+  sites: Record<string, AISite>;
+  onFocusTab: (siteId: string) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;
 }
 
 export function SitesSection({
-  services,
+  sites,
   onFocusTab,
   onCloseAllTabs,
   closeAllLoading,
@@ -35,12 +35,12 @@ export function SitesSection({
         </button>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {(Object.values(services) as AIService[])
-          .filter(service => service.enabled)
-          .map((service) => (
-            <ServiceCard
-              key={service.id}
-              service={service}
+        {(Object.values(sites) as AISite[])
+          .filter(site => site.enabled)
+          .map((site) => (
+            <SiteCard
+              key={site.id}
+              site={site}
               onFocusTab={onFocusTab}
             />
           ))}

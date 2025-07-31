@@ -4,14 +4,14 @@
 [![Version](https://img.shields.io/github/v/release/dandehoon/prompt-cast)](https://github.com/dandehoon/prompt-cast/releases)
 [![License](https://img.shields.io/github/license/dandehoon/prompt-cast)](LICENSE)
 
-Chrome extension for sending messages to multiple AI services simultaneously with React TSX interface.
+Chrome extension for sending messages to multiple AI sites simultaneously with React TSX interface.
 
 ## Features
 
-- **Multi-Service**: Send to ChatGPT, Claude, Gemini, Grok at once
+- **Multi-Site**: Send to ChatGPT, Claude, Gemini, Grok at once
 - **Smart Tabs**: Prevents duplicates, manages focus
 - **Keyboard**: Enter sends, Shift+Enter new line
-- **Toggles**: Enable/disable individual services
+- **Toggles**: Enable/disable individual sites
 - **Persistent**: Remembers settings
 - **Status**: Real-time connection indicators
 
@@ -32,7 +32,7 @@ The extension will appear in your toolbar with the Prompt Cast icon.
 1. Click extension icon
 2. Type message
 3. Press **Enter** to send (Shift+Enter for new line)
-4. Toggle services on/off as needed
+4. Toggle sites on/off as needed
 
 ## Architecture
 
@@ -45,12 +45,12 @@ src/
 │   ├── hooks/        # Custom hooks
 │   └── popup.tsx     # Entry point
 ├── content/          # Content script
-└── background/       # Service worker
+└── background/       # Site worker
 ```
 
-## Services
+## Sites
 
-| Service | URL                 | Status |
+| Site    | URL                 | Status |
 | ------- | ------------------- | ------ |
 | ChatGPT | `chatgpt.com`       | ✅     |
 | Claude  | `claude.ai`         | ✅     |

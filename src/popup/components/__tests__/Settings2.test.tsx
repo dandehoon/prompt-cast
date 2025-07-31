@@ -4,7 +4,7 @@ import { Settings } from '../Settings';
 import { THEME_OPTIONS } from '../../../shared/constants';
 
 describe('Settings', () => {
-  const mockOnServiceToggle = jest.fn();
+  const mockOnSiteToggle = jest.fn();
   const mockOnThemeChange = jest.fn();
 
   const mockThemeOptions = [
@@ -14,8 +14,8 @@ describe('Settings', () => {
   ];
 
   const defaultProps = {
-    services: {},
-    onServiceToggle: mockOnServiceToggle,
+    sites: {},
+    onSiteToggle: mockOnSiteToggle,
     currentTheme: THEME_OPTIONS.AUTO,
     themeOptions: mockThemeOptions,
     onThemeChange: mockOnThemeChange,

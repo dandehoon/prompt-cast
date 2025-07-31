@@ -4,7 +4,7 @@
  */
 
 /**
- * Background service configuration for tab management and message handling
+ * Background site configuration for tab management and message handling
  */
 export const BACKGROUND_CONFIG = {
   /**
@@ -98,10 +98,10 @@ export const POPUP_CONFIG = {
   },
 
   /**
-   * Service state management
+   * Site state management
    */
-  services: {
-    /** Delay for refreshing service states after operations (ms) */
+  sites: {
+    /** Delay for refreshing site states after operations (ms) */
     refreshDelay: 1000,
   },
 } as const;

@@ -1,38 +1,38 @@
 import { ContentMessage } from '../shared/types';
 import { CONTENT_MESSAGE_TYPES } from '../shared/constants';
-import { getServiceByHostname, ServiceConfig } from '../shared/serviceConfig';
+import { getSiteByHostname, SiteConfig } from '../shared/siteConfig';
 import { logger } from '../shared/logger';
 import { InjectionHandler } from './modules/InjectionHandler';
 import { ReadinessChecker } from './modules/ReadinessChecker';
 
 class ContentScript {
-  private currentServiceConfig: ServiceConfig | null = null;
+  private currentSiteConfig: SiteConfig | null = null;
   private injectionHandler: InjectionHandler | null = null;
   private readinessChecker: ReadinessChecker | null = null;
 
   constructor() {
-    this.detectService();
+    this.detectSite();
     this.initializeModules();
     this.initializeListeners();
   }
 
-  private detectService(): void {
+  private detectSite(): void {
     const hostname = window.location.hostname;
-    this.currentServiceConfig = getServiceByHostname(hostname);
+    this.currentSiteConfig = getSiteByHostname(hostname);
   }
 
   private initializeModules(): void {
-    if (!this.currentServiceConfig) return;
+    if (!this.currentSiteConfig) return;
 
-    this.injectionHandler = new InjectionHandler(this.currentServiceConfig);
+    this.injectionHandler = new InjectionHandler(this.currentSiteConfig);
     this.readinessChecker = new ReadinessChecker(
-      this.currentServiceConfig,
+      this.currentSiteConfig,
       () => this.injectionHandler?.findInputElement() || null,
     );
   }
 
   private initializeListeners(): void {
-    if (!this.currentServiceConfig) return;
+    if (!this.currentSiteConfig) return;
 
     chrome.runtime.onMessage.addListener(
       (
@@ -60,7 +60,7 @@ class ContentScript {
             const success = await this.injectionHandler.injectMessage(
               message.payload.message,
             );
-            sendResponse({ success, service: this.currentServiceConfig?.id });
+            sendResponse({ success, site: this.currentSiteConfig?.id });
           }
           break;
 
@@ -71,7 +71,7 @@ class ContentScript {
               await this.readinessChecker.checkInputWithRetries();
             sendResponse({
               ready: isInputReady,
-              service: this.currentServiceConfig?.id,
+              site: this.currentSiteConfig?.id,
               url: window.location.href,
             });
           }

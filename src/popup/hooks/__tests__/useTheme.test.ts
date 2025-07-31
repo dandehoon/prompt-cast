@@ -29,7 +29,7 @@ describe('useTheme', () => {
       loading: false,
       error: null,
       savePreferences: mockSavePreferences,
-      updateServiceEnabled: jest.fn(),
+      updateSiteEnabled: jest.fn(),
       reload: jest.fn(),
     });
     mockMatchMedia.mockReturnValue(mockMediaQuery);
@@ -55,11 +55,11 @@ describe('useTheme', () => {
 
   it('should load theme from storage', () => {
     mockUseStorage.mockReturnValue({
-      preferences: { services: {}, theme: THEME_OPTIONS.DARK },
+      preferences: { sites: {}, theme: THEME_OPTIONS.DARK },
       loading: false,
       error: null,
       savePreferences: mockSavePreferences,
-      updateServiceEnabled: jest.fn(),
+      updateSiteEnabled: jest.fn(),
       reload: jest.fn(),
     });
 
@@ -79,7 +79,7 @@ describe('useTheme', () => {
     expect(result.current.currentTheme).toBe(THEME_OPTIONS.DARK);
     expect(result.current.resolvedTheme).toBe('dark');
     expect(mockSavePreferences).toHaveBeenCalledWith({
-      services: {},
+      sites: {},
       theme: THEME_OPTIONS.DARK,
     });
   });

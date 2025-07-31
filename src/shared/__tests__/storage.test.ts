@@ -10,7 +10,7 @@ describe('ChromeStorage', () => {
   describe('getUserPreferences', () => {
     it('should return user preferences when they exist', async () => {
       const mockPreferences: UserPreferences = {
-        services: {
+        sites: {
           chatgpt: { enabled: true },
           claude: { enabled: false },
         },
@@ -55,7 +55,7 @@ describe('ChromeStorage', () => {
   describe('saveUserPreferences', () => {
     it('should save user preferences successfully', async () => {
       const mockPreferences: UserPreferences = {
-        services: {
+        sites: {
           chatgpt: { enabled: true },
         },
       };
@@ -71,7 +71,7 @@ describe('ChromeStorage', () => {
 
     it('should throw error on save failure', async () => {
       const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
-      const mockPreferences: UserPreferences = { services: {} };
+      const mockPreferences: UserPreferences = { sites: {} };
       const error = new Error('Save failed');
 
       (chrome.storage.sync.set as jest.Mock).mockRejectedValue(error);

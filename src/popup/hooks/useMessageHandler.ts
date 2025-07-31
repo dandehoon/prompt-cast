@@ -6,14 +6,14 @@ import { CONFIG } from '../../shared/config';
 import { logger } from '../../shared/logger';
 
 interface UseMessageHandlerProps {
-  getEnabledServices: () => string[];
-  refreshServiceStates: () => Promise<void>;
+  getEnabledSites: () => string[];
+  refreshSiteStates: () => Promise<void>;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 export function useMessageHandler({
-  getEnabledServices,
-  refreshServiceStates,
+  getEnabledSites,
+  refreshSiteStates,
   showToast,
 }: UseMessageHandlerProps) {
   const [sendLoading, setSendLoading] = useState(false);
@@ -27,10 +27,10 @@ export function useMessageHandler({
         return false;
       }
 
-      const enabledServices = getEnabledServices();
+      const enabledSites = getEnabledSites();
 
-      if (enabledServices.length === 0) {
-        showToast('Please enable at least one service', 'error');
+      if (enabledSites.length === 0) {
+        showToast('Please enable at least one site', 'error');
         return false;
       }
 
@@ -40,24 +40,21 @@ export function useMessageHandler({
 
         const payload: SendMessagePayload = {
           message: trimmedMessage,
-          services: enabledServices,
+          sites: enabledSites,
         };
 
-        // Send message - the background service will handle opening tabs if needed
+        // Send message - the background site will handle opening tabs if needed
         const response = await ChromeMessaging.sendMessage({
           type: EXTENSION_MESSAGE_TYPES.SEND_MESSAGE,
           payload,
         } as ExtensionMessage);
 
         if (response.success) {
-          showToast(
-            `Message sent to ${enabledServices.length} services`,
-            'success',
-          );
-          // Update service states after sending
+          showToast(`Message sent to ${enabledSites.length} sites`, 'success');
+          // Update site states after sending
           setTimeout(
-            () => refreshServiceStates(),
-            CONFIG.popup.services.refreshDelay,
+            () => refreshSiteStates(),
+            CONFIG.popup.sites.refreshDelay,
           );
           return true;
         } else {
@@ -71,7 +68,7 @@ export function useMessageHandler({
         setSendLoading(false);
       }
     },
-    [getEnabledServices, refreshServiceStates, showToast],
+    [getEnabledSites, refreshSiteStates, showToast],
   );
 
   return {

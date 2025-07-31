@@ -1,9 +1,9 @@
-import { ServiceConfig } from '../../shared/serviceConfig';
+import { SiteConfig } from '../../shared/siteConfig';
 import { CONFIG } from '../../shared/config';
 import { sleep } from '../../shared/utils';
 
 export class InjectionHandler {
-  constructor(private serviceConfig: ServiceConfig) {}
+  constructor(private siteConfig: SiteConfig) {}
 
   async injectMessage(message: string): Promise<boolean> {
     const { maxInjectionAttempts, detectionDelay } = CONFIG.content.input;
@@ -121,7 +121,7 @@ export class InjectionHandler {
       // Clear existing content and set new content
       element.innerHTML = '';
 
-      if (this.serviceConfig.id === 'claude') {
+      if (this.siteConfig.id === 'claude') {
         // Claude-specific handling
         const textNode = document.createTextNode(message);
         element.appendChild(textNode);
@@ -134,7 +134,7 @@ export class InjectionHandler {
         selection?.removeAllRanges();
         selection?.addRange(range);
       } else {
-        // Default handling for other services
+        // Default handling for other sites
         element.textContent = message;
 
         // For rich text editors, also try innerHTML
@@ -194,7 +194,7 @@ export class InjectionHandler {
   }
 
   private async clickSendButton(): Promise<boolean> {
-    const selectors = this.serviceConfig.submitSelectors;
+    const selectors = this.siteConfig.submitSelectors;
 
     for (const selector of selectors) {
       const button = document.querySelector(selector) as HTMLButtonElement;
@@ -212,7 +212,7 @@ export class InjectionHandler {
   }
 
   findInputElement(): Element | null {
-    const selectors = this.serviceConfig.inputSelectors;
+    const selectors = this.siteConfig.inputSelectors;
 
     for (const selector of selectors) {
       const elements = document.querySelectorAll(selector);
