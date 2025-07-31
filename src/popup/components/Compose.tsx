@@ -1,9 +1,9 @@
 import React, { RefObject } from 'react';
-import { AIServicesSection } from './AIServicesSection';
+import { SitesSection } from './SitesSection';
 import { MessageSection } from './MessageSection';
 import { AIService, ToastMessage } from '../../shared/types';
 
-interface HomeProps {
+interface ComposeProps {
   services: Record<string, AIService>;
   onFocusTab: (serviceId: string) => void;
   onCloseAllTabs: () => void;
@@ -19,7 +19,7 @@ interface HomeProps {
   enabledCount: number;
 }
 
-export function Home({
+export function Compose({
   services,
   onFocusTab,
   onCloseAllTabs,
@@ -33,11 +33,11 @@ export function Home({
   isLoading,
   connectedCount,
   enabledCount,
-}: HomeProps) {
+}: ComposeProps) {
   return (
     <>
       <main className="p-4 space-y-4">
-        <AIServicesSection
+        <SitesSection
           services={services}
           onFocusTab={onFocusTab}
           onCloseAllTabs={onCloseAllTabs}

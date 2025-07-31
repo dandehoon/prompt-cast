@@ -2,19 +2,19 @@ import React from 'react';
 import { ServiceCard } from './ServiceCard';
 import { AIService } from '../../shared/types';
 
-interface AIServicesSectionProps {
+interface SitesSectionProps {
   services: Record<string, AIService>;
   onFocusTab: (serviceId: string) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;
 }
 
-export function AIServicesSection({
+export function SitesSection({
   services,
   onFocusTab,
   onCloseAllTabs,
   closeAllLoading,
-}: AIServicesSectionProps) {
+}: SitesSectionProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">

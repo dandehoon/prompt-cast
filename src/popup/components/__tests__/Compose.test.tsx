@@ -1,12 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { Home } from '../Home';
+import { Compose } from '../Compose';
 import { AIService, ToastMessage } from '../../../shared/types';
 
 // Mock child components
-jest.mock('../AIServicesSection', () => ({
-  AIServicesSection: jest.fn(({ services, onFocusTab, onCloseAllTabs, closeAllLoading }) => (
-    <div data-testid="ai-services-section">
+jest.mock('../SitesSection', () => ({
+  SitesSection: jest.fn(({ services, onFocusTab, onCloseAllTabs, closeAllLoading }) => (
+    <div data-testid="sites-section">
       <div data-testid="services-data">{JSON.stringify(services)}</div>
       <div data-testid="close-all-loading">{closeAllLoading.toString()}</div>
       <button onClick={() => onFocusTab('chatgpt')}>Focus Service</button>
@@ -101,10 +101,10 @@ describe('Home', () => {
     jest.clearAllMocks();
   });
 
-  it('should render AIServicesSection with correct props', () => {
-    render(<Home {...defaultProps} />);
+  it('should render SitesSection with correct props', () => {
+    render(<Compose {...defaultProps} />);
 
-    expect(screen.getByTestId('ai-services-section')).toBeInTheDocument();
+    expect(screen.getByTestId('sites-section')).toBeInTheDocument();
     expect(screen.getByTestId('close-all-loading')).toHaveTextContent('false');
 
     // Services should be passed as-is (no filtering in Home component)
@@ -116,7 +116,7 @@ describe('Home', () => {
   });
 
   it('should render MessageSection with correct props', () => {
-    render(<Home {...defaultProps} />);
+    render(<Compose {...defaultProps} />);
 
     expect(screen.getByTestId('message-section')).toBeInTheDocument();
     expect(screen.getByTestId('message-value')).toHaveTextContent('test message');
@@ -129,7 +129,7 @@ describe('Home', () => {
 
   it('should pass loading states correctly', () => {
     render(
-      <Home
+      <Compose
         {...defaultProps}
         closeAllLoading={true}
         sendLoading={true}
@@ -143,20 +143,20 @@ describe('Home', () => {
   });
 
   it('should handle empty message', () => {
-    render(<Home {...defaultProps} message="" />);
+    render(<Compose {...defaultProps} message="" />);
 
     expect(screen.getByTestId('message-value')).toHaveTextContent('');
   });
 
   it('should pass empty toasts array', () => {
-    render(<Home {...defaultProps} toasts={[]} />);
+    render(<Compose {...defaultProps} toasts={[]} />);
 
     expect(screen.getByTestId('toasts-count')).toHaveTextContent('0');
   });
 
   it('should handle different counts', () => {
     render(
-      <Home
+      <Compose
         {...defaultProps}
         connectedCount={1}
         enabledCount={3}
@@ -167,7 +167,7 @@ describe('Home', () => {
     expect(screen.getByTestId('enabled-count')).toHaveTextContent('3');
   });
 
-  it('should pass services unchanged to AIServicesSection', () => {
+  it('should pass services unchanged to SitesSection', () => {
     const customServices = {
       ...mockServices,
       chatgpt: {
@@ -176,7 +176,7 @@ describe('Home', () => {
       },
     };
 
-    render(<Home {...defaultProps} services={customServices} />);
+    render(<Compose {...defaultProps} services={customServices} />);
 
     const servicesData = JSON.parse(screen.getByTestId('services-data').textContent || '{}');
     expect(servicesData.chatgpt.status).toBe('error');

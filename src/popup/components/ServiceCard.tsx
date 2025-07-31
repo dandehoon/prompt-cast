@@ -25,7 +25,7 @@ export function ServiceCard({ service, onFocusTab }: ServiceCardProps) {
 
   return (
     <div
-      className={`service-card bg-ai-bg-card border border-ai-border rounded-lg p-3 transition-all ${cursorStyle}`}
+      className={`service-card bg-ai-bg-card border border-ai-border rounded-lg p-3 h-12 transition-all ${cursorStyle}`}
       onClick={handleCardClick}
     >
       <div className="flex items-center justify-between">
@@ -33,7 +33,7 @@ export function ServiceCard({ service, onFocusTab }: ServiceCardProps) {
           <div className={`w-4 h-4 rounded-full service-logo ${getServiceLogoColor()}`}></div>
           <span className="text-sm font-medium text-ai-text-primary">{service.name}</span>
         </div>
-        <div className={`w-2 h-2 rounded-full ${service.status === SERVICE_STATUS.CONNECTED ? 'bg-ai-success' : service.status === SERVICE_STATUS.LOADING ? 'bg-ai-warning' : 'bg-ai-text-disabled'}`}></div>
+        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${service.status === SERVICE_STATUS.CONNECTED ? 'bg-ai-success' : service.status === SERVICE_STATUS.LOADING ? 'bg-ai-warning' : 'bg-ai-text-disabled'}`}></div>
       </div>
     </div>
   );

@@ -14,8 +14,8 @@ interface ThemeSelectorProps {
 
 export function ThemeSelector({ currentTheme, themeOptions, onThemeChange }: ThemeSelectorProps) {
   return (
-    <div className="space-y-3">
-      <h3 className="text-base font-medium text-ai-text-primary">Appearance</h3>
+    <div className="space-y-2">
+      <h3 className="text-sm font-medium text-ai-text-primary">Appearance</h3>
       <div className="space-y-2">
         {themeOptions.map((option) => (
           <label

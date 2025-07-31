@@ -50,7 +50,7 @@ export function MessageSection({
         {sendLoading ? 'Sending...' : 'Send'}
       </button>
 
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-center">
         <StatusIndicator
           toasts={toasts}
           isLoading={isLoading}

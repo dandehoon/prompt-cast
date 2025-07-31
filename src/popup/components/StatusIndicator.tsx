@@ -74,17 +74,9 @@ export function StatusIndicator({ toasts, isLoading, connectedCount = 0, enabled
 
   return (
     <div className="flex items-center space-x-2">
-      {/* Always show status message on the left */}
-      <span className="text-xs text-ai-text-secondary max-w-48 truncate">
-        {latestToast ? latestToast.message : getDefaultMessage()}
-      </span>
-
-      {/* Only show icon when there are toasts */}
       {latestToast && (
         <div className="relative">
           {getStatusIcon()}
-
-          {/* Toast count badge */}
           {toasts.length > 1 && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-ai-error rounded-full flex items-center justify-center">
               <span className="text-ai-text-inverted text-xs font-bold leading-none">{toasts.length}</span>
@@ -92,6 +84,10 @@ export function StatusIndicator({ toasts, isLoading, connectedCount = 0, enabled
           )}
         </div>
       )}
+      <span className="text-xs text-ai-text-secondary opacity-70 max-w-48 truncate">
+        {latestToast ? latestToast.message : getDefaultMessage()}
+      </span>
+
     </div>
   );
 }

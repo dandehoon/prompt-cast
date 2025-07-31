@@ -1,6 +1,6 @@
 import React from 'react';
 import { AIService } from '../../shared/types';
-import { SERVICE_STATUS, ThemeOption } from '../../shared/constants';
+import { ThemeOption } from '../../shared/constants';
 import { getServiceById } from '../../shared/serviceConfig';
 import { ThemeSelector } from './ThemeSelector';
 
@@ -23,58 +23,27 @@ export function Settings({ services, onServiceToggle, currentTheme, themeOptions
     return serviceConfig?.color || 'bg-ai-service-default';
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case SERVICE_STATUS.CONNECTED:
-        return 'text-ai-success';
-      case SERVICE_STATUS.LOADING:
-        return 'text-ai-warning';
-      case SERVICE_STATUS.ERROR:
-        return 'text-ai-error';
-      default:
-        return 'text-ai-text-disabled';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case SERVICE_STATUS.CONNECTED:
-        return 'Connected';
-      case SERVICE_STATUS.LOADING:
-        return 'Loading...';
-      case SERVICE_STATUS.ERROR:
-        return 'Error';
-      case SERVICE_STATUS.DISCONNECTED:
-        return 'Disconnected';
-      default:
-        return 'Unknown';
-    }
-  };
-
   return (
-    <div className="space-y-6">
-
+    <>
       {/* Service Settings */}
-      <div className="space-y-3">
-        <h3 className="text-base font-medium text-ai-text-primary">Sites</h3>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium text-ai-text-primary">Sites</h3>
+          <div className="w-6 h-6"></div>
+        </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {(Object.values(services)).map((service) => (
             <div
               key={service.id}
-              className="flex items-center justify-between p-3 bg-ai-bg-card border border-ai-border rounded-lg"
+              className="flex items-center justify-between p-3 h-12 bg-ai-bg-card border border-ai-border rounded-lg"
             >
-              <div className="flex items-center space-x-3">
-                <div className={`w-5 h-5 rounded-full ${getServiceLogoColor(service.id)}`}></div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-ai-text-primary">{service.name}</span>
-                  <span className={`text-xs ${getStatusColor(service.status)}`}>
-                    {getStatusText(service.status)}
-                  </span>
-                </div>
+              <div className="flex items-center space-x-2">
+                <div className={`w-4 h-4 rounded-full ${getServiceLogoColor(service.id)}`}></div>
+                <span className="text-sm font-medium text-ai-text-primary">{service.name}</span>
               </div>
 
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                 <input
                   type="checkbox"
                   className="sr-only peer"
@@ -94,6 +63,6 @@ export function Settings({ services, onServiceToggle, currentTheme, themeOptions
         themeOptions={themeOptions}
         onThemeChange={onThemeChange}
       />
-    </div>
+    </>
   );
 }

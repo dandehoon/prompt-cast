@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppHeader } from './AppHeader';
-import { Home } from './Home';
+import { Compose } from './Compose';
 import { Settings } from './Settings';
 import { useServices } from '../hooks/useServices';
 import { useStorage } from '../hooks/useStorage';
@@ -84,7 +84,7 @@ export function PopupApp() {
           onTabChange={setActiveTab}
         />        <div className="flex-1">
           {activeTab === 'home' ? (
-            <Home
+            <Compose
               services={services}
               onFocusTab={handleFocusTab}
               onCloseAllTabs={handleCloseAllTabs}
@@ -100,7 +100,7 @@ export function PopupApp() {
               enabledCount={enabledCount}
             />
           ) : (
-            <main className="p-4">
+            <main className="p-4 space-y-4">
               <Settings
                 services={services}
                 onServiceToggle={handleServiceToggle}
