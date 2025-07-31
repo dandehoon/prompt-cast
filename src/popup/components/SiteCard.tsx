@@ -1,10 +1,15 @@
 import React from 'react';
 import { SITE_STATUS } from '../../shared/constants';
-import { AISite } from '../../shared/types';
+import { AISite, SiteStatusType } from '../../shared/types';
 import { getSiteById } from '../../shared/siteConfig';
 
+// Extended site interface for popup components (includes computed status)
+interface PopupSite extends AISite {
+  status: SiteStatusType;
+}
+
 interface SiteCardProps {
-  site: AISite;
+  site: PopupSite;
   onFocusTab: (siteId: string) => void;
 }
 

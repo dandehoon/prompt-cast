@@ -24,7 +24,7 @@ export function PopupApp() {
     getEnabledCount,
   } = useSites();
 
-  const { preferences, updateSiteEnabled, updateLastMessage } = useStorage();
+  const { preferences, updateSiteEnabled } = useStorage();
   const { toasts, showToast } = useToast();
   const { currentTheme, themeOptions, changeTheme } = useTheme();
 
@@ -54,21 +54,34 @@ export function PopupApp() {
     }
   }, []);
 
-  // Load saved message from storage when popup opens
+  // Load saved message from local storage (persistent across popup reopens) when popup opens
   useEffect(() => {
-    if (preferences?.lastMessage) {
-      setMessage(preferences.lastMessage);
+    try {
+      const savedMessage = window.localStorage.getItem('prompt-cast-temp-message');
+      if (savedMessage) {
+        setMessage(savedMessage);
+      }
+    } catch {
+      // Ignore if localStorage is not available
     }
-  }, [preferences?.lastMessage]);
+  }, []);
 
-  // Save message to storage when it changes (debounced)
+  // Save message to local storage as user types (persistent but not Chrome storage)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      updateLastMessage(message);
+      try {
+        if (message.trim()) {
+          window.localStorage.setItem('prompt-cast-temp-message', message);
+        } else {
+          window.localStorage.removeItem('prompt-cast-temp-message');
+        }
+      } catch {
+        // Ignore if localStorage is not available
+      }
     }, 200);
 
     return () => window.clearTimeout(timeoutId);
-  }, [message, updateLastMessage]);
+  }, [message]);
 
   // Sync site enabled states with storage
   useEffect(() => {
@@ -85,8 +98,12 @@ export function PopupApp() {
     const success = await handleSendMessage(message);
     if (success) {
       setMessage('');
-      // Clear the saved message from storage when successfully sent
-      updateLastMessage('');
+      // Clear the temporary message from local storage when successfully sent
+      try {
+        window.localStorage.removeItem('prompt-cast-temp-message');
+      } catch {
+        // Ignore if localStorage is not available
+      }
     }
   };
 

@@ -106,7 +106,6 @@ describe('useTabOperations', () => {
       type: EXTENSION_MESSAGE_TYPES.FOCUS_TAB,
       payload: { siteId: 'chatgpt' },
     });
-    expect(mockShowToast).toHaveBeenCalledWith('Switched to ChatGPT', 'info');
     expect(mockRefreshSiteStates).toHaveBeenCalled();
   });
 

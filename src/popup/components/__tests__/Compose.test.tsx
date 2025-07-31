@@ -1,7 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Compose } from '../Compose';
-import { AISite, ToastMessage } from '../../../shared/types';
+import { AISite, ToastMessage, SiteStatusType } from '../../../shared/types';
+
+// Extended site interface for test (includes computed status)
+interface PopupSite extends AISite {
+  status: SiteStatusType;
+}
 
 // Mock child components
 jest.mock('../SitesSection', () => ({
@@ -46,7 +51,7 @@ describe('Home', () => {
   const mockOnSend = jest.fn();
   const mockMessageInputRef = { current: null } as React.RefObject<HTMLTextAreaElement>;
 
-  const mockSites: Record<string, AISite> = {
+  const mockSites: Record<string, PopupSite> = {
     chatgpt: {
       id: 'chatgpt',
       name: 'ChatGPT',

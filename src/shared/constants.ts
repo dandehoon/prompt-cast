@@ -6,17 +6,12 @@
 // Background Script Message Types
 export const EXTENSION_MESSAGE_TYPES = {
   // Tab operations
-  OPEN_TABS: 'OPEN_TABS',
-  CLOSE_TAB: 'CLOSE_TAB',
   CLOSE_ALL_TABS: 'CLOSE_ALL_TABS',
   FOCUS_TAB: 'FOCUS_TAB',
 
   // Site operations
   SITE_TOGGLE: 'SITE_TOGGLE',
   SEND_MESSAGE: 'SEND_MESSAGE',
-
-  // Status updates
-  TAB_STATUS_UPDATE: 'TAB_STATUS_UPDATE',
 } as const;
 
 // Content Script Message Types

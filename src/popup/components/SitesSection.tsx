@@ -1,9 +1,14 @@
 import React from 'react';
 import { SiteCard } from './SiteCard';
-import { AISite } from '../../shared/types';
+import { AISite, SiteStatusType } from '../../shared/types';
+
+// Extended site interface for popup components (includes computed status)
+interface PopupSite extends AISite {
+  status: SiteStatusType;
+}
 
 interface SitesSectionProps {
-  sites: Record<string, AISite>;
+  sites: Record<string, PopupSite>;
   onFocusTab: (siteId: string) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;
@@ -35,7 +40,7 @@ export function SitesSection({
         </button>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {(Object.values(sites) as AISite[])
+        {(Object.values(sites) as PopupSite[])
           .filter(site => site.enabled)
           .map((site) => (
             <SiteCard

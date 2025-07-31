@@ -56,11 +56,13 @@ const mockUseTabOperations = useTabOperations as jest.MockedFunction<typeof useT
 const mockUseTheme = useTheme as jest.MockedFunction<typeof useTheme>;
 
 describe('PopupApp', () => {
-  const mockUpdateLastMessage = jest.fn();
   const mockHandleSendMessage = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Clear localStorage before each test
+    window.localStorage.clear();
 
     mockUseSites.mockReturnValue({
       sites: {},
@@ -77,7 +79,6 @@ describe('PopupApp', () => {
       error: null,
       savePreferences: jest.fn(),
       updateSiteEnabled: jest.fn(),
-      updateLastMessage: mockUpdateLastMessage,
       reload: jest.fn(),
     });
 
@@ -113,7 +114,7 @@ describe('PopupApp', () => {
     });
   });
 
-  it('should auto-save message changes with debouncing', async () => {
+  it('should auto-save message changes to localStorage with debouncing', async () => {
     const user = userEvent.setup();
     render(<PopupApp />);
 
@@ -126,52 +127,37 @@ describe('PopupApp', () => {
     // Wait for debounce (500ms)
     await waitFor(
       () => {
-        expect(mockUpdateLastMessage).toHaveBeenCalledWith('Hello world');
+        expect(window.localStorage.getItem('prompt-cast-temp-message')).toBe('Hello world');
       },
       { timeout: 1000 },
     );
   });
 
-  it('should save empty string when message is cleared', async () => {
+  it('should remove message from localStorage when cleared', async () => {
     const user = userEvent.setup();
 
-    // Mock initial preferences with a saved message
-    mockUseStorage.mockReturnValue({
-      preferences: { sites: {}, lastMessage: 'Previous message' },
-      loading: false,
-      error: null,
-      savePreferences: jest.fn(),
-      updateSiteEnabled: jest.fn(),
-      updateLastMessage: mockUpdateLastMessage,
-      reload: jest.fn(),
-    });
+    // Set up initial localStorage state
+    window.localStorage.setItem('prompt-cast-temp-message', 'Previous message');
 
     render(<PopupApp />);
 
     const messageInput = screen.getByTestId('message-input');
 
-    // Clear the input
+    // Clear the message
     await user.clear(messageInput);
 
-    // Wait for debounce
+    // Wait for debounce (500ms)
     await waitFor(
       () => {
-        expect(mockUpdateLastMessage).toHaveBeenCalledWith('');
+        expect(window.localStorage.getItem('prompt-cast-temp-message')).toBeNull();
       },
       { timeout: 1000 },
     );
   });
 
-  it('should load saved message from storage on mount', () => {
-    mockUseStorage.mockReturnValue({
-      preferences: { sites: {}, lastMessage: 'Saved message' },
-      loading: false,
-      error: null,
-      savePreferences: jest.fn(),
-      updateSiteEnabled: jest.fn(),
-      updateLastMessage: mockUpdateLastMessage,
-      reload: jest.fn(),
-    });
+  it('should load saved message from localStorage on mount', async () => {
+    // Set up localStorage with a saved message
+    window.localStorage.setItem('prompt-cast-temp-message', 'Saved message');
 
     render(<PopupApp />);
 
@@ -179,31 +165,29 @@ describe('PopupApp', () => {
     expect(messageInput).toHaveValue('Saved message');
   });
 
-  it('should clear message and storage after successful send', async () => {
+  it('should clear message and localStorage after successful send', async () => {
     const user = userEvent.setup();
     mockHandleSendMessage.mockResolvedValue(true);
+
+    // Set up localStorage with a message
+    window.localStorage.setItem('prompt-cast-temp-message', 'Test message');
 
     render(<PopupApp />);
 
     const messageInput = screen.getByTestId('message-input');
     const sendButton = screen.getByTestId('send-button');
 
-    // Type a message
+    // Type a message and send
+    await user.clear(messageInput);
     await user.type(messageInput, 'Test message');
-
-    // Send the message
     await user.click(sendButton);
 
-    // Wait for async operations
     await waitFor(() => {
-      expect(mockHandleSendMessage).toHaveBeenCalledWith('Test message');
+      expect(messageInput).toHaveValue('');
     });
 
-    // Should clear local state
-    expect(messageInput).toHaveValue('');
-
-    // Should clear storage
-    expect(mockUpdateLastMessage).toHaveBeenCalledWith('');
+    // Should clear localStorage
+    expect(window.localStorage.getItem('prompt-cast-temp-message')).toBeNull();
   });
 
   it('should not clear message if send fails', async () => {
@@ -218,6 +202,11 @@ describe('PopupApp', () => {
     // Type a message
     await user.type(messageInput, 'Test message');
 
+    // Wait for debounce to save to localStorage
+    await waitFor(() => {
+      expect(window.localStorage.getItem('prompt-cast-temp-message')).toBe('Test message');
+    }, { timeout: 1000 });
+
     // Send the message (will fail)
     await user.click(sendButton);
 
@@ -229,8 +218,8 @@ describe('PopupApp', () => {
     // Should keep the message
     expect(messageInput).toHaveValue('Test message');
 
-    // Should not clear storage
-    expect(mockUpdateLastMessage).not.toHaveBeenCalledWith('');
+    // Should not clear localStorage on failed send
+    expect(window.localStorage.getItem('prompt-cast-temp-message')).toBe('Test message');
   });
 
   it('should handle empty preferences gracefully', () => {
@@ -240,7 +229,6 @@ describe('PopupApp', () => {
       error: null,
       savePreferences: jest.fn(),
       updateSiteEnabled: jest.fn(),
-      updateLastMessage: mockUpdateLastMessage,
       reload: jest.fn(),
     });
 

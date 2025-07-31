@@ -2,12 +2,17 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SiteCard } from '../SiteCard';
-import { AISite } from '../../../shared/types';
+import { AISite, SiteStatusType } from '../../../shared/types';
+
+// Extended site interface for test (includes computed status)
+interface PopupSite extends AISite {
+  status: SiteStatusType;
+}
 
 describe('SiteCard', () => {
   const mockOnFocusTab = jest.fn();
 
-  const baseSite: AISite = {
+  const baseSite: PopupSite = {
     id: 'chatgpt',
     name: 'ChatGPT',
     enabled: true,

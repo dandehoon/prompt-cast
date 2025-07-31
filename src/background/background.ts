@@ -37,15 +37,7 @@ class BackgroundSite {
       },
     );
 
-    // Handle tab closing to update site state
-    chrome.tabs.onRemoved.addListener((tabId: number) => {
-      Object.values(this.siteManager.sites).forEach((site) => {
-        if (site.tabId === tabId) {
-          site.tabId = undefined;
-          site.status = 'disconnected';
-        }
-      });
-    });
+    // Note: No need to track tab removal since we query Chrome directly for tab state
   }
 
   private async handleMessage(

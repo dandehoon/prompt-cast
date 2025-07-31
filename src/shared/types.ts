@@ -23,8 +23,6 @@ export interface AISite {
   name: string;
   url: string;
   enabled: boolean;
-  status: SiteStatusType;
-  tabId?: number;
 }
 
 export type SiteConfig = Record<string, AISite>;
@@ -51,7 +49,6 @@ export interface SiteTogglePayload {
 // Storage Types
 export interface UserPreferences {
   sites: Partial<Record<string, { enabled: boolean }>>;
-  lastMessage?: string;
   theme?: ThemeOption;
 }
 
@@ -71,3 +68,12 @@ export interface Tab {
   label: string;
   icon?: string;
 }
+
+// Re-export types from constants
+export type {
+  SiteStatusType,
+  ThemeOption,
+  ToastType,
+  ExtensionMessageType,
+  ContentMessageType,
+};

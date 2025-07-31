@@ -27,7 +27,7 @@ describe('ChromeMessaging', () => {
     it('should handle send message failure', async () => {
       const loggerSpy = jest.spyOn(logger, 'error').mockImplementation();
       const mockMessage: ExtensionMessage = {
-        type: EXTENSION_MESSAGE_TYPES.OPEN_TABS,
+        type: EXTENSION_MESSAGE_TYPES.CLOSE_ALL_TABS,
       };
       const error = new Error('Send failed');
 

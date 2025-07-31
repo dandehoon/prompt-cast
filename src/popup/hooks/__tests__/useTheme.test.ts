@@ -30,7 +30,6 @@ describe('useTheme', () => {
       error: null,
       savePreferences: mockSavePreferences,
       updateSiteEnabled: jest.fn(),
-      updateLastMessage: jest.fn(),
       reload: jest.fn(),
     });
     mockMatchMedia.mockReturnValue(mockMediaQuery);
@@ -61,7 +60,6 @@ describe('useTheme', () => {
       error: null,
       savePreferences: mockSavePreferences,
       updateSiteEnabled: jest.fn(),
-      updateLastMessage: jest.fn(),
       reload: jest.fn(),
     });
 

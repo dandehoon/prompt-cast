@@ -94,9 +94,7 @@ describe('useSites', () => {
     });
 
     expect(result.current.sites.chatgpt.status).toBe('connected');
-    expect(result.current.sites.chatgpt.tabId).toBe(1);
     expect(result.current.sites.claude.status).toBe('connected');
-    expect(result.current.sites.claude.tabId).toBe(2);
     expect(result.current.sites.gemini.status).toBe('disconnected');
     expect(result.current.sites.grok.status).toBe('disconnected');
   });

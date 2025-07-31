@@ -1,4 +1,4 @@
-import { SendMessagePayload, AISite } from '../../shared/types';
+import { SendMessagePayload, AISite, SiteStatusType } from '../../shared/types';
 import { logger } from '../../shared/logger';
 import { CONTENT_MESSAGE_TYPES } from '../../shared/constants';
 import { TabManager } from './TabManager';
@@ -8,6 +8,38 @@ export class MessageHandler {
     private sites: Record<string, AISite>,
     private tabManager: TabManager,
   ) {}
+
+  /**
+   * Get current status for a site by checking if its tab exists and responds
+   */
+  async getSiteStatus(site: AISite): Promise<SiteStatusType> {
+    try {
+      const tabs = await chrome.tabs.query({ url: site.url + '*' });
+
+      if (tabs.length === 0) {
+        return 'disconnected';
+      }
+
+      const tab = tabs[0];
+      if (!tab.id) {
+        return 'disconnected';
+      }
+
+      // Check if content script is ready
+      try {
+        const response = await chrome.tabs.sendMessage(tab.id, {
+          type: CONTENT_MESSAGE_TYPES.STATUS_CHECK,
+        });
+
+        return response && response.ready ? 'connected' : 'loading';
+      } catch {
+        return 'loading'; // Tab exists but content script not ready
+      }
+    } catch (error) {
+      logger.error(`Failed to get status for ${site.name}:`, error);
+      return 'error';
+    }
+  }
 
   async sendMessageToSitesRobust(payload: SendMessagePayload): Promise<void> {
     // First, ensure all tabs are open and ready
@@ -58,7 +90,7 @@ export class MessageHandler {
       await this.tabManager.openOrFocusTab(site, false);
 
       // Focus the first available site immediately after it opens (if no current focus)
-      if (!focusApplied && site.tabId) {
+      if (!focusApplied) {
         await this.tabManager.focusTab(siteId);
         focusApplied = true;
       }
@@ -109,7 +141,6 @@ export class MessageHandler {
 
       if (tabs.length > 0) {
         const tab = tabs[0];
-        site.tabId = tab.id;
 
         // Wait for tab to be fully loaded and content script ready
         await this.tabManager.waitForContentScriptReady(tab.id!);
@@ -119,17 +150,11 @@ export class MessageHandler {
           type: CONTENT_MESSAGE_TYPES.INJECT_MESSAGE,
           payload: { message },
         });
-
-        site.status = 'connected';
       } else {
-        site.status = 'disconnected';
-        site.tabId = undefined;
         throw new Error(`Failed to open or find ${site.name} tab`);
       }
     } catch (error) {
       logger.error(`Failed to send message to ${site.name}:`, error);
-      site.status = 'error';
-      site.tabId = undefined;
       throw error;
     }
   }

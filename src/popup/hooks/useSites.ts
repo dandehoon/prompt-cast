@@ -1,12 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import { SiteConfig } from '../../shared/types';
+import { AISite, SiteStatusType } from '../../shared/types';
 import { SITE_CONFIGS } from '../../shared/siteConfig';
 import { ChromeMessaging } from '../../shared/messaging';
 import { logger } from '../../shared/logger';
 
+// Extended site interface for popup state (includes computed status)
+interface PopupSite extends AISite {
+  status: SiteStatusType;
+}
+
+type PopupSiteConfig = Record<string, PopupSite>;
+
 // Initialize sites from centralized SITE_CONFIGS
-function createDefaultSites(): SiteConfig {
-  const sites: SiteConfig = {};
+function createDefaultSites(): PopupSiteConfig {
+  const sites: PopupSiteConfig = {};
 
   Object.values(SITE_CONFIGS).forEach((config) => {
     sites[config.id] = {
@@ -22,7 +29,7 @@ function createDefaultSites(): SiteConfig {
 }
 
 export function useSites() {
-  const [sites, setSites] = useState<SiteConfig>(createDefaultSites());
+  const [sites, setSites] = useState<PopupSiteConfig>(createDefaultSites());
 
   const refreshSiteStates = useCallback(async () => {
     try {
@@ -34,7 +41,6 @@ export function useSites() {
         // Reset all sites to disconnected
         Object.values(newSites).forEach((site) => {
           site.status = 'disconnected';
-          site.tabId = undefined;
         });
 
         // Check which sites have open tabs
@@ -42,7 +48,6 @@ export function useSites() {
           Object.values(newSites).forEach((site) => {
             if (tab.url && tab.url.startsWith(site.url)) {
               site.status = 'connected';
-              site.tabId = tab.id;
             }
           });
         });

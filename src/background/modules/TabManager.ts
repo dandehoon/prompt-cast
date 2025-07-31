@@ -8,39 +8,63 @@ import { ContentMessage } from '../../shared/types';
 export class TabManager {
   constructor(private sites: Record<string, AISite>) {}
 
-  async openOrFocusTab(site: AISite, shouldFocus = false): Promise<void> {
+  /**
+   * Get current tab for a site by querying Chrome directly (no cached state)
+   */
+  private async getTabForSite(site: AISite): Promise<chrome.tabs.Tab | null> {
     try {
       const tabs = await chrome.tabs.query({ url: site.url + '*' });
+      return tabs.length > 0 ? tabs[0] : null;
+    } catch (error) {
+      logger.error(`Failed to query tabs for ${site.name}:`, error);
+      return null;
+    }
+  }
 
-      if (tabs.length > 0) {
-        const tab = tabs[0];
-        site.tabId = tab.id;
-        site.status = 'loading';
+  /**
+   * Get all AI site tabs currently open
+   */
+  private async getAllAISiteTabs(): Promise<chrome.tabs.Tab[]> {
+    try {
+      const allTabs = await chrome.tabs.query({});
+      return allTabs.filter((tab) =>
+        Object.values(this.sites).some(
+          (site) => tab.url && tab.url.startsWith(site.url),
+        ),
+      );
+    } catch (error) {
+      logger.error('Failed to query all AI site tabs:', error);
+      return [];
+    }
+  }
 
-        // Focus existing tab if needed
-        if (shouldFocus && tab.id) {
-          await this.waitForTabReady(tab.id);
-          await chrome.tabs.update(tab.id, { active: true });
-          await chrome.windows.update(tab.windowId!, { focused: true });
+  async openOrFocusTab(site: AISite, shouldFocus = false): Promise<void> {
+    try {
+      const existingTab = await this.getTabForSite(site);
+
+      if (existingTab?.id) {
+        // Tab exists, focus if needed
+        if (shouldFocus) {
+          await chrome.tabs.update(existingTab.id, { active: true });
+          if (existingTab.windowId) {
+            await chrome.windows.update(existingTab.windowId, {
+              focused: true,
+            });
+          }
         }
       } else {
         // Create new tab
-        const tab = shouldFocus
-          ? await chrome.tabs.create({ url: site.url, active: true })
-          : await chrome.tabs.create({ url: site.url, active: false });
+        const newTab = await chrome.tabs.create({
+          url: site.url,
+          active: shouldFocus,
+        });
 
-        site.tabId = tab.id;
-        site.status = 'loading';
-
-        if (shouldFocus && tab.id) {
-          await this.waitForTabReady(tab.id);
-          await chrome.tabs.update(tab.id, { active: true });
-          await chrome.windows.update(tab.windowId!, { focused: true });
+        if (shouldFocus && newTab.id) {
+          await this.waitForTabReady(newTab.id);
         }
       }
     } catch (error) {
       logger.error(`Failed to open/focus tab for ${site.name}:`, error);
-      site.status = 'error';
     }
   }
 
@@ -51,29 +75,28 @@ export class TabManager {
       return;
     }
 
-    try {
-      if (site.status === 'disconnected') {
-        await this.openOrFocusTab(site, true);
-      } else if (site.tabId) {
-        await chrome.tabs.update(site.tabId, { active: true });
-        const tab = await chrome.tabs.get(site.tabId);
-        if (tab.windowId) {
-          await chrome.windows.update(tab.windowId, { focused: true });
-        }
+    const existingTab = await this.getTabForSite(site);
+
+    if (existingTab?.id) {
+      // Tab exists, focus it
+      await chrome.tabs.update(existingTab.id, { active: true });
+      if (existingTab.windowId) {
+        await chrome.windows.update(existingTab.windowId, { focused: true });
       }
-    } catch (error) {
-      logger.error(`Failed to focus tab for ${site.name}:`, error);
-      site.status = 'error';
+    } else {
+      // No tab exists, create and focus
+      await this.openOrFocusTab(site, true);
     }
   }
 
   async closeTab(siteId: string): Promise<void> {
     const site = this.sites[siteId];
-    if (site && site.tabId) {
+    if (!site) return;
+
+    const existingTab = await this.getTabForSite(site);
+    if (existingTab?.id) {
       try {
-        await chrome.tabs.remove(site.tabId);
-        site.tabId = undefined;
-        site.status = 'disconnected';
+        await chrome.tabs.remove(existingTab.id);
       } catch (error) {
         logger.error(`Failed to close tab for ${site.name}:`, error);
       }
@@ -81,24 +104,18 @@ export class TabManager {
   }
 
   async closeAllTabs(): Promise<void> {
-    const tabIds = Object.values(this.sites)
-      .filter((site) => site.tabId !== undefined && site.tabId !== null)
-      .map((site) => site.tabId!)
-      .filter((tabId) => typeof tabId === 'number');
+    try {
+      const aiTabs = await this.getAllAISiteTabs();
+      const tabIds = aiTabs
+        .map((tab) => tab.id)
+        .filter((id): id is number => id !== undefined);
 
-    if (tabIds.length > 0) {
-      try {
+      if (tabIds.length > 0) {
         await chrome.tabs.remove(tabIds);
-        Object.values(this.sites).forEach((site) => {
-          if (site.tabId && tabIds.includes(site.tabId)) {
-            site.tabId = undefined;
-            site.status = 'disconnected';
-          }
-        });
-      } catch (error) {
-        logger.error('Failed to close tabs:', error);
-        throw error;
       }
+    } catch (error) {
+      logger.error('Failed to close all tabs:', error);
+      throw error;
     }
   }
 

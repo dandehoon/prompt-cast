@@ -5,11 +5,17 @@ import {
   AISite,
   ExtensionMessage,
   SiteTogglePayload,
+  SiteStatusType,
 } from '../../shared/types';
 import { logger } from '../../shared/logger';
 
+// Extended site interface for popup hooks (includes computed status)
+interface PopupSite extends AISite {
+  status: SiteStatusType;
+}
+
 interface UseTabOperationsProps {
-  sites: Record<string, AISite>;
+  sites: Record<string, PopupSite>;
   toggleSite: (siteId: string, enabled: boolean) => void;
   updateSiteEnabled: (siteId: string, enabled: boolean) => Promise<void>;
   refreshSiteStates: () => Promise<void>;
@@ -75,9 +81,6 @@ export function useTabOperations({
         } as ExtensionMessage);
 
         if (response.success) {
-          if (site.status === 'connected') {
-            showToast(`Switched to ${site.name}`, 'info');
-          }
           await refreshSiteStates();
         } else {
           throw new Error(response.error || 'Failed to focus tab');

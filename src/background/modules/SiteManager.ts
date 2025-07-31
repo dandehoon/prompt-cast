@@ -18,7 +18,6 @@ export class SiteManager {
         name: config.name,
         url: config.url,
         enabled: config.enabled, // Use config's enabled instead of hardcoded true
-        status: 'disconnected',
       };
     });
   }
@@ -27,19 +26,7 @@ export class SiteManager {
     const site = this.sites[payload.siteId];
     if (site) {
       site.enabled = payload.enabled;
-      await this.saveUserPreferences();
-
-      // Only close tab when disabling site, don't open when enabling
-      if (!payload.enabled && site.tabId) {
-        // If disabling site and has an open tab, close it
-        try {
-          await chrome.tabs.remove(site.tabId);
-          site.tabId = undefined;
-          site.status = 'disconnected';
-        } catch (error) {
-          logger.error(`Failed to close tab for ${site.name}:`, error);
-        }
-      }
+      // Note: Storage is handled by the popup, no need to save here
     }
   }
 
@@ -58,25 +45,6 @@ export class SiteManager {
       }
     } catch (error) {
       logger.error('Failed to load user preferences:', error);
-    }
-  }
-
-  private async saveUserPreferences(): Promise<void> {
-    try {
-      const preferences: UserPreferences = {
-        sites: {},
-      };
-
-      Object.keys(this.sites).forEach((siteId) => {
-        const typedSiteId = siteId;
-        preferences.sites[typedSiteId] = {
-          enabled: this.sites[typedSiteId].enabled,
-        };
-      });
-
-      await chrome.storage.sync.set({ userPreferences: preferences });
-    } catch (error) {
-      logger.error('Failed to save user preferences:', error);
     }
   }
 }
