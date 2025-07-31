@@ -82,15 +82,18 @@ export class TabManager {
 
   async closeAllTabs(): Promise<void> {
     const tabIds = Object.values(this.sites)
-      .filter((site) => site.tabId)
-      .map((site) => site.tabId!);
+      .filter((site) => site.tabId !== undefined && site.tabId !== null)
+      .map((site) => site.tabId!)
+      .filter((tabId) => typeof tabId === 'number');
 
     if (tabIds.length > 0) {
       try {
         await chrome.tabs.remove(tabIds);
         Object.values(this.sites).forEach((site) => {
-          site.tabId = undefined;
-          site.status = 'disconnected';
+          if (site.tabId && tabIds.includes(site.tabId)) {
+            site.tabId = undefined;
+            site.status = 'disconnected';
+          }
         });
       } catch (error) {
         logger.error('Failed to close tabs:', error);

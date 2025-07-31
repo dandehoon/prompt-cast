@@ -24,7 +24,7 @@ export function PopupApp() {
     getEnabledCount,
   } = useSites();
 
-  const { preferences, updateSiteEnabled } = useStorage();
+  const { preferences, updateSiteEnabled, updateLastMessage } = useStorage();
   const { toasts, showToast } = useToast();
   const { currentTheme, themeOptions, changeTheme } = useTheme();
 
@@ -53,6 +53,24 @@ export function PopupApp() {
       messageInputRef.current.focus();
     }
   }, []);
+
+  // Load saved message from storage when popup opens
+  useEffect(() => {
+    if (preferences?.lastMessage) {
+      setMessage(preferences.lastMessage);
+    }
+  }, [preferences?.lastMessage]);
+
+  // Save message to storage when it changes (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (message.trim()) {
+        updateLastMessage(message);
+      }
+    }, 500); // 500ms debounce
+
+    return () => window.clearTimeout(timeoutId);
+  }, [message, updateLastMessage]);
 
   // Sync site enabled states with storage
   useEffect(() => {

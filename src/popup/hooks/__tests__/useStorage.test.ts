@@ -152,4 +152,32 @@ describe('useStorage', () => {
 
     expect(result.current.preferences).toEqual(mockPreferences);
   });
+
+  it('should update last message', async () => {
+    const initialPreferences: UserPreferences = {
+      sites: {
+        chatgpt: { enabled: true },
+      },
+    };
+
+    mockChromeStorage.getUserPreferences.mockResolvedValue(initialPreferences);
+    mockChromeStorage.saveUserPreferences.mockResolvedValue();
+
+    const { result } = renderHook(() => useStorage());
+
+    await act(async () => {
+      await sleep(0);
+    });
+
+    await act(async () => {
+      await result.current.updateLastMessage('Hello world');
+    });
+
+    expect(mockChromeStorage.saveUserPreferences).toHaveBeenCalledWith({
+      sites: {
+        chatgpt: { enabled: true },
+      },
+      lastMessage: 'Hello world',
+    });
+  });
 });

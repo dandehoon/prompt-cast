@@ -53,6 +53,18 @@ export function useStorage() {
     [preferences, savePreferences],
   );
 
+  const updateLastMessage = useCallback(
+    async (message: string) => {
+      const currentPrefs = preferences || { sites: {} };
+      const newPreferences: UserPreferences = {
+        ...currentPrefs,
+        lastMessage: message,
+      };
+      await savePreferences(newPreferences);
+    },
+    [preferences, savePreferences],
+  );
+
   useEffect(() => {
     loadPreferences();
   }, [loadPreferences]);
@@ -63,6 +75,7 @@ export function useStorage() {
     error,
     savePreferences,
     updateSiteEnabled,
+    updateLastMessage,
     reload: loadPreferences,
   };
 }

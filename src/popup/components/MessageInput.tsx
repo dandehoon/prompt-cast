@@ -13,7 +13,7 @@ export const MessageInput = forwardRef<HTMLTextAreaElement, MessageInputProps>((
   onChange,
   onSend,
   disabled = false,
-  placeholder = 'Enter your prompt...',
+  placeholder = 'Ask anything',
 }, ref) => {
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
