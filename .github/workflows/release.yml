@@ -63,7 +63,7 @@ jobs:
       run: |
         pnpm run build
         cd dist
-        zip -r ../$EXT_NAME-${{ steps.extract-version.outputs.version }}.zip .
+        zip -r ../$EXT_NAME.zip .
 
     - name: Generate changelog
       id: changelog
@@ -100,6 +100,6 @@ jobs:
           - Click "Load unpacked" and select the extracted folder
           - Or install from Chrome Web Store (if published)
         files: |
-          ${{ env.EXT_NAME }}-${{ steps.extract-version.outputs.version }}.zip
+          ${{ env.EXT_NAME }}.zip
         draft: false
         prerelease: false
