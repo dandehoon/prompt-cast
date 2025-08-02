@@ -1,6 +1,6 @@
 {
   "name": "prompt-cast",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Chrome extension to send messages to multiple AI sites simultaneously",
   "main": "index.js",
   "scripts": {
