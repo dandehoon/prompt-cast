@@ -1,5 +1,5 @@
-import { UserPreferences } from './types';
-import { logger } from './logger';
+import type { UserPreferences } from '../../types/storage';
+import { logger } from '../../shared/logger';
 
 export class ChromeStorage {
   /**

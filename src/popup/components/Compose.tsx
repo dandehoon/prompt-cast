@@ -1,15 +1,11 @@
 import React, { RefObject } from 'react';
 import { SitesSection } from './SitesSection';
 import { MessageSection } from './MessageSection';
-import { AISite, ToastMessage, SiteStatusType } from '../../shared/types';
-
-// Extended site interface for popup components (includes computed status)
-interface PopupSite extends AISite {
-  status: SiteStatusType;
-}
+import { ToastMessage } from '../../shared/types';
+import { EnhancedSite } from '../../shared/stores/siteStore';
 
 interface ComposeProps {
-  sites: Record<string, PopupSite>;
+  sites: Record<string, EnhancedSite>;
   onFocusTab: (siteId: string) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;

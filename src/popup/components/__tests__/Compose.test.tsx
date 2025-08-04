@@ -1,12 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Compose } from '../Compose';
-import { AISite, ToastMessage, SiteStatusType } from '../../../shared/types';
-
-// Extended site interface for test (includes computed status)
-interface PopupSite extends AISite {
-  status: SiteStatusType;
-}
+import { ToastMessage } from '../../../shared/types';
+import { EnhancedSite } from '../../../shared/stores/siteStore';
 
 // Mock child components
 jest.mock('../SitesSection', () => ({
@@ -51,13 +47,18 @@ describe('Home', () => {
   const mockOnSend = jest.fn();
   const mockMessageInputRef = { current: null } as React.RefObject<HTMLTextAreaElement>;
 
-  const mockSites: Record<string, PopupSite> = {
+  const mockSites: Record<string, EnhancedSite> = {
     chatgpt: {
       id: 'chatgpt',
       name: 'ChatGPT',
       url: 'https://chat.openai.com',
       enabled: true,
       status: 'connected',
+      color: '#10a37f',
+      colors: { light: '#10a37f', dark: '#10a37f' },
+      hostPatterns: ['chat.openai.com'],
+      inputSelectors: ['#prompt-textarea'],
+      submitSelectors: ['[data-testid="send-button"]'],
     },
     claude: {
       id: 'claude',
@@ -65,6 +66,11 @@ describe('Home', () => {
       url: 'https://claude.ai',
       enabled: false,
       status: 'disconnected',
+      color: '#cc785c',
+      colors: { light: '#cc785c', dark: '#cc785c' },
+      hostPatterns: ['claude.ai'],
+      inputSelectors: ['div[contenteditable]'],
+      submitSelectors: ['button[aria-label="Send message"]'],
     },
     gemini: {
       id: 'gemini',
@@ -72,6 +78,11 @@ describe('Home', () => {
       url: 'https://gemini.google.com',
       enabled: true,
       status: 'loading',
+      color: '#4285f4',
+      colors: { light: '#4285f4', dark: '#4285f4' },
+      hostPatterns: ['gemini.google.com'],
+      inputSelectors: ['div.ql-editor'],
+      submitSelectors: ['button.send-button'],
     },
     grok: {
       id: 'grok',
@@ -79,6 +90,11 @@ describe('Home', () => {
       url: 'https://x.com/i/grok',
       enabled: false,
       status: 'error',
+      color: '#5d5d5d',
+      colors: { light: '#5d5d5d', dark: '#7d7d7d' },
+      hostPatterns: ['x.com'],
+      inputSelectors: ['textarea[dir="auto"]'],
+      submitSelectors: ['form button[type="submit"]'],
     },
   };
 

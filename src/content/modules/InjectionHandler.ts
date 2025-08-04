@@ -1,4 +1,4 @@
-import { SiteConfig } from '../../shared/siteConfig';
+import type { SiteConfig } from '../../types/site';
 import { CONFIG } from '../../shared/config';
 import { sleep } from '../../shared/utils';
 

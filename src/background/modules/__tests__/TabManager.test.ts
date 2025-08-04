@@ -1,5 +1,5 @@
 import { TabManager } from '../TabManager';
-import { AISite } from '../../../shared/types';
+import type { SiteConfig } from '../../../types/site';
 import { logger } from '../../../shared/logger';
 
 // Mock Chrome APIs
@@ -31,7 +31,7 @@ jest.mock('../../../shared/logger');
 const mockLogger = logger as jest.Mocked<typeof logger>;
 
 describe('TabManager', () => {
-  let sites: Record<string, AISite>;
+  let sites: Record<string, SiteConfig>;
   let tabManager: TabManager;
 
   beforeEach(() => {
@@ -42,18 +42,30 @@ describe('TabManager', () => {
         name: 'ChatGPT',
         url: 'https://chat.openai.com',
         enabled: true,
+        colors: { light: '#10a37f', dark: '#10a37f' },
+        hostPatterns: ['chat.openai.com'],
+        inputSelectors: ['#prompt-textarea'],
+        submitSelectors: ['[data-testid="send-button"]'],
       },
       claude: {
         id: 'claude',
         name: 'Claude',
         url: 'https://claude.ai',
         enabled: true,
+        colors: { light: '#cc785c', dark: '#cc785c' },
+        hostPatterns: ['claude.ai'],
+        inputSelectors: ['div[contenteditable]'],
+        submitSelectors: ['button[aria-label="Send message"]'],
       },
       gemini: {
         id: 'gemini',
         name: 'Gemini',
         url: 'https://gemini.google.com',
         enabled: false,
+        colors: { light: '#4285f4', dark: '#4285f4' },
+        hostPatterns: ['gemini.google.com'],
+        inputSelectors: ['div.ql-editor'],
+        submitSelectors: ['button.send-button'],
       },
     };
     tabManager = new TabManager(sites);

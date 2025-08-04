@@ -1,5 +1,5 @@
-import { ChromeStorage } from '../storage';
-import { UserPreferences } from '../types';
+import { ChromeStorage } from '../../popup/utils/storage';
+import type { UserPreferences } from '../../types/storage';
 import { logger } from '../logger';
 
 describe('ChromeStorage', () => {

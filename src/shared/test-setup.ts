@@ -59,7 +59,7 @@ Object.defineProperty(document, 'querySelectorAll', {
 });
 
 // Mock logger to prevent console noise in tests
-jest.mock('../shared/logger', () => {
+jest.mock('./logger', () => {
   const mockLogger = {
     error: jest.fn(),
     warn: jest.fn(),

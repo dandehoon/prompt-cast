@@ -1,6 +1,6 @@
 import { ChromeMessaging } from '../messaging';
 import { EXTENSION_MESSAGE_TYPES, CONTENT_MESSAGE_TYPES } from '../constants';
-import { ExtensionMessage } from '../types';
+import type { ExtensionMessage } from '../../types/messages';
 import { logger } from '../logger';
 
 describe('ChromeMessaging', () => {

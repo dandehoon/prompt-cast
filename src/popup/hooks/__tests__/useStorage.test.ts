@@ -1,11 +1,11 @@
 import { renderHook, act } from '@testing-library/react';
 import { useStorage } from '../useStorage';
 import { sleep } from '../../../shared/utils';
-import { ChromeStorage } from '../../../shared/storage';
-import { UserPreferences } from '../../../shared/types';
+import { ChromeStorage } from '../../utils/storage';
+import type { UserPreferences } from '../../../types/storage';
 
 // Mock the ChromeStorage module
-jest.mock('../../../shared/storage');
+jest.mock('../../utils/storage');
 
 const mockChromeStorage = ChromeStorage as jest.Mocked<typeof ChromeStorage>;
 

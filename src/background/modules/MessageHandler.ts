@@ -1,18 +1,22 @@
-import { SendMessagePayload, AISite, SiteStatusType } from '../../shared/types';
+import type {
+  SendMessagePayload,
+  SiteConfig,
+  SiteStatusType,
+} from '../../types';
 import { logger } from '../../shared/logger';
 import { CONTENT_MESSAGE_TYPES } from '../../shared/constants';
 import { TabManager } from './TabManager';
 
 export class MessageHandler {
   constructor(
-    private sites: Record<string, AISite>,
+    private sites: Record<string, SiteConfig>,
     private tabManager: TabManager,
   ) {}
 
   /**
    * Get current status for a site by checking if its tab exists and responds
    */
-  async getSiteStatus(site: AISite): Promise<SiteStatusType> {
+  async getSiteStatus(site: SiteConfig): Promise<SiteStatusType> {
     try {
       const tabs = await chrome.tabs.query({ url: site.url + '*' });
 

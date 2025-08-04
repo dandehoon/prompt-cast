@@ -1,7 +1,6 @@
 import React from 'react';
-import { AISite } from '../../shared/types';
 import { ThemeOption } from '../../shared/constants';
-import { getSiteById } from '../../shared/siteConfig';
+import { EnhancedSite } from '../../shared/stores/siteStore';
 import { ThemeSelector } from './ThemeSelector';
 
 interface ThemeOptionItem {
@@ -10,7 +9,7 @@ interface ThemeOptionItem {
 }
 
 interface SettingsProps {
-  sites: Record<string, AISite>;
+  sites: Record<string, EnhancedSite>;
   onSiteToggle: (siteId: string, enabled: boolean) => void;
   currentTheme: ThemeOption;
   themeOptions: ThemeOptionItem[];
@@ -18,11 +17,6 @@ interface SettingsProps {
 }
 
 export function Settings({ sites, onSiteToggle, currentTheme, themeOptions, onThemeChange }: SettingsProps) {
-  const getSiteLogoColor = (siteId: string) => {
-    const siteConfig = getSiteById(siteId);
-    return siteConfig?.color || 'bg-ai-site-default';
-  };
-
   return (
     <>
       {/* Site Settings */}
@@ -39,7 +33,10 @@ export function Settings({ sites, onSiteToggle, currentTheme, themeOptions, onTh
               className="flex items-center justify-between p-3 h-12 bg-ai-bg-card border border-ai-border rounded-lg"
             >
               <div className="flex items-center space-x-2">
-                <div className={`w-4 h-4 rounded-full ${getSiteLogoColor(site.id)}`}></div>
+                <div
+                  className="w-4 h-4 rounded-full"
+                  style={{ backgroundColor: site.color }}
+                ></div>
                 <span className="text-sm font-medium text-ai-text-primary">{site.name}</span>
               </div>
 
