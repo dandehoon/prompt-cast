@@ -1,25 +1,37 @@
-import { SiteTogglePayload, AISite, UserPreferences } from '../../shared/types';
-import { SITE_CONFIGS } from '../../shared/siteConfig';
+import type {
+  SiteTogglePayload,
+  UserPreferences,
+  SiteConfigsPayload,
+  SiteConfig,
+} from '../../types';
 import { logger } from '../../shared/logger';
 
 export class SiteManager {
-  public sites: Record<string, AISite> = {};
+  public sites: Record<string, SiteConfig> = {};
+  private siteConfigs: Record<string, SiteConfig> = {};
 
   constructor() {
-    this.initializeSites();
+    // Sites will be initialized via message-based communication
     this.loadUserPreferences();
   }
 
-  private initializeSites(): void {
-    // Dynamically create sites from SITE_CONFIGS
-    Object.values(SITE_CONFIGS).forEach((config) => {
-      this.sites[config.id] = {
-        id: config.id,
-        name: config.name,
-        url: config.url,
-        enabled: config.enabled, // Use config's enabled instead of hardcoded true
-      };
-    });
+  // Initialize sites from configuration received via message
+  initializeSitesFromConfigs(payload: SiteConfigsPayload): void {
+    this.sites = payload.configs;
+    this.siteConfigs = payload.configs;
+    logger.debug(
+      'Sites initialized from configuration:',
+      Object.keys(this.sites),
+    );
+  }
+
+  getSiteByHostname(hostname: string): SiteConfig | null {
+    for (const config of Object.values(this.siteConfigs)) {
+      if (config.hostPatterns?.some((pattern) => hostname.includes(pattern))) {
+        return config;
+      }
+    }
+    return null;
   }
 
   async toggleSite(payload: SiteTogglePayload): Promise<void> {

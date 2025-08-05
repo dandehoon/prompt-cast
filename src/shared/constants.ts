@@ -12,6 +12,11 @@ export const EXTENSION_MESSAGE_TYPES = {
   // Site operations
   SITE_TOGGLE: 'SITE_TOGGLE',
   SEND_MESSAGE: 'SEND_MESSAGE',
+
+  // Site configuration
+  GET_SITE_CONFIGS: 'GET_SITE_CONFIGS',
+  UPDATE_SITE_CONFIGS: 'UPDATE_SITE_CONFIGS',
+  GET_SITE_BY_HOSTNAME: 'GET_SITE_BY_HOSTNAME',
 } as const;
 
 // Content Script Message Types

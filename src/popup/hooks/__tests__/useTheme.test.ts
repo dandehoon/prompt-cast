@@ -2,10 +2,14 @@ import { renderHook, act } from '@testing-library/react';
 import { useTheme } from '../useTheme';
 import { useStorage } from '../useStorage';
 import { THEME_OPTIONS } from '../../../shared/constants';
+import { logger } from '../../../shared/logger';
 
 // Mock the useStorage hook
 jest.mock('../useStorage');
 const mockUseStorage = useStorage as jest.MockedFunction<typeof useStorage>;
+// Mock logger
+jest.mock('../../../shared/logger');
+const mockLogger = logger as jest.Mocked<typeof logger>;
 
 // Mock DOM APIs
 const mockMatchMedia = jest.fn();
@@ -115,7 +119,7 @@ describe('useTheme', () => {
       await result.current.changeTheme(THEME_OPTIONS.DARK);
     });
 
-    expect(consoleSpy).toHaveBeenCalledWith(
+    expect(mockLogger.error).toHaveBeenCalledWith(
       'Failed to save theme preference:',
       expect.any(Error),
     );

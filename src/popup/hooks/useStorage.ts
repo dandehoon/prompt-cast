@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ChromeStorage } from '../../shared/storage';
-import { UserPreferences } from '../../shared/types';
+import { ChromeStorage } from '../utils/storage';
+import type { UserPreferences } from '../../types/storage';
 
 export function useStorage() {
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);

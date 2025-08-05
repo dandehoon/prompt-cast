@@ -14,7 +14,9 @@
     "https://chatgpt.com/*",
     "https://claude.ai/*",
     "https://gemini.google.com/*",
-    "https://grok.com/*"
+    "https://grok.com/*",
+    "https://www.perplexity.ai/*",
+    "https://copilot.microsoft.com/*"
   ],
   "action": {
     "default_title": "Prompt Cast",
@@ -35,7 +37,9 @@
         "https://chatgpt.com/*",
         "https://claude.ai/*",
         "https://gemini.google.com/*",
-        "https://grok.com/*"
+        "https://grok.com/*",
+        "https://www.perplexity.ai/*",
+        "https://copilot.microsoft.com/*"
       ],
       "js": ["content/content.js"]
     }

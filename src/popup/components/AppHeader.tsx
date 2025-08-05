@@ -1,5 +1,5 @@
 import React from 'react';
-import { TabId } from '../../shared/types';
+import { TabId } from '../../types';
 
 interface AppHeaderProps {
   activeTab: TabId;

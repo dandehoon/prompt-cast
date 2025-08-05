@@ -2,22 +2,22 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SiteCard } from '../SiteCard';
-import { AISite, SiteStatusType } from '../../../shared/types';
-
-// Extended site interface for test (includes computed status)
-interface PopupSite extends AISite {
-  status: SiteStatusType;
-}
+import { EnhancedSite } from '../../../types';
 
 describe('SiteCard', () => {
   const mockOnFocusTab = jest.fn();
 
-  const baseSite: PopupSite = {
+  const baseSite: EnhancedSite = {
     id: 'chatgpt',
     name: 'ChatGPT',
     enabled: true,
     status: 'disconnected',
     url: 'https://chatgpt.com/',
+    color: '#10a37f',
+    colors: { light: '#10a37f', dark: '#10a37f' },
+    hostPatterns: ['chatgpt.com'],
+    inputSelectors: ['#prompt-textarea'],
+    submitSelectors: ['[data-testid="send-button"]'],
   };
 
   const defaultProps = {

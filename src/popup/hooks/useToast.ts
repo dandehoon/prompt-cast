@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ToastMessage } from '../../shared/types';
+import type { ToastMessage } from '../../types/ui';
 import { CONFIG } from '../../shared/config';
 
 export function useToast() {

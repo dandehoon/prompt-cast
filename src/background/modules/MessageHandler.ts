@@ -1,18 +1,22 @@
-import { SendMessagePayload, AISite, SiteStatusType } from '../../shared/types';
+import type {
+  SendMessagePayload,
+  SiteConfig,
+  SiteStatusType,
+} from '../../types';
 import { logger } from '../../shared/logger';
 import { CONTENT_MESSAGE_TYPES } from '../../shared/constants';
 import { TabManager } from './TabManager';
 
 export class MessageHandler {
   constructor(
-    private sites: Record<string, AISite>,
+    private sites: Record<string, SiteConfig>,
     private tabManager: TabManager,
   ) {}
 
   /**
    * Get current status for a site by checking if its tab exists and responds
    */
-  async getSiteStatus(site: AISite): Promise<SiteStatusType> {
+  async getSiteStatus(site: SiteConfig): Promise<SiteStatusType> {
     try {
       const tabs = await chrome.tabs.query({ url: site.url + '*' });
 
@@ -53,51 +57,46 @@ export class MessageHandler {
   private async openAllTabsWithInstantFocus(
     payload: SendMessagePayload,
   ): Promise<void> {
-    // Only open tabs for sites that are both enabled and requested for this message
     const sitesToOpen = payload.sites.filter(
       (siteId) => this.sites[siteId]?.enabled,
     );
 
-    let focusApplied = false;
+    if (sitesToOpen.length === 0) return;
 
-    // Check if any AI site tab is already active/focused
+    // Check if any AI site tab is currently active
     const currentTab = await chrome.tabs.query({
       active: true,
       currentWindow: true,
     });
 
-    if (currentTab[0]) {
-      const currentUrl = currentTab[0].url || '';
-      // Check if current tab belongs to any AI site that's in the enabled list for this message
-      for (const siteId of sitesToOpen) {
+    const isCurrentTabAISite =
+      currentTab[0] &&
+      sitesToOpen.some((siteId) => {
         const site = this.sites[siteId];
-        if (
-          site &&
-          site.enabled &&
-          currentUrl.includes(site.url.split('/')[2])
-        ) {
-          focusApplied = true;
-          break;
-        }
-      }
-    }
+        return site && currentTab[0].url?.includes(site.url.split('/')[2]);
+      });
 
-    // Open only the required tabs concurrently, but focus the first one immediately
-    const openPromises = sitesToOpen.map(async (siteId) => {
+    // Open all tabs and track the first new one
+    let firstNewTabSite: string | null = null;
+
+    for (const siteId of sitesToOpen) {
       const site = this.sites[siteId];
-      if (!site) return;
+      if (!site) continue;
+
+      const existingTabs = await chrome.tabs.query({ url: site.url + '*' });
+      const isNewTab = existingTabs.length === 0;
 
       await this.tabManager.openOrFocusTab(site, false);
 
-      // Focus the first available site immediately after it opens (if no current focus)
-      if (!focusApplied) {
-        await this.tabManager.focusTab(siteId);
-        focusApplied = true;
+      if (isNewTab && !firstNewTabSite) {
+        firstNewTabSite = siteId;
       }
-    });
+    }
 
-    // Wait for all to complete
-    await Promise.allSettled(openPromises);
+    // Focus the first new tab if no AI site is currently active
+    if (!isCurrentTabAISite && firstNewTabSite) {
+      await this.tabManager.focusTab(firstNewTabSite);
+    }
   }
 
   private async sendMessageToSites(payload: SendMessagePayload): Promise<void> {

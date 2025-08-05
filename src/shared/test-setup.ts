@@ -35,7 +35,7 @@ const mockChrome = {
   },
 };
 
-// @ts-ignore
+// @ts-expect-error - Chrome API is not available in test environment
 global.chrome = mockChrome;
 
 // Mock window.location
@@ -59,7 +59,7 @@ Object.defineProperty(document, 'querySelectorAll', {
 });
 
 // Mock logger to prevent console noise in tests
-jest.mock('../shared/logger', () => {
+jest.mock('./logger', () => {
   const mockLogger = {
     error: jest.fn(),
     warn: jest.fn(),

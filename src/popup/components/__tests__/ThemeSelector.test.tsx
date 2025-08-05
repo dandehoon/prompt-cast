@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { ThemeSelector } from '../ThemeSelector';
 import { THEME_OPTIONS } from '../../../shared/constants';
 
@@ -57,26 +57,6 @@ describe('ThemeSelector', () => {
     const { container } = render(<ThemeSelector {...defaultProps} />);
     expect(container.querySelector('.bg-ai-warning')).toBeInTheDocument();
     expect(container.querySelector('.bg-ai-text-disabled')).toBeInTheDocument();
-  });
-
-  it.skip('should call onThemeChange when option is clicked', () => {
-    const mockOnThemeChange = jest.fn();
-
-    render(
-      <ThemeSelector
-        currentTheme={THEME_OPTIONS.AUTO}
-        themeOptions={mockThemeOptions}
-        onThemeChange={mockOnThemeChange}
-      />,
-    );
-
-    // Find the light theme label and click it
-    const lightLabel = screen.getByText('Light').closest('label');
-
-    if (lightLabel) {
-      fireEvent.click(lightLabel);
-      expect(mockOnThemeChange).toHaveBeenCalledWith(THEME_OPTIONS.LIGHT);
-    }
   });
 
   it('should render theme preview icons', () => {

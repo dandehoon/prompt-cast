@@ -12,7 +12,7 @@ export const BACKGROUND_CONFIG = {
    */
   contentScript: {
     /** Maximum attempts to check if content script is ready */
-    maxReadinessAttempts: 20,
+    maxReadinessAttempts: 10,
     /** Delay between content script readiness checks (ms) */
     readinessCheckDelay: 500,
   },

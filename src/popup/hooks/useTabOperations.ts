@@ -1,21 +1,12 @@
 import { useState, useCallback } from 'react';
 import { ChromeMessaging } from '../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../shared/constants';
-import {
-  AISite,
-  ExtensionMessage,
-  SiteTogglePayload,
-  SiteStatusType,
-} from '../../shared/types';
+import type { ExtensionMessage, SiteTogglePayload } from '../../types/messages';
 import { logger } from '../../shared/logger';
-
-// Extended site interface for popup hooks (includes computed status)
-interface PopupSite extends AISite {
-  status: SiteStatusType;
-}
+import type { EnhancedSite } from '../../types/site';
 
 interface UseTabOperationsProps {
-  sites: Record<string, PopupSite>;
+  sites: Record<string, EnhancedSite>;
   toggleSite: (siteId: string, enabled: boolean) => void;
   updateSiteEnabled: (siteId: string, enabled: boolean) => Promise<void>;
   refreshSiteStates: () => Promise<void>;

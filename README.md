@@ -4,11 +4,11 @@
 [![Version](https://img.shields.io/github/v/release/dandehoon/prompt-cast)](https://github.com/dandehoon/prompt-cast/releases)
 [![License](https://img.shields.io/github/license/dandehoon/prompt-cast)](LICENSE)
 
-Chrome extension for sending messages to multiple AI sites simultaneously with React TSX interface.
+Chrome extension for sending messages to multiple AI sites simultaneously.
 
 ## Features
 
-- **Multi-Site**: Send to ChatGPT, Claude, Gemini, Grok at once
+- **Multi-Site**: Send to ChatGPT, Claude, Gemini, Grok... at once
 - **Smart Tabs**: Prevents duplicates, manages focus
 - **Keyboard**: Enter sends, Shift+Enter new line
 - **Toggles**: Enable/disable individual sites
@@ -104,5 +104,3 @@ This runs the complete pipeline: type checking, linting, testing, and building.
 - esbuild with JSX
 - Tailwind CSS
 - Chrome Extension API (Manifest V3)
-
-**Status: Production Ready** ✅

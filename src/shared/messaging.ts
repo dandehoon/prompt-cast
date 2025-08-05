@@ -1,4 +1,4 @@
-import { ExtensionMessage, ContentMessage, Response } from './types';
+import type { ExtensionMessage, ContentMessage, Response } from '../types';
 import { logger } from './logger';
 
 export class ChromeMessaging {

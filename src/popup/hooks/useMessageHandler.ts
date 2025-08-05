@@ -1,7 +1,10 @@
 import { useState, useCallback } from 'react';
 import { ChromeMessaging } from '../../shared/messaging';
 import { EXTENSION_MESSAGE_TYPES } from '../../shared/constants';
-import { ExtensionMessage, SendMessagePayload } from '../../shared/types';
+import type {
+  ExtensionMessage,
+  SendMessagePayload,
+} from '../../types/messages';
 import { CONFIG } from '../../shared/config';
 import { logger } from '../../shared/logger';
 

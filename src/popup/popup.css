@@ -36,13 +36,6 @@
   --pc-info: #3b82f6;
   --pc-info-light: #dbeafe;
 
-  /* Site specific colors */
-  --pc-site-chatgpt: #14ba91;
-  --pc-site-claude: #cc785c;
-  --pc-site-gemini: #4285f4;
-  --pc-site-grok: #5d5d5d;
-  --pc-site-default: #6b7280;
-
   /* Interactive states */
   --pc-interactive-hover: rgba(0, 0, 0, 0.06);
   --pc-interactive-active: rgba(0, 0, 0, 0.12);
@@ -88,12 +81,6 @@
     0 2px 4px -1px rgba(0, 0, 0, 0.3);
   --pc-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
     0 4px 6px -2px rgba(0, 0, 0, 0.4);
-
-  /* Site specific colors - darker variations for dark theme */
-  --pc-site-chatgpt: #10a37f;
-  --pc-site-claude: #cc785c;
-  --pc-site-gemini: #4285f4;
-  --pc-site-grok: #7d7d7d;
 }
 
 /* Site card hover effects */

@@ -40,13 +40,6 @@ module.exports = {
         'ai-info': 'var(--pc-info)',
         'ai-info-light': 'var(--pc-info-light)',
 
-        // Site specific colors
-        'ai-site-chatgpt': 'var(--pc-site-chatgpt)',
-        'ai-site-claude': 'var(--pc-site-claude)',
-        'ai-site-gemini': 'var(--pc-site-gemini)',
-        'ai-site-grok': 'var(--pc-site-grok)',
-        'ai-site-default': 'var(--pc-site-default)',
-
         // Interactive states
         'ai-interactive-hover': 'var(--pc-interactive-hover)',
         'ai-interactive-active': 'var(--pc-interactive-active)',

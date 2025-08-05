@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { THEME_OPTIONS, ThemeOption } from '../../shared/constants';
 import { useStorage } from './useStorage';
+import { logger } from '../../shared/logger';
 
 export function useTheme() {
   const [currentTheme, setCurrentTheme] = useState<ThemeOption>(
@@ -64,7 +65,7 @@ export function useTheme() {
           theme: newTheme,
         });
       } catch (error) {
-        console.error('Failed to save theme preference:', error);
+        logger.error('Failed to save theme preference:', error);
       }
     },
     [

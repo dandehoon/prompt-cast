@@ -1,17 +1,19 @@
-import { AISite } from '../../shared/types';
+import type { SiteConfig } from '../../types/site';
 import { CONFIG } from '../../shared/config';
 import { sleep } from '../../shared/utils';
 import { logger } from '../../shared/logger';
 import { CONTENT_MESSAGE_TYPES } from '../../shared/constants';
-import { ContentMessage } from '../../shared/types';
+import type { ContentMessage } from '../../types/messages';
 
 export class TabManager {
-  constructor(private sites: Record<string, AISite>) {}
+  constructor(private sites: Record<string, SiteConfig>) {}
 
   /**
    * Get current tab for a site by querying Chrome directly (no cached state)
    */
-  private async getTabForSite(site: AISite): Promise<chrome.tabs.Tab | null> {
+  private async getTabForSite(
+    site: SiteConfig,
+  ): Promise<chrome.tabs.Tab | null> {
     try {
       const tabs = await chrome.tabs.query({ url: site.url + '*' });
       return tabs.length > 0 ? tabs[0] : null;
@@ -24,7 +26,7 @@ export class TabManager {
   /**
    * Get all AI site tabs currently open
    */
-  private async getAllAISiteTabs(): Promise<chrome.tabs.Tab[]> {
+  private async getAllSiteTabs(): Promise<chrome.tabs.Tab[]> {
     try {
       const allTabs = await chrome.tabs.query({});
       return allTabs.filter((tab) =>
@@ -38,7 +40,7 @@ export class TabManager {
     }
   }
 
-  async openOrFocusTab(site: AISite, shouldFocus = false): Promise<void> {
+  async openOrFocusTab(site: SiteConfig, shouldFocus = false): Promise<void> {
     try {
       const existingTab = await this.getTabForSite(site);
 
@@ -105,8 +107,8 @@ export class TabManager {
 
   async closeAllTabs(): Promise<void> {
     try {
-      const aiTabs = await this.getAllAISiteTabs();
-      const tabIds = aiTabs
+      const siteTabs = await this.getAllSiteTabs();
+      const tabIds = siteTabs
         .map((tab) => tab.id)
         .filter((id): id is number => id !== undefined);
 

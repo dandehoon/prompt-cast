@@ -65,7 +65,12 @@ module.exports = [
     },
   },
   {
-    files: ['**/*.test.{ts,tsx}', '**/test-utils/**/*.{ts,tsx}'],
+    files: [
+      '**/*.test.{ts,tsx}',
+      '**/test-utils/**/*.{ts,tsx}',
+      '**/test-setup.ts',
+      '**/*-setup.ts',
+    ],
     languageOptions: {
       globals: {
         describe: 'readonly',

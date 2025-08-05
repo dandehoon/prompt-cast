@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/src/test-utils/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/shared/test-setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
@@ -30,4 +30,8 @@ module.exports = {
     ],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  // Use basic reporter to avoid display issues with parallel execution
+  reporters: ['default'],
+  // Ensure stable test execution
+  maxWorkers: '50%',
 };

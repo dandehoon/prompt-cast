@@ -1,21 +1,17 @@
 import React, { RefObject } from 'react';
 import { SitesSection } from './SitesSection';
 import { MessageSection } from './MessageSection';
-import { AISite, ToastMessage, SiteStatusType } from '../../shared/types';
-
-// Extended site interface for popup components (includes computed status)
-interface PopupSite extends AISite {
-  status: SiteStatusType;
-}
+import { EnhancedSite, ToastMessage } from '../../types';
 
 interface ComposeProps {
-  sites: Record<string, PopupSite>;
+  sites: Record<string, EnhancedSite>;
   onFocusTab: (siteId: string) => void;
   onCloseAllTabs: () => void;
   closeAllLoading: boolean;
   message: string;
   onMessageChange: (value: string) => void;
   onSend: () => void;
+  onArrowUp?: () => void;
   sendLoading: boolean;
   messageInputRef: RefObject<HTMLTextAreaElement>;
   toasts: ToastMessage[];
@@ -32,6 +28,7 @@ export function Compose({
   message,
   onMessageChange,
   onSend,
+  onArrowUp,
   sendLoading,
   messageInputRef,
   toasts,
@@ -54,6 +51,7 @@ export function Compose({
         message={message}
         onMessageChange={onMessageChange}
         onSend={onSend}
+        onArrowUp={onArrowUp}
         sendLoading={sendLoading}
         messageInputRef={messageInputRef}
         toasts={toasts}

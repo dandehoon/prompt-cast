@@ -1,6 +1,9 @@
-import { ContentMessage } from '../shared/types';
-import { CONTENT_MESSAGE_TYPES } from '../shared/constants';
-import { getSiteByHostname, SiteConfig } from '../shared/siteConfig';
+import type { ContentMessage } from '../types/messages';
+import {
+  CONTENT_MESSAGE_TYPES,
+  EXTENSION_MESSAGE_TYPES,
+} from '../shared/constants';
+import type { SiteConfig } from '../types/site';
 import { logger } from '../shared/logger';
 import { InjectionHandler } from './modules/InjectionHandler';
 import { ReadinessChecker } from './modules/ReadinessChecker';
@@ -11,14 +14,31 @@ class ContentScript {
   private readinessChecker: ReadinessChecker | null = null;
 
   constructor() {
-    this.detectSite();
+    this.initializeAsync();
+  }
+
+  private async initializeAsync(): Promise<void> {
+    await this.detectSite();
     this.initializeModules();
     this.initializeListeners();
   }
 
-  private detectSite(): void {
+  private async detectSite(): Promise<void> {
     const hostname = window.location.hostname;
-    this.currentSiteConfig = getSiteByHostname(hostname);
+
+    try {
+      // Get site config from background script
+      const response = await chrome.runtime.sendMessage({
+        type: EXTENSION_MESSAGE_TYPES.GET_SITE_BY_HOSTNAME,
+        payload: { hostname },
+      });
+
+      if (response?.config) {
+        this.currentSiteConfig = response.config;
+      }
+    } catch (error) {
+      logger.error('Failed to get site config from background:', error);
+    }
   }
 
   private initializeModules(): void {
