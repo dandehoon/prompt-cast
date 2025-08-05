@@ -12,9 +12,10 @@ export interface SiteConfig {
     light: string;
     dark: string;
   };
-  hostPatterns: string[];
+  hostPatterns?: string[]; // Optional - auto-generated from URL
   inputSelectors: string[];
   submitSelectors: string[];
+  injectionMethod?: 'execCommand';
 }
 
 export interface SiteConfigsPayload {

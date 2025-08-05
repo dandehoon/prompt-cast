@@ -1,12 +1,13 @@
 import React, { RefObject } from 'react';
 import { MessageInput } from './MessageInput';
 import { StatusIndicator } from './StatusIndicator';
-import { ToastMessage } from '../../shared/types';
+import { ToastMessage } from '../../types';
 
 interface MessageSectionProps {
   message: string;
   onMessageChange: (value: string) => void;
   onSend: () => void;
+  onArrowUp?: () => void;
   sendLoading: boolean;
   messageInputRef: RefObject<HTMLTextAreaElement>;
   toasts: ToastMessage[];
@@ -19,6 +20,7 @@ export function MessageSection({
   message,
   onMessageChange,
   onSend,
+  onArrowUp,
   sendLoading,
   messageInputRef,
   toasts,
@@ -37,6 +39,7 @@ export function MessageSection({
             value={message}
             onChange={onMessageChange}
             onSend={onSend}
+            onArrowUp={onArrowUp}
             disabled={sendLoading}
           />
         </div>

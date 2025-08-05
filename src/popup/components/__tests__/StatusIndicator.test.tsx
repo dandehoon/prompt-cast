@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StatusIndicator } from '../StatusIndicator';
 import { TOAST_TYPES } from '../../../shared/constants';
-import { ToastMessage } from '../../../shared/types';
+import { ToastMessage } from '../../../types';
 
 describe('StatusIndicator', () => {
   const infoToast: ToastMessage = {

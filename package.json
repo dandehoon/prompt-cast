@@ -20,7 +20,9 @@
     "chatgpt",
     "claude",
     "gemini",
-    "grok"
+    "grok",
+    "perplexity",
+    "copilot"
   ],
   "author": "",
   "license": "MIT",

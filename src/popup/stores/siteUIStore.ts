@@ -151,19 +151,7 @@ export const useSiteUIStore = create<SiteUIStore>((set, get) => ({
       const state = get();
       const configsPayload: SiteConfigsPayload = {
         configs: Object.fromEntries(
-          Object.entries(state.siteConfigs).map(([id, config]) => [
-            id,
-            {
-              id: config.id,
-              name: config.name,
-              url: config.url,
-              enabled: state.siteStates[id]?.enabled ?? config.enabled,
-              colors: config.colors,
-              hostPatterns: config.hostPatterns,
-              inputSelectors: config.inputSelectors,
-              submitSelectors: config.submitSelectors,
-            },
-          ]),
+          Object.entries(state.siteConfigs).map(([id, config]) => [id, config]),
         ),
       };
 

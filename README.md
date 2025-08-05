@@ -8,7 +8,7 @@ Chrome extension for sending messages to multiple AI sites simultaneously with R
 
 ## Features
 
-- **Multi-Site**: Send to ChatGPT, Claude, Gemini, Grok at once
+- **Multi-Site**: Send to ChatGPT, Claude, Gemini, Grok... at once
 - **Smart Tabs**: Prevents duplicates, manages focus
 - **Keyboard**: Enter sends, Shift+Enter new line
 - **Toggles**: Enable/disable individual sites

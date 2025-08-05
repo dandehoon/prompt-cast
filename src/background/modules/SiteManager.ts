@@ -27,7 +27,7 @@ export class SiteManager {
 
   getSiteByHostname(hostname: string): SiteConfig | null {
     for (const config of Object.values(this.siteConfigs)) {
-      if (config.hostPatterns.some((pattern) => hostname.includes(pattern))) {
+      if (config.hostPatterns?.some((pattern) => hostname.includes(pattern))) {
         return config;
       }
     }

@@ -1,131 +1,187 @@
+````instructions
 # AI Agent Instructions for Prompt Cast Chrome Extension
 
 ## Project Overview
 
-Chrome extension (manifest v3) that broadcasts messages to multiple AI sites simultaneously (ChatGPT, Claude, Gemini, Grok) with React TSX popup interface.
+Chrome extension (manifest v3) with React TSX popup interface. TypeScript monorepo with build tooling, testing, and quality automation.
 
-## Architecture Pattern
+## Repository Structure
 
-3-layer Chrome extension architecture with sophisticated messaging system:
+```
+src/
+├── background/           # Background script + modules
+│   ├── config/          # Site configurations
+│   └── modules/         # TabManager, MessageHandler, SiteManager
+├── content/             # Content scripts for DOM injection
+├── popup/               # React popup interface
+│   ├── components/      # React components + tests
+│   ├── hooks/          # Custom hooks + tests
+│   └── stores/         # State management
+├── shared/             # Shared utilities and types
+└── types/              # TypeScript type definitions
 
-- **Background site worker** (`src/background/`) - Site orchestration, tab management, retry logic
-- **Content scripts** (`src/content/`) - DOM injection per AI site with site-specific configs
-- **React popup** (`src/popup/`) - User interface with hooks-based state management
-
-## Critical Site Configuration
-
-Each AI site uses different DOM patterns - all config centralized in `src/shared/siteConfig.ts`:
-
-```typescript
-SITE_CONFIGS = {
-  chatgpt: {
-    inputSelectors: ['div#prompt-textarea'],
-    usesContentEditable: true,
-  },
-  claude: {
-    inputSelectors: ['div[contenteditable]'],
-    extraEvents: ['beforeinput'],
-  },
-  // ... site-specific injection patterns
-};
+dist/                   # Build output (auto-generated)
+node_modules/          # Dependencies
+.github/               # GitHub workflows and instructions
 ```
 
-## Message Injection Strategy
+## Essential Commands
 
-Content scripts handle complex DOM scenarios:
+### Development
+```bash
+pnpm install              # Install dependencies
+pnpm run watch            # Development mode with hot reload
+pnpm run dev              # Alias for watch mode
+```
 
-- **ChatGPT/Claude**: contentEditable divs requiring selection API and composition events
-- **Grok**: Standard textarea with native value setter
-- **Gemini**: Rich text editor (ql-editor) needing innerHTML updates
-- All sites use retry logic with exponential backoff for reliability
+### Quality Control
+```bash
+pnpm check               # Complete pipeline: type-check + lint + test + build
+pnpm run type-check      # TypeScript compilation validation
+pnpm run lint            # ESLint check and auto-fix
+pnpm test                # Run all tests with Jest
+pnpm run build           # Production build
+```
 
-## Build System
+### Testing
+```bash
+pnpm test                # Run all tests
+pnpm test:watch          # Watch mode for tests
+pnpm test:coverage       # Generate coverage report
+pnpm test -- ThemeSelector  # Run specific test file
+```
 
-Custom esbuild config (`esbuild.config.js`) with:
+## Mandatory Quality Pipeline
 
-- Watch mode: `pnpm run watch` - auto-rebuilds + Tailwind processing
-- Production: `pnpm run build` - minified bundles for all 3 entry points
-- Always run Tailwind CSS processing: `tailwindcss -i ./src/popup/popup.css -o ./dist/popup/popup.css`
+**CRITICAL**: Every code change MUST pass the complete verification pipeline:
 
-## State Management Patterns
+```bash
+pnpm check
+```
 
-React hooks architecture in `src/popup/hooks/`:
+This runs:
+1. TypeScript compilation check
+2. ESLint code quality checks
+3. Full test suite (Jest + React Testing Library)
+4. Production build verification
 
-- `useSites` - Site state, connection status, toggle logic
-- `useStorage` - Chrome storage sync with preferences persistence
-- `useMessageHandler` - Send logic with loading states and error handling
-- Each hook handles specific domain, composed in `PopupApp.tsx`
+**Never consider any task complete until `pnpm check` passes without errors.**
 
-## Testing Setup
+## Configuration Files
 
-Jest + React Testing Library with comprehensive Chrome API mocking:
+### Build & Tooling
+- `esbuild.config.js` - Build configuration (watch/production modes)
+- `jest.config.js` - Test configuration (stable parallel execution)
+- `tailwind.config.js` - CSS utilities and design tokens
+- `tsconfig.json` - TypeScript compiler settings
+- `eslint.config.js` - Code quality and style rules
 
-- Mock setup in `src/test-utils/setup.ts` covers chrome.runtime, chrome.storage, chrome.tabs
-- Tests focus on hooks logic and component behavior, not Chrome API integration
-- Run: `pnpm test` (watch: `pnpm test:watch`)
+### Package Management
+- `package.json` - Dependencies and scripts
+- `pnpm-lock.yaml` - Dependency lock file
+- `pnpm-workspace.yaml` - Workspace configuration
+
+### Chrome Extension
+- `src/manifest.json` - Extension manifest v3
+- `src/background/config/siteConfig.ts` - Site configurations
+
+## Testing Architecture
+
+Jest + React Testing Library with Chrome API mocking:
+- Test files: `src/**/__tests__/**/*.{test,spec}.{ts,tsx}`
+- Mock setup: `src/shared/test-setup.ts`
+- Stable configuration: `maxWorkers: '50%'`, `reporters: ['default']`
+- Coverage collection from all source files
+- One intentionally skipped test (documented in code)
 
 ## Development Workflow
 
-1. `pnpm run watch` for development with hot reload
-2. Load extension: chrome://extensions → "Load unpacked" → select project root
-3. Test changes via extension popup, check console for background/content script logs
-4. Use `pnpm run type-check` for TypeScript validation before commits
-5. **ALWAYS run `pnpm check` before completing any task** - this runs type-check, lint, test, and build
+1. **Setup**: `pnpm install`
+2. **Development**: `pnpm run watch`
+3. **Load extension**: Chrome → Extensions → "Load unpacked" → select project root
+4. **Testing**: `pnpm test` or `pnpm test:watch`
+5. **Quality check**: `pnpm check` (before commits)
+6. **Production build**: `pnpm run build`
 
-## Quality Control & Verification
+## Build Process
 
-**CRITICAL**: Every code change MUST be verified with the complete check pipeline:
+esbuild handles all bundling:
+- Entry points: background, content, popup
+- TypeScript compilation
+- CSS processing with Tailwind
+- Watch mode for development
+- Production optimization
 
-```bash
-pnpm check  # Runs: type-check + lint + test + build
+Output structure:
+```
+dist/
+├── background/
+├── content/
+├── popup/
+├── icons/
+└── manifest.json
 ```
 
-This command is **MANDATORY** as the final verification step for any:
+## Code Quality Standards
 
-- Bug fixes
-- Feature implementations
-- Refactoring
-- Code cleanup
-- Test updates
+### TypeScript
+- Strict mode enabled
+- No `any` types allowed
+- Full type coverage required
 
-**Never consider a task complete until `pnpm check` passes without errors.**
+### ESLint Rules
+- TypeScript-specific rules
+- React hooks rules
+- Import/export validation
+- Automatic fixing enabled
 
-### Available Commands
+### Testing Requirements
+- Unit tests for all hooks
+- Component integration tests
+- Chrome API mocking
+- 100% critical path coverage
 
-- `pnpm test` - Run all tests
-- `pnpm test:watch` - Watch mode for testing
-- `pnpm test:coverage` - Generate coverage report
-- `pnpm run lint` - Check and auto-fix code style and quality issues
-- `pnpm run type-check` - TypeScript compilation check
-- `pnpm run build` - Build extension for production
-- `pnpm check` - **Complete quality pipeline** (type-check + lint + test + build)
+## File Naming Conventions
 
-## Site Status System
+- Components: PascalCase (`PopupApp.tsx`)
+- Hooks: camelCase with `use` prefix (`useTabOperations.ts`)
+- Types: PascalCase (`SiteConfig.ts`)
+- Tests: Same as source + `.test.` (`PopupApp.test.tsx`)
+- Configs: kebab-case (`site-config.ts`)
 
-Real-time connection tracking via background site:
+## Dependency Management
 
-- `connected` - Tab open and content script responding
-- `loading` - Tab opening or content script initializing
-- `disconnected` - No tab or content script not ready
-- `error` - Failed injection or tab operation
+Using pnpm for efficient package management:
+- Lock file: `pnpm-lock.yaml`
+- Workspace support
+- Fast, deduplicated installs
+- Strict peer dependency handling
 
-## Chrome Extension Gotchas
+## Chrome Extension Development
 
-- Site worker lifecycle: State persisted in class instance, not globals
-- Content script injection timing: Always use retry logic with `waitForContentScriptReady()`
-- Tab management: Track tabIds, handle manual tab closures via `chrome.tabs.onRemoved`
-- Permissions: Host permissions in manifest.json must match exact site domains
+Extension loading for development:
+1. Build: `pnpm run build`
+2. Chrome → `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked"
+5. Select project root directory
+6. Reload extension after changes
 
-## Component Patterns
+## Recent Architectural Improvements
 
-- Custom Tailwind theme with `ai-*` color tokens for dark UI consistency
-- Controlled inputs with ref forwarding for focus management
-- Loading states bubble up through hooks to disable UI during operations
-- Toast notifications via custom hook for user feedback
+**Configuration Consolidation**:
+- Eliminated URL/hostPatterns duplication
+- Auto-generation from single source
+- Simplified maintenance
 
-## Key Files for Architecture Understanding
+**Build Pipeline Optimization**:
+- Jest stability improvements
+- Parallel execution support
+- Consistent `pnpm check` behavior
 
-- `src/shared/siteConfig.ts` - Site definitions and DOM selectors
-- `src/background/background.ts` - Core orchestration and retry logic
-- `src/content/content.ts` - DOM injection patterns per site
-- `src/popup/components/PopupApp.tsx` - Main component composition
+**Repository Organization**:
+- Clear separation of concerns
+- Consistent test placement
+- Logical module boundaries
+
+````

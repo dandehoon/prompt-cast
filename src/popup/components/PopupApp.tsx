@@ -8,7 +8,8 @@ import { useToast } from '../hooks/useToast';
 import { useMessageHandler } from '../hooks/useMessageHandler';
 import { useTabOperations } from '../hooks/useTabOperations';
 import { useTheme } from '../hooks/useTheme';
-import { TabId } from '../../shared/types';
+import { usePromptHistory } from '../hooks/usePromptHistory';
+import { TabId } from '../../types';
 
 export function PopupApp() {
   const [message, setMessage] = useState('');
@@ -27,6 +28,7 @@ export function PopupApp() {
   const { preferences, updateSiteEnabled } = useStorage();
   const { toasts, showToast } = useToast();
   const { currentTheme, themeOptions, changeTheme } = useTheme();
+  const { addToHistory, getLastPrompt } = usePromptHistory();
 
   const { sendLoading, handleSendMessage } = useMessageHandler({
     getEnabledSites,
@@ -97,6 +99,8 @@ export function PopupApp() {
   const onSendMessage = async () => {
     const success = await handleSendMessage(message);
     if (success) {
+      // Add to history before clearing the message
+      addToHistory(message);
       setMessage('');
       // Clear the temporary message from local storage when successfully sent
       try {
@@ -104,6 +108,26 @@ export function PopupApp() {
       } catch {
         // Ignore if localStorage is not available
       }
+      // Refocus the input after successful send
+      setTimeout(() => {
+        if (messageInputRef.current) {
+          messageInputRef.current.focus();
+        }
+      }, 100);
+    }
+  };
+
+  const onArrowUp = () => {
+    const lastPrompt = getLastPrompt();
+    if (lastPrompt) {
+      setMessage(lastPrompt);
+      // Focus the input and position cursor at the end
+      setTimeout(() => {
+        if (messageInputRef.current) {
+          messageInputRef.current.focus();
+          messageInputRef.current.setSelectionRange(lastPrompt.length, lastPrompt.length);
+        }
+      }, 0);
     }
   };
 
@@ -127,6 +151,7 @@ export function PopupApp() {
               message={message}
               onMessageChange={setMessage}
               onSend={onSendMessage}
+              onArrowUp={onArrowUp}
               sendLoading={sendLoading}
               messageInputRef={messageInputRef}
               toasts={toasts}

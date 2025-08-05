@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SiteCard } from '../SiteCard';
-import { EnhancedSite } from '../../../shared/stores/siteStore';
+import { EnhancedSite } from '../../../types';
 
 describe('SiteCard', () => {
   const mockOnFocusTab = jest.fn();

@@ -1,8 +1,7 @@
 import React, { RefObject } from 'react';
 import { SitesSection } from './SitesSection';
 import { MessageSection } from './MessageSection';
-import { ToastMessage } from '../../shared/types';
-import { EnhancedSite } from '../../shared/stores/siteStore';
+import { EnhancedSite, ToastMessage } from '../../types';
 
 interface ComposeProps {
   sites: Record<string, EnhancedSite>;
@@ -12,6 +11,7 @@ interface ComposeProps {
   message: string;
   onMessageChange: (value: string) => void;
   onSend: () => void;
+  onArrowUp?: () => void;
   sendLoading: boolean;
   messageInputRef: RefObject<HTMLTextAreaElement>;
   toasts: ToastMessage[];
@@ -28,6 +28,7 @@ export function Compose({
   message,
   onMessageChange,
   onSend,
+  onArrowUp,
   sendLoading,
   messageInputRef,
   toasts,
@@ -50,6 +51,7 @@ export function Compose({
         message={message}
         onMessageChange={onMessageChange}
         onSend={onSend}
+        onArrowUp={onArrowUp}
         sendLoading={sendLoading}
         messageInputRef={messageInputRef}
         toasts={toasts}

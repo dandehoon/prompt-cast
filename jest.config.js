@@ -30,4 +30,8 @@ module.exports = {
     ],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  // Use basic reporter to avoid display issues with parallel execution
+  reporters: ['default'],
+  // Ensure stable test execution
+  maxWorkers: '50%',
 };

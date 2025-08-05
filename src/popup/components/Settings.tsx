@@ -1,6 +1,6 @@
 import React from 'react';
 import { ThemeOption } from '../../shared/constants';
-import { EnhancedSite } from '../../shared/stores/siteStore';
+import { EnhancedSite } from '../../types';
 import { ThemeSelector } from './ThemeSelector';
 
 interface ThemeOptionItem {

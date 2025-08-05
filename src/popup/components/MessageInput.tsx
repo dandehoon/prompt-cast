@@ -4,6 +4,7 @@ interface MessageInputProps {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;
+  onArrowUp?: () => void;
   disabled?: boolean;
   placeholder?: string;
 }
@@ -12,6 +13,7 @@ export const MessageInput = forwardRef<HTMLTextAreaElement, MessageInputProps>((
   value,
   onChange,
   onSend,
+  onArrowUp,
   disabled = false,
   placeholder = 'Ask anything',
 }, ref) => {
@@ -26,6 +28,12 @@ export const MessageInput = forwardRef<HTMLTextAreaElement, MessageInputProps>((
       if (value.trim() && !disabled) {
         onSend();
       }
+    }
+
+    // Arrow up fills with previous prompt when input is empty
+    if (e.key === 'ArrowUp' && !value.trim() && onArrowUp) {
+      e.preventDefault();
+      onArrowUp();
     }
   };
 

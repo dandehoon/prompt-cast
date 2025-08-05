@@ -1,6 +1,6 @@
 import React from 'react';
 import { TOAST_TYPES } from '../../shared/constants';
-import { ToastMessage } from '../../shared/types';
+import { ToastMessage } from '../../types';
 
 interface StatusIndicatorProps {
   toasts: ToastMessage[];

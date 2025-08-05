@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Compose } from '../Compose';
-import { ToastMessage } from '../../../shared/types';
-import { EnhancedSite } from '../../../shared/stores/siteStore';
+import { EnhancedSite, ToastMessage } from '../../../types';
 
 // Mock child components
 jest.mock('../SitesSection', () => ({

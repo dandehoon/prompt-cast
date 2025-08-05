@@ -1,6 +1,6 @@
 import React from 'react';
 import { SITE_STATUS } from '../../shared/constants';
-import { EnhancedSite } from '../../shared/stores/siteStore';
+import { EnhancedSite } from '../../types';
 
 interface SiteCardProps {
   site: EnhancedSite;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { SiteCard } from './SiteCard';
-import { EnhancedSite } from '../../shared/stores/siteStore';
+import { EnhancedSite } from '../../types';
 
 interface SitesSectionProps {
   sites: Record<string, EnhancedSite>;

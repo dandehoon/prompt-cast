@@ -35,7 +35,7 @@ const mockChrome = {
   },
 };
 
-// @ts-ignore
+// @ts-expect-error - Chrome API is not available in test environment
 global.chrome = mockChrome;
 
 // Mock window.location
