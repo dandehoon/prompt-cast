@@ -3,6 +3,7 @@ import type { SiteConfig, SiteConfigsPayload } from '../../types/site';
 import { getAllSiteConfigs } from '../config/siteConfig';
 import { EXTENSION_MESSAGE_TYPES } from '../../shared/constants';
 import { ChromeMessaging } from '../../shared/messaging';
+import { logger } from '../../shared/logger';
 
 interface SiteConfigStore {
   // State
@@ -79,7 +80,7 @@ export const useSiteConfigStore = create<SiteConfigStore>((set, get) => ({
         payload: configsPayload,
       });
     } catch (error) {
-      console.error('Failed to sync configs to background:', error);
+      logger.error('Failed to sync configs to background:', error);
     }
   },
 }));

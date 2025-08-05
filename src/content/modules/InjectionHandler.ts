@@ -1,6 +1,7 @@
 import type { SiteConfig } from '../../types/site';
 import { CONFIG } from '../../shared/config';
 import { sleep } from '../../shared/utils';
+import { logger } from '../../shared/logger';
 
 type InjectionEngine = (element: Element, message: string) => Promise<boolean>;
 
@@ -38,7 +39,7 @@ export class InjectionHandler {
         const ok = await inject.call(this, inputElement, message);
         if (ok) return true;
       } catch (error) {
-        console.log('[AI Hub] Engine failed:', error);
+        logger.error('[AI Hub] Engine failed:', error);
       }
     }
 

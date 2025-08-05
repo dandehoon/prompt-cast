@@ -8,6 +8,7 @@ import type { SiteStatusType } from '../../shared/constants';
 import { SITE_STATUS, EXTENSION_MESSAGE_TYPES } from '../../shared/constants';
 import { getAllSiteConfigs } from '../../background/config/siteConfig';
 import { ChromeMessaging } from '../../shared/messaging';
+import { logger } from '../../shared/logger';
 
 interface SiteUIStore {
   // State
@@ -160,7 +161,7 @@ export const useSiteUIStore = create<SiteUIStore>((set, get) => ({
         payload: configsPayload,
       });
     } catch (error) {
-      console.error('Failed to sync configs to background:', error);
+      logger.error('Failed to sync configs to background:', error);
     }
   },
 }));
@@ -172,7 +173,7 @@ store.initializeSites();
 // Sync initial configuration to background
 if (typeof chrome !== 'undefined' && chrome.runtime) {
   store.syncConfigsToBackground().catch((error) => {
-    console.warn(
+    logger.warn(
       'Initial background sync failed - this is expected if called outside extension context:',
       error,
     );
