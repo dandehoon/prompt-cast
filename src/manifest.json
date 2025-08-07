@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Prompt Cast",
-  "version": "1.1.0",
-  "description": "Broadcast your messages to multiple AI sites at once",
+  "version": "1.1.1",
+  "description": "📢 Broadcast your prompts to multiple AI sites at once",
   "icons": {
     "16": "icons/icon_16.png",
     "64": "icons/icon_64.png",
