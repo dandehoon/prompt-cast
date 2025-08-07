@@ -208,7 +208,7 @@ export class TabManager {
     tabId: number,
     message: ContentMessage,
     maxRetries?: number,
-  ): Promise<void> {
+  ): Promise<unknown> {
     const {
       maxRetries: defaultMaxRetries,
       baseDelay,
@@ -216,19 +216,25 @@ export class TabManager {
     } = CONFIG.background.messageRetry;
     const retryCount = maxRetries ?? defaultMaxRetries;
 
+    let lastError: Error | null = null;
+
     for (let attempt = 1; attempt <= retryCount; attempt++) {
       try {
-        await chrome.tabs.sendMessage(tabId, message);
-        return; // Success
+        const response = await chrome.tabs.sendMessage(tabId, message);
+        return response; // Return the response for confirmation
       } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+
         if (attempt < retryCount) {
           // Wait before retry, with exponential backoff
           const delay = Math.min(attempt * baseDelay, maxDelay);
           await sleep(delay);
-        } else {
-          throw error; // Final attempt failed
         }
       }
     }
+
+    // All attempts failed
+    logger.error(`All ${retryCount} attempts failed for tab ${tabId}`);
+    throw lastError || new Error('Failed to send message after all retries');
   }
 }

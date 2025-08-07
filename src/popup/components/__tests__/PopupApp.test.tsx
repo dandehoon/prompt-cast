@@ -92,6 +92,7 @@ describe('PopupApp', () => {
     mockUseMessageHandler.mockReturnValue({
       sendLoading: false,
       handleSendMessage: mockHandleSendMessage,
+      checkBackgroundHealth: jest.fn().mockResolvedValue(true),
     });
 
     mockUseTabOperations.mockReturnValue({

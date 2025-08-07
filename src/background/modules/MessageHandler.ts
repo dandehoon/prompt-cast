@@ -46,12 +46,20 @@ export class MessageHandler {
   }
 
   async sendMessageToSitesRobust(payload: SendMessagePayload): Promise<void> {
-    // First, ensure all tabs are open and ready
-    await this.openAllTabsWithInstantFocus(payload);
+    try {
+      // First, ensure all tabs are open and ready
+      await this.openAllTabsWithInstantFocus(payload);
 
-    // Remove hardcoded delays - let content script readiness detection handle timing
-    // Now send messages to all sites immediately
-    await this.sendMessageToSites(payload);
+      // Then send messages to all sites with better error handling
+      await this.sendMessageToSites(payload);
+    } catch (error) {
+      logger.error('Message delivery failed:', error);
+      throw new Error(
+        `Failed to deliver message: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
+      );
+    }
   }
 
   private async openAllTabsWithInstantFocus(
@@ -104,21 +112,47 @@ export class MessageHandler {
       (siteId) => this.sites[siteId]?.enabled,
     );
 
-    // Process all sites concurrently
+    if (enabledSites.length === 0) {
+      throw new Error('No enabled sites to send message to');
+    }
+
+    // Process all sites concurrently with enhanced error tracking
     const sendPromises = enabledSites.map((siteId) =>
-      this.sendToSingleSite(siteId, payload.message),
+      this.sendToSingleSite(siteId, payload.message).then(
+        () => ({ siteId, success: true, error: null }),
+        (error) => ({
+          siteId,
+          success: false,
+          error: error.message || 'Unknown error',
+        }),
+      ),
     );
 
-    // Wait for all to complete
-    const results = await Promise.allSettled(sendPromises);
+    // Wait for all to complete and collect results
+    const results = await Promise.all(sendPromises);
 
-    // Log any failures
-    results.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        const siteId = enabledSites[index];
-        logger.error(`Failed to send message to ${siteId}:`, result.reason);
-      }
+    // Analyze results
+    const failed = results.filter((r) => !r.success);
+
+    // Log failures for debugging
+    failed.forEach((result) => {
+      logger.error(`Failed to send message to ${result.siteId}:`, result.error);
     });
+
+    // If all sites failed, throw an error
+    if (failed.length === enabledSites.length) {
+      const errorDetails = failed
+        .map((r) => `${r.siteId}: ${r.error}`)
+        .join(', ');
+      throw new Error(`All message deliveries failed: ${errorDetails}`);
+    }
+
+    // If some failed, log warning but don't throw (partial success)
+    if (failed.length > 0) {
+      logger.warn(
+        `Partial message delivery failure: ${failed.length} of ${enabledSites.length} sites failed`,
+      );
+    }
   }
 
   private async sendToSingleSite(
@@ -126,6 +160,10 @@ export class MessageHandler {
     message: string,
   ): Promise<void> {
     const site = this.sites[siteId];
+
+    if (!site) {
+      throw new Error(`Site configuration not found for ${siteId}`);
+    }
 
     try {
       // First, try to find current tabs for this site
@@ -141,14 +179,37 @@ export class MessageHandler {
       if (tabs.length > 0) {
         const tab = tabs[0];
 
-        // Wait for tab to be fully loaded and content script ready
-        await this.tabManager.waitForContentScriptReady(tab.id!);
+        if (!tab.id) {
+          throw new Error(`Tab ID is undefined for ${site.name}`);
+        }
 
-        // Try to send message with retry logic
-        await this.tabManager.sendMessageWithRetry(tab.id!, {
+        // Wait for tab to be fully loaded and content script ready
+        await this.tabManager.waitForContentScriptReady(tab.id);
+
+        // Try to send message with retry logic and get confirmation
+        const response = await this.tabManager.sendMessageWithRetry(tab.id, {
           type: CONTENT_MESSAGE_TYPES.INJECT_MESSAGE,
           payload: { message },
         });
+
+        // Validate the response
+        if (response && typeof response === 'object' && 'success' in response) {
+          if (!response.success) {
+            const errorMsg =
+              'error' in response
+                ? (response.error as string)
+                : 'Unknown injection error';
+            throw new Error(
+              `Message injection failed for ${site.name}: ${errorMsg}`,
+            );
+          }
+        } else {
+          logger.warn(
+            `Unexpected response format from ${site.name}:`,
+            response,
+          );
+          // Don't throw error for unexpected response format, assume success for backwards compatibility
+        }
       } else {
         throw new Error(`Failed to open or find ${site.name} tab`);
       }
