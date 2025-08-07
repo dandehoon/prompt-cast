@@ -80,7 +80,22 @@ class ContentScript {
             const success = await this.injectionHandler.injectMessage(
               message.payload.message,
             );
-            sendResponse({ success, site: this.currentSiteConfig?.id });
+
+            sendResponse({
+              success,
+              site: this.currentSiteConfig?.id,
+              timestamp: Date.now(),
+              messageLength: message.payload.message.length,
+            });
+          } else {
+            logger.error(
+              'Invalid message payload or injection handler not ready',
+            );
+            sendResponse({
+              success: false,
+              error: 'Invalid message payload or injection handler not ready',
+              site: this.currentSiteConfig?.id,
+            });
           }
           break;
 
@@ -89,8 +104,18 @@ class ContentScript {
             // Use enhanced input detection with retries
             const isInputReady =
               await this.readinessChecker.checkInputWithRetries();
+
             sendResponse({
               ready: isInputReady,
+              site: this.currentSiteConfig?.id,
+              url: window.location.href,
+              timestamp: Date.now(),
+            });
+          } else {
+            logger.error('Readiness checker not initialized');
+            sendResponse({
+              ready: false,
+              error: 'Readiness checker not initialized',
               site: this.currentSiteConfig?.id,
               url: window.location.href,
             });
@@ -98,13 +123,18 @@ class ContentScript {
           break;
 
         default:
+          logger.error(`Unknown message type: ${message.type}`);
           sendResponse({ success: false, error: 'Unknown message type' });
       }
     } catch (error) {
       logger.error(`AI Hub Content Script error:`, error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error occurred';
-      sendResponse({ success: false, error: errorMessage });
+      sendResponse({
+        success: false,
+        error: errorMessage,
+        site: this.currentSiteConfig?.id,
+      });
     }
   }
 }

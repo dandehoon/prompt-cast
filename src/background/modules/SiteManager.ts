@@ -19,10 +19,6 @@ export class SiteManager {
   initializeSitesFromConfigs(payload: SiteConfigsPayload): void {
     this.sites = payload.configs;
     this.siteConfigs = payload.configs;
-    logger.debug(
-      'Sites initialized from configuration:',
-      Object.keys(this.sites),
-    );
   }
 
   getSiteByHostname(hostname: string): SiteConfig | null {
