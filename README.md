@@ -20,7 +20,7 @@ Useful Chrome extension for broadcasting prompts to multiple AI chat sites at on
 ```bash
 git clone https://github.com/dandehoon/prompt-cast
 cd prompt-cast
-pnpm install && pnpm run build
+pnpm install && pnpm build
 ```
 
 Load in Chrome: `chrome://extensions/` → "Load unpacked" → select the `dist` folder
@@ -49,20 +49,25 @@ The extension will appear in your toolbar with the Prompt Cast icon.
 
 ### Tech Stack
 
-- React 18 + TypeScript
-- esbuild with JSX
-- Tailwind CSS
-- Chrome Extension API (Manifest V3)
+- **WXT Framework** - Modern web extension development
+- **Svelte 5** + TypeScript - Reactive UI components  
+- **Tailwind CSS** - Utility-first styling
+- **Playwright** - End-to-end testing
+- **Vitest** - Unit testing
+- **Chrome Extension API** (Manifest V3)
 
 ### Architecture
 
 ```
 src/
-├── manifest.json
-├── shared/           # Types, utilities, and messaging
-├── popup/            # React UI, Zustand store, hooks, and components
-├── content/          # Content scripts for DOM injection and readiness
-├── background/       # Service worker, site config, tab/message/site managers
+├── entrypoints/         # WXT entry points
+│   ├── background.ts    # Service worker
+│   ├── content.ts       # Content script
+│   └── popup/           # Svelte popup UI with stores
+├── shared/              # Types, utilities, messaging
+├── content/             # Content script modules
+├── background/          # Background script modules  
+└── types/               # TypeScript definitions
 ```
 
 ### Commands
@@ -72,11 +77,20 @@ src/
 pnpm install
 
 # Dev mode with hot reload
-pnpm watch
+pnpm dev
 
 # Production build
 pnpm build
 
-# Type-check, lint, test, build
-pnpm check
+# Run tests
+pnpm test
+
+# E2E tests with Playwright  
+pnpm test:e2e
+
+# Type checking
+pnpm type-check
+
+# Linting
+pnpm lint
 ```

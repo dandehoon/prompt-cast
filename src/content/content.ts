@@ -1,14 +1,11 @@
-import type { ContentMessage } from '../types/messages';
-import {
-  CONTENT_MESSAGE_TYPES,
-  EXTENSION_MESSAGE_TYPES,
-} from '../shared/constants';
-import type { SiteConfig } from '../types/site';
-import { logger } from '../shared/logger';
-import { InjectionHandler } from './modules/InjectionHandler';
-import { ReadinessChecker } from './modules/ReadinessChecker';
+import { onContentMessage } from './messaging';
+import { sendMessage } from '@/shared';
+import type { SiteConfig } from '@/types';
+import { logger } from '@/shared';
+import { InjectionHandler } from './injectionHandler';
+import { ReadinessChecker } from './readinessChecker';
 
-class ContentScript {
+export class ContentScript {
   private currentSiteConfig: SiteConfig | null = null;
   private injectionHandler: InjectionHandler | null = null;
   private readinessChecker: ReadinessChecker | null = null;
@@ -27,14 +24,14 @@ class ContentScript {
     const hostname = window.location.hostname;
 
     try {
-      // Get site config from background script
-      const response = await chrome.runtime.sendMessage({
-        type: EXTENSION_MESSAGE_TYPES.GET_SITE_BY_HOSTNAME,
-        payload: { hostname },
-      });
+      // Get site config from background script using webext-core messaging
+      const response = await sendMessage('GET_SITE_BY_HOSTNAME', { hostname });
 
       if (response?.config) {
         this.currentSiteConfig = response.config;
+        logger.debug(`Detected site: ${this.currentSiteConfig.name}`);
+      } else {
+        logger.debug(`No site configuration found for hostname: ${hostname}`);
       }
     } catch (error) {
       logger.error('Failed to get site config from background:', error);
@@ -54,92 +51,48 @@ class ContentScript {
   private initializeListeners(): void {
     if (!this.currentSiteConfig) return;
 
-    chrome.runtime.onMessage.addListener(
-      (
-        message: ContentMessage,
-        sender: chrome.runtime.MessageSender,
-        sendResponse: (response?: unknown) => void,
-      ) => {
-        this.handleMessage(message, sendResponse);
-        return true; // Keep message channel open
-      },
-    );
+    // Set up webext-core content message listeners
+    onContentMessage('STATUS_CHECK', async () => {
+      if (this.readinessChecker) {
+        // Use enhanced input detection with retries
+        const isInputReady =
+          await this.readinessChecker.checkInputWithRetries();
+        return {
+          ready: Boolean(isInputReady),
+        };
+      } else {
+        return {
+          ready: false,
+        };
+      }
+    });
+
+    onContentMessage('INJECT_MESSAGE', async (message) => {
+      if (message.data?.message && this.injectionHandler) {
+        try {
+          const success = await this.injectionHandler.injectMessage(
+            message.data.message,
+          );
+          return {
+            success,
+          };
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown injection error';
+          return {
+            success: false,
+            error: errorMessage,
+          };
+        }
+      } else {
+        return {
+          success: false,
+          error: 'Invalid message payload or injection handler not ready',
+        };
+      }
+    });
 
     // Initialize readiness checking
     this.readinessChecker?.initializeReadinessCheck();
   }
-
-  private async handleMessage(
-    message: ContentMessage,
-    sendResponse: (response?: unknown) => void,
-  ): Promise<void> {
-    try {
-      switch (message.type) {
-        case CONTENT_MESSAGE_TYPES.INJECT_MESSAGE:
-          if (message.payload?.message && this.injectionHandler) {
-            const success = await this.injectionHandler.injectMessage(
-              message.payload.message,
-            );
-
-            sendResponse({
-              success,
-              site: this.currentSiteConfig?.id,
-              timestamp: Date.now(),
-              messageLength: message.payload.message.length,
-            });
-          } else {
-            logger.error(
-              'Invalid message payload or injection handler not ready',
-            );
-            sendResponse({
-              success: false,
-              error: 'Invalid message payload or injection handler not ready',
-              site: this.currentSiteConfig?.id,
-            });
-          }
-          break;
-
-        case CONTENT_MESSAGE_TYPES.STATUS_CHECK:
-          if (this.readinessChecker) {
-            // Use enhanced input detection with retries
-            const isInputReady =
-              await this.readinessChecker.checkInputWithRetries();
-
-            sendResponse({
-              ready: isInputReady,
-              site: this.currentSiteConfig?.id,
-              url: window.location.href,
-              timestamp: Date.now(),
-            });
-          } else {
-            logger.error('Readiness checker not initialized');
-            sendResponse({
-              ready: false,
-              error: 'Readiness checker not initialized',
-              site: this.currentSiteConfig?.id,
-              url: window.location.href,
-            });
-          }
-          break;
-
-        default:
-          logger.error(`Unknown message type: ${message.type}`);
-          sendResponse({ success: false, error: 'Unknown message type' });
-      }
-    } catch (error) {
-      logger.error(`AI Hub Content Script error:`, error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error occurred';
-      sendResponse({
-        success: false,
-        error: errorMessage,
-        site: this.currentSiteConfig?.id,
-      });
-    }
-  }
-}
-
-// Initialize content script
-if (typeof window !== 'undefined') {
-  new ContentScript();
 }

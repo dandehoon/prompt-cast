@@ -1,25 +1,18 @@
 {
+  "extends": ["./.wxt/tsconfig.json", "@tsconfig/svelte"],
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react-jsx",
-    "types": ["chrome"],
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true
+    "useDefineForClassFields": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*",
+    "public/**/*",
+    "wxt.config.ts",
+    "tailwind.config.js",
+    ".wxt/wxt.d.ts"
+  ],
+  "exclude": [
+    ".output",
+    "node_modules",
+    "prompt-cast"
+  ]
 }

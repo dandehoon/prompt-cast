@@ -1,19 +1,15 @@
-const js = require('@eslint/js');
-const tseslint = require('@typescript-eslint/eslint-plugin');
-const tsparser = require('@typescript-eslint/parser');
-const react = require('eslint-plugin-react');
-const reactHooks = require('eslint-plugin-react-hooks');
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsparser from '@typescript-eslint/parser';
+import svelte from 'eslint-plugin-svelte';
 
-module.exports = [
-  js.configs.recommended,
+export default [
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{ts,js}'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
-        ecmaFeatures: { jsx: true },
       },
       globals: {
         // Chrome extension globals
@@ -36,23 +32,15 @@ module.exports = [
         MouseEvent: 'readonly',
         CompositionEvent: 'readonly',
         // Node.js globals for config files
-        module: 'readonly',
-        require: 'readonly',
+        global: 'readonly',
         process: 'readonly',
         __dirname: 'readonly',
       },
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      react,
-      'react-hooks': reactHooks,
     },
     rules: {
-      ...tseslint.configs.recommended.rules,
-      ...react.configs.recommended.rules,
-      ...reactHooks.configs.recommended.rules,
-      'react/react-in-jsx-scope': 'off',
-      'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },
@@ -60,14 +48,20 @@ module.exports = [
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-case-declarations': 'off',
     },
-    settings: {
-      react: { version: 'detect' },
+  },
+  ...svelte.configs['flat/recommended'],
+  {
+    files: ['**/*.svelte'],
+    languageOptions: {
+      parserOptions: {
+        parser: tsparser,
+      },
     },
   },
   {
     files: [
-      '**/*.test.{ts,tsx}',
-      '**/test-utils/**/*.{ts,tsx}',
+      '**/*.test.{ts,js}',
+      '**/test-utils/**/*.{ts,js}',
       '**/test-setup.ts',
       '**/*-setup.ts',
     ],
@@ -81,7 +75,8 @@ module.exports = [
         afterEach: 'readonly',
         beforeAll: 'readonly',
         afterAll: 'readonly',
-        jest: 'readonly',
+        vi: 'readonly',
+        vitest: 'readonly',
         global: 'readonly',
       },
     },
@@ -91,6 +86,6 @@ module.exports = [
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', '*.config.js'],
+    ignores: ['dist/', 'node_modules/', '*.config.js', '.wxt/', 'playwright-report/', 'test-results/'],
   },
 ];
