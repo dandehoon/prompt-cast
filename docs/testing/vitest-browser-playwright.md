@@ -16,6 +16,7 @@ Add type references for Playwright provider:
 ```
 
 Or in `tsconfig.json`:
+
 ```json
 {
   "compilerOptions": {
@@ -28,7 +29,7 @@ Or in `tsconfig.json`:
 
 ```typescript
 // vitest.config.ts
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -53,22 +54,25 @@ export default defineConfig({
       ],
     },
   },
-})
+});
 ```
 
 ## Key Options
 
 ### launch
+
 - Directly passed to `playwright[browser].launch`
 - Vitest ignores `launch.headless` - use `test.browser.headless` instead
 - Debug flags auto-added when `--inspect` is enabled
 
 ### connect (3.2.0+)
+
 - Passed to `playwright[browser].connect`
 - For connecting to existing Playwright server
 - Ignores `launch` options when used
 
 ### context
+
 - Passed to `browser.newContext()`
 - Context created per test file, not per test
 - Vitest auto-sets:
@@ -77,16 +81,17 @@ export default defineConfig({
 - Use `test.browser.viewport` instead of context viewport
 
 ### actionTimeout (3.0.0+)
+
 - Default: no timeout (1 second before 3.0.0)
 - Configures timeout for accessibility checks and actions
 - Can be overridden per-action:
 
 ```typescript
-import { page, userEvent } from '@vitest/browser/context'
+import { page, userEvent } from '@vitest/browser/context';
 
 await userEvent.click(page.getByRole('button'), {
   timeout: 1_000,
-})
+});
 ```
 
 ## Migration from Vitest 2.x
@@ -104,7 +109,7 @@ export default defineConfig({
       },
     },
   },
-})
+});
 
 // New way (Vitest 3+)
 export default defineConfig({
@@ -119,7 +124,7 @@ export default defineConfig({
       ],
     },
   },
-})
+});
 ```
 
 ## Best Practices

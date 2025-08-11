@@ -28,6 +28,7 @@ WXT's build system automatically generates the proper extension structure in `.o
 ## Configuration
 
 When setting up Playwright tests:
+
 1. Use `chromium` channel for headless extension testing
 2. Point to WXT's output directory
 3. Configure proper browser args for extension loading

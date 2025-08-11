@@ -15,13 +15,13 @@ describe('Content Script Browser Integration', () => {
         <main>
           <div class="chat-container">
             <div class="input-area">
-              <textarea 
-                id="prompt-textarea" 
+              <textarea
+                id="prompt-textarea"
                 placeholder="Message ChatGPT..."
                 rows="1"
               ></textarea>
-              <button 
-                id="send-button" 
+              <button
+                id="send-button"
                 data-testid="send-button"
                 type="submit"
               >
@@ -80,7 +80,7 @@ describe('Content Script Browser Integration', () => {
 
     // Simulate message injection
     const testMessage = 'This is a test message from the extension';
-    
+
     // Method 1: Direct value setting
     textarea.value = testMessage;
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -90,16 +90,16 @@ describe('Content Script Browser Integration', () => {
     // Method 2: execCommand (for sites that require it)
     textarea.focus();
     textarea.select();
-    
+
     // Simulate execCommand insertion
     document.execCommand('insertText', false, testMessage);
-    
+
     expect(textarea.value).toBe(testMessage);
 
     // Test that send button becomes enabled
     const inputEvent = new Event('input', { bubbles: true });
     textarea.dispatchEvent(inputEvent);
-    
+
     // Simulate button state change
     if (textarea.value.trim()) {
       sendButton.disabled = false;
@@ -114,7 +114,7 @@ describe('Content Script Browser Integration', () => {
       <div class="claude-app">
         <div class="chat-input-container">
           <div class="relative">
-            <textarea 
+            <textarea
               class="chat-input"
               placeholder="Talk to Claude..."
             ></textarea>
@@ -131,7 +131,8 @@ describe('Content Script Browser Integration', () => {
       submit: ['.send-button', 'button svg']
     };
 
-    let input = null;
+    let inp],
+    }ll;
     for (const selector of claudeSelectors.input) {
       input = document.querySelector(selector);
       if (input) break;
@@ -143,7 +144,7 @@ describe('Content Script Browser Integration', () => {
     document.body.innerHTML = `
       <div class="gemini-app">
         <div class="input-area">
-          <textarea 
+          <textarea
             data-testid="chat-input"
             placeholder="Enter a prompt here"
           ></textarea>
@@ -157,8 +158,8 @@ describe('Content Script Browser Integration', () => {
       submit: ['button[aria-label*="Send"]', 'button:has-text("Send")']
     };
 
-    input = null;
-    for (const selector of geminiSelectors.input) {
+    input = ],
+    }   for (const selector of geminiSelectors.input) {
       input = document.querySelector(selector);
       if (input) break;
     }
@@ -192,7 +193,8 @@ describe('Content Script Browser Integration', () => {
           subtree: true
         });
 
-        setTimeout(() => {
+    true,
+        }(() => {
           observer.disconnect();
           resolve(null);
         }, timeout);
@@ -258,14 +260,14 @@ describe('Content Script Browser Integration', () => {
     // Create element with shadow DOM
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'open' });
-    
+
     shadow.innerHTML = `
       <div class="chat-widget">
         <textarea id="shadow-input"></textarea>
         <button id="shadow-send">Send</button>
       </div>
     `;
-    
+
     document.body.appendChild(host);
 
     // Test shadow DOM access
@@ -329,7 +331,8 @@ describe('Content Script Browser Integration', () => {
       subtree: true
     });
 
-    // Trigger another navigation
+    // Trigger atrue,
+    }igation
     navigateToChat();
 
     const readyInput = document.querySelector('textarea[data-extension-ready]');

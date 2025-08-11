@@ -4,11 +4,12 @@ const isCI = Boolean(process?.env?.CI);
 
 export default defineConfig({
   testDir: './tests/e2e',
-  testMatch: ['**/*.spec.{js,ts}'], // Run playwright spec files only
-  fullyParallel: true,
+  testMatch: ['**/popup.spec.{js,ts}', '**/extension.spec.{js,ts}'], // Run all E2E tests
+  fullyParallel: false, // Single worker for extension testing
   forbidOnly: isCI,
-  retries: isCI ? 2 : 0,
-  workers: isCI ? 1 : undefined,
+  retries: 0, // No retries for faster failure feedback
+  workers: 1, // Single worker to avoid conflicts
+  timeout: 60000, // 60 seconds max per consolidated test
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['json', { outputFile: 'test-results/results.json' }],
@@ -19,6 +20,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     baseURL: 'chrome-extension://',
+    actionTimeout: 15000, // 15 seconds max per action
   },
   projects: [
     {
@@ -29,9 +31,4 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    command: 'pnpm build', // Ensure extension is built before E2E tests
-    timeout: 30000,
-    reuseExistingServer: !isCI,
-  },
 });

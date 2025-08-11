@@ -109,9 +109,13 @@ describe('Popup Integration Tests (Browser Mode)', () => {
       </div>
     `;
 
-    const input = document.getElementById('message-input') as HTMLTextAreaElement;
+    const input = document.getElementById(
+      'message-input',
+    ) as HTMLTextAreaElement;
     const counter = document.getElementById('char-counter');
-    const sendButton = document.getElementById('send-button') as HTMLButtonElement;
+    const sendButton = document.getElementById(
+      'send-button',
+    ) as HTMLButtonElement;
 
     // Simulate typing
     input.value = 'Hello world';
@@ -122,7 +126,7 @@ describe('Popup Integration Tests (Browser Mode)', () => {
     if (counter) {
       counter.textContent = `${charCount}/1000`;
     }
-    
+
     if (sendButton && input.value.length > 0) {
       sendButton.disabled = false;
     }
@@ -147,8 +151,12 @@ describe('Popup Integration Tests (Browser Mode)', () => {
       </div>
     `;
 
-    const chatgptToggle = document.getElementById('chatgpt-toggle') as HTMLInputElement;
-    const claudeToggle = document.getElementById('claude-toggle') as HTMLInputElement;
+    const chatgptToggle = document.getElementById(
+      'chatgpt-toggle',
+    ) as HTMLInputElement;
+    const claudeToggle = document.getElementById(
+      'claude-toggle',
+    ) as HTMLInputElement;
     const enabledCount = document.getElementById('enabled-count');
 
     // Test initial state
@@ -160,7 +168,9 @@ describe('Popup Integration Tests (Browser Mode)', () => {
     claudeToggle.dispatchEvent(new Event('change'));
 
     // Simulate counter update
-    const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
+    const checked = document.querySelectorAll(
+      'input[type="checkbox"]:checked',
+    ).length;
     if (enabledCount) {
       enabledCount.textContent = `${checked} sites enabled`;
     }
@@ -184,7 +194,9 @@ describe('Popup Integration Tests (Browser Mode)', () => {
       </html>
     `;
 
-    const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement;
+    const themeSelector = document.getElementById(
+      'theme-selector',
+    ) as HTMLSelectElement;
     const html = document.documentElement;
 
     // Change to dark theme
@@ -220,7 +232,9 @@ describe('Popup Integration Tests (Browser Mode)', () => {
     `;
 
     const form = document.getElementById('message-form') as HTMLFormElement;
-    const messageInput = document.getElementById('message') as HTMLTextAreaElement;
+    const messageInput = document.getElementById(
+      'message',
+    ) as HTMLTextAreaElement;
     const errorMessage = document.getElementById('error-message');
 
     // Try to submit empty form

@@ -76,12 +76,14 @@ describe('isLoggedIn', () => {
 ### Understanding #imports
 
 When WXT sees this import:
+
 ```typescript
 // What you write
 import { injectScript, createShadowRootUi } from '#imports';
 ```
 
 Vitest sees this:
+
 ```typescript
 import { injectScript } from 'wxt/utils/inject-script';
 import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
@@ -92,9 +94,9 @@ import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 To mock `injectScript`, you need to mock the real import path:
 
 ```typescript
-vi.mock("wxt/utils/inject-script", () => ({
-  injectScript: vi.fn()
-}))
+vi.mock('wxt/utils/inject-script', () => ({
+  injectScript: vi.fn(),
+}));
 ```
 
 **Tip**: Refer to your project's `.wxt/types/imports-module.d.ts` file to lookup real import paths for `#imports`. If the file doesn't exist, run `wxt prepare`.
@@ -114,6 +116,7 @@ vi.mock("wxt/utils/inject-script", () => ({
 ## Other Testing Frameworks
 
 While possible to use other frameworks, you'll need to manually:
+
 - Disable auto-imports
 - Setup import aliases
 - Mock extension APIs

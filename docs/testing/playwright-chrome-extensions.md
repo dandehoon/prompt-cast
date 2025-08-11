@@ -22,20 +22,20 @@ const { chromium } = require('playwright');
 (async () => {
   const pathToExtension = require('path').join(__dirname, 'my-extension');
   const userDataDir = '/tmp/test-user-data-dir';
-  
+
   const browserContext = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
     args: [
       `--disable-extensions-except=${pathToExtension}`,
-      `--load-extension=${pathToExtension}`
-    ]
+      `--load-extension=${pathToExtension}`,
+    ],
   });
-  
+
   // For Manifest v3 - get service worker
   let [serviceWorker] = browserContext.serviceWorkers();
   if (!serviceWorker)
     serviceWorker = await browserContext.waitForEvent('serviceworker');
-  
+
   // Test the service worker as you would any other worker
   await browserContext.close();
 })();
@@ -54,7 +54,7 @@ export const test = base.extend<{
   context: BrowserContext;
   extensionId: string;
 }>({
-  context: async ({ }, use) => {
+  context: async ({}, use) => {
     const pathToExtension = path.join(__dirname, 'my-extension');
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
@@ -66,13 +66,13 @@ export const test = base.extend<{
     await use(context);
     await context.close();
   },
-  
+
   extensionId: async ({ context }, use) => {
     // For Manifest v3:
     let [serviceWorker] = context.serviceWorkers();
     if (!serviceWorker)
       serviceWorker = await context.waitForEvent('serviceworker');
-    
+
     const extensionId = serviceWorker.url().split('/')[2];
     await use(extensionId);
   },
@@ -130,15 +130,15 @@ Test content scripts by navigating to pages where they're injected:
 ```typescript
 test('content script functionality', async ({ page, extensionId }) => {
   await page.goto('https://example.com');
-  
+
   // Wait for content script to load and modify the page
   await expect(page.locator('.extension-added-element')).toBeVisible();
-  
+
   // Test content script functionality
   const result = await page.evaluate(() => {
     return window.myExtensionAPI.someFunction();
   });
-  
+
   expect(result).toBe('expected value');
 });
 ```
@@ -150,11 +150,11 @@ Test extension popup:
 ```typescript
 test('popup functionality', async ({ page, extensionId }) => {
   await page.goto(`chrome-extension://${extensionId}/popup.html`);
-  
+
   // Test popup UI
   await expect(page.getByRole('button', { name: 'Click me' })).toBeVisible();
   await page.getByRole('button', { name: 'Click me' }).click();
-  
+
   // Verify popup behavior
   await expect(page.locator('.result')).toHaveText('Button clicked!');
 });
@@ -167,11 +167,11 @@ Test extension options/settings page:
 ```typescript
 test('options page', async ({ page, extensionId }) => {
   await page.goto(`chrome-extension://${extensionId}/options.html`);
-  
+
   // Test options page functionality
   await page.fill('#setting-input', 'new value');
   await page.click('#save-button');
-  
+
   await expect(page.locator('.save-success')).toBeVisible();
 });
 ```

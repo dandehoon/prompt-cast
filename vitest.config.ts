@@ -9,13 +9,10 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     setupFiles: ['./src/__test__/setup.ts'],
-    include: [
-      'src/**/*.{test,spec}.{js,ts}', 
-      'tests/**/*.{test,spec}.{js,ts}'
-    ],
+    include: ['src/**/*.{test,spec}.{js,ts}', 'tests/**/*.{test,spec}.{js,ts}'],
     exclude: [
-      'node_modules', 
-      '.git', 
+      'node_modules',
+      '.git',
       'tests/e2e/**/*.spec.ts', // Exclude Playwright E2E tests from Vitest
       '.output/**/*',
     ],
@@ -32,17 +29,15 @@ export default defineConfig({
         '.output/**',
         'docs/**',
       ],
-      include: [
-        'src/**/*.{js,ts}',
-      ],
+      include: ['src/**/*.{js,ts}'],
       thresholds: {
         global: {
           branches: 70,
           functions: 70,
           lines: 70,
-          statements: 70
-        }
-      }
+          statements: 70,
+        },
+      },
     },
     browser: {
       enabled: false, // Can be enabled with --browser flag or for specific tests
@@ -59,8 +54,8 @@ export default defineConfig({
           },
           context: {
             viewport: { width: 800, height: 600 },
-          }
-        }
+          },
+        },
       ],
       headless: true,
     },
