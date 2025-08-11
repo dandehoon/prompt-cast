@@ -7,6 +7,8 @@
     "src/**/*",
     "public/**/*",
     "wxt.config.ts",
+    "vitest.config.ts",
+    "vitest.shims.d.ts",
     "tailwind.config.js",
     ".wxt/wxt.d.ts"
   ],

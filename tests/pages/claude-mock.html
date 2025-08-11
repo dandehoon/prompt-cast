@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Mock</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
+        .chat-container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; }
+        .input-area { display: flex; flex-direction: column; margin: 20px 0; }
+        .message-input { 
+            min-height: 120px; 
+            padding: 15px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        .button-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+        .send-button { 
+            padding: 10px 24px; 
+            background: #2563eb; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .send-button:hover { background: #1d4ed8; }
+        .conversation { border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; min-height: 200px; }
+        .message { margin: 15px 0; padding: 15px; border-radius: 8px; }
+        .human-message { background: #f3f4f6; border-left: 4px solid #6b7280; }
+        .claude-message { background: #dbeafe; border-left: 4px solid #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Claude Mock</h1>
+        <div class="conversation" id="conversation">
+            <div class="message claude-message">Hello! I'm Claude, an AI assistant. This is a mock interface for testing the Prompt Cast extension.</div>
+        </div>
+        <div class="input-area">
+            <textarea 
+                class="message-input" 
+                placeholder="Type your message to Claude..."
+                data-testid="message-input"
+            ></textarea>
+            <div class="button-row">
+                <button 
+                    class="send-button" 
+                    onclick="sendMessage()"
+                    data-testid="send-button"
+                >Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const textarea = document.querySelector('.message-input');
+            const conversation = document.getElementById('conversation');
+            const message = textarea.value.trim();
+            
+            if (message) {
+                // Add human message
+                const humanDiv = document.createElement('div');
+                humanDiv.className = 'message human-message';
+                humanDiv.innerHTML = `<strong>Human:</strong> ${message}`;
+                conversation.appendChild(humanDiv);
+                
+                // Add Claude response after a short delay
+                setTimeout(() => {
+                    const claudeDiv = document.createElement('div');
+                    claudeDiv.className = 'message claude-message';
+                    claudeDiv.innerHTML = `<strong>Claude:</strong> Thank you for your message: "${message}". This is a mock response for testing purposes.`;
+                    conversation.appendChild(claudeDiv);
+                }, 700);
+                
+                // Clear textarea
+                textarea.value = '';
+                
+                // Scroll to bottom
+                conversation.scrollTop = conversation.scrollHeight;
+            }
+        }
+
+        // Allow Enter to send (Shift+Enter for new line)
+        document.querySelector('.message-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Simulate extension injection detection
+        window.addEventListener('load', () => {
+            console.log('Claude mock page loaded');
+            // Mark as ready for extension testing
+            document.body.setAttribute('data-extension-ready', 'true');
+        });
+    </script>
+</body>
+</html>

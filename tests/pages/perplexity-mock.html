@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perplexity Mock</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; 
+            background: #0f0f0f; 
+            color: #e5e5e5;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .logo { 
+            color: #20b2aa; 
+            font-size: 2.2em; 
+            font-weight: 700; 
+            margin-bottom: 10px;
+        }
+        .subtitle { color: #888; }
+        .search-container { 
+            background: #1a1a1a; 
+            border: 1px solid #333; 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin-bottom: 30px;
+        }
+        .search-input { 
+            width: 100%; 
+            background: #0f0f0f; 
+            border: 1px solid #444; 
+            color: #e5e5e5; 
+            padding: 15px; 
+            border-radius: 8px; 
+            font-size: 16px;
+            min-height: 80px;
+            resize: vertical;
+        }
+        .search-input::placeholder { color: #666; }
+        .search-button { 
+            background: #20b2aa; 
+            color: #0f0f0f; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        .search-button:hover { background: #1a9b95; }
+        .response-area { min-height: 200px; }
+        .response-card { 
+            background: #1a1a1a; 
+            border: 1px solid #333; 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin: 15px 0;
+        }
+        .response-header { 
+            color: #20b2aa; 
+            font-weight: 600; 
+            margin-bottom: 12px;
+        }
+        .response-content { line-height: 1.6; }
+        .sources { 
+            margin-top: 15px; 
+            padding-top: 15px; 
+            border-top: 1px solid #333;
+        }
+        .source-link { 
+            color: #20b2aa; 
+            text-decoration: none; 
+            margin-right: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Perplexity Mock</div>
+            <div class="subtitle">AI-powered answer engine for testing</div>
+        </div>
+        
+        <div class="search-container">
+            <textarea 
+                class="search-input" 
+                placeholder="Ask anything..."
+                data-testid="search-input"
+            ></textarea>
+            <button 
+                class="search-button" 
+                onclick="search()"
+                data-testid="search-button"
+            >Search</button>
+        </div>
+
+        <div class="response-area" id="responses">
+            <div class="response-card">
+                <div class="response-header">Welcome to Perplexity Mock</div>
+                <div class="response-content">
+                    This is a mock Perplexity interface designed for testing the Prompt Cast extension. 
+                    Ask any question and receive a simulated AI-powered response with sources.
+                </div>
+                <div class="sources">
+                    <a href="#" class="source-link">[1] Mock Source A</a>
+                    <a href="#" class="source-link">[2] Mock Source B</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function search() {
+            const input = document.querySelector('.search-input');
+            const responses = document.getElementById('responses');
+            const query = input.value.trim();
+            
+            if (query) {
+                // Clear previous responses
+                responses.innerHTML = '';
+                
+                // Add user query
+                const queryCard = document.createElement('div');
+                queryCard.className = 'response-card';
+                queryCard.innerHTML = `
+                    <div class="response-header">Your Question</div>
+                    <div class="response-content">${query}</div>
+                `;
+                responses.appendChild(queryCard);
+                
+                // Add AI response after delay
+                setTimeout(() => {
+                    const responseCard = document.createElement('div');
+                    responseCard.className = 'response-card';
+                    responseCard.innerHTML = `
+                        <div class="response-header">Perplexity Response</div>
+                        <div class="response-content">
+                            This is a mock AI-powered response to your query: "${query}". 
+                            In reality, Perplexity would search through web sources and provide 
+                            a comprehensive answer with citations and real-time information.
+                        </div>
+                        <div class="sources">
+                            <a href="#" class="source-link">[1] Mock Academic Source</a>
+                            <a href="#" class="source-link">[2] Mock News Article</a>
+                            <a href="#" class="source-link">[3] Mock Reference Site</a>
+                        </div>
+                    `;
+                    responses.appendChild(responseCard);
+                }, 1000);
+                
+                // Clear input
+                input.value = '';
+            }
+        }
+
+        // Allow Enter to search
+        document.querySelector('.search-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                search();
+            }
+        });
+
+        // Simulate extension injection detection
+        window.addEventListener('load', () => {
+            console.log('Perplexity mock page loaded');
+            // Mark as ready for extension testing
+            document.body.setAttribute('data-extension-ready', 'true');
+        });
+    </script>
+</body>
+</html>

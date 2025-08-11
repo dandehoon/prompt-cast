@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Mock</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .chat-container { max-width: 800px; margin: 0 auto; }
+        .input-area { display: flex; margin: 20px 0; }
+        #prompt-textarea { 
+            flex: 1; 
+            min-height: 100px; 
+            padding: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px;
+            resize: vertical;
+        }
+        .send-button { 
+            margin-left: 10px; 
+            padding: 10px 20px; 
+            background: #10a37f; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer;
+        }
+        .send-button:hover { background: #0f8f70; }
+        .messages { border: 1px solid #ddd; padding: 20px; border-radius: 8px; min-height: 200px; }
+        .message { margin: 10px 0; padding: 10px; border-radius: 8px; }
+        .user-message { background: #f0f0f0; text-align: right; }
+        .ai-message { background: #e8f5e8; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>ChatGPT Mock</h1>
+        <div class="messages" id="messages">
+            <div class="message ai-message">Hello! I'm a mock ChatGPT interface for testing the Prompt Cast extension.</div>
+        </div>
+        <div class="input-area">
+            <textarea 
+                id="prompt-textarea" 
+                placeholder="Enter your message here..."
+                data-testid="prompt-textarea"
+            ></textarea>
+            <button 
+                class="send-button" 
+                onclick="sendMessage()"
+                data-testid="send-button"
+            >Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const textarea = document.getElementById('prompt-textarea');
+            const messages = document.getElementById('messages');
+            const message = textarea.value.trim();
+            
+            if (message) {
+                // Add user message
+                const userDiv = document.createElement('div');
+                userDiv.className = 'message user-message';
+                userDiv.textContent = message;
+                messages.appendChild(userDiv);
+                
+                // Add AI response after a short delay
+                setTimeout(() => {
+                    const aiDiv = document.createElement('div');
+                    aiDiv.className = 'message ai-message';
+                    aiDiv.textContent = `Mock response to: "${message}"`;
+                    messages.appendChild(aiDiv);
+                }, 500);
+                
+                // Clear textarea
+                textarea.value = '';
+                
+                // Scroll to bottom
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        // Allow Enter to send (Shift+Enter for new line)
+        document.getElementById('prompt-textarea').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Simulate extension injection detection
+        window.addEventListener('load', () => {
+            console.log('ChatGPT mock page loaded');
+            // Mark as ready for extension testing
+            document.body.setAttribute('data-extension-ready', 'true');
+        });
+    </script>
+</body>
+</html>
