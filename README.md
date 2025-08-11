@@ -50,7 +50,7 @@ The extension will appear in your toolbar with the Prompt Cast icon.
 ### Tech Stack
 
 - **WXT Framework** - Modern web extension development
-- **Svelte 5** + TypeScript - Reactive UI components  
+- **Svelte 5** + TypeScript - Reactive UI components
 - **Tailwind CSS** - Utility-first styling
 - **Playwright** - End-to-end testing
 - **Vitest** - Unit testing
@@ -66,7 +66,7 @@ src/
 │   └── popup/           # Svelte popup UI with stores
 ├── shared/              # Types, utilities, messaging
 ├── content/             # Content script modules
-├── background/          # Background script modules  
+├── background/          # Background script modules
 └── types/               # TypeScript definitions
 ```
 
@@ -85,7 +85,7 @@ pnpm build
 # Run tests
 pnpm test
 
-# E2E tests with Playwright  
+# E2E tests with Playwright
 pnpm test:e2e
 
 # Type checking

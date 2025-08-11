@@ -33,13 +33,13 @@
     background-color: transparent;
     color: var(--pc-text-secondary);
   }
-  
+
   button:hover {
     color: var(--pc-text-primary);
     background-color: var(--pc-bg-card);
     cursor: pointer;
   }
-  
+
   button.active {
     background-color: var(--pc-bg-card);
     color: var(--pc-text-primary);

@@ -216,12 +216,18 @@ export const siteActions = {
 
       // If this is the first attempt and we got mostly disconnected states, retry once after a delay
       const disconnectedCount = Object.values(updates).filter(
-        status => status === SITE_STATUS.DISCONNECTED,
+        (status) => status === SITE_STATUS.DISCONNECTED,
       ).length;
       const totalSites = Object.keys(configs).length;
-      
-      if (retryCount === 0 && disconnectedCount === totalSites && totalSites > 0) {
-        logger.debug('All sites disconnected on first check, retrying in 2 seconds...');
+
+      if (
+        retryCount === 0 &&
+        disconnectedCount === totalSites &&
+        totalSites > 0
+      ) {
+        logger.debug(
+          'All sites disconnected on first check, retrying in 2 seconds...',
+        );
         setTimeout(() => {
           siteActions.refreshSiteStates(1); // Retry once
         }, 2000);

@@ -86,6 +86,13 @@ export default [
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', '*.config.js', '.wxt/', 'playwright-report/', 'test-results/'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      '*.config.js',
+      '.wxt/',
+      'playwright-report/',
+      'test-results/',
+    ],
   },
 ];
