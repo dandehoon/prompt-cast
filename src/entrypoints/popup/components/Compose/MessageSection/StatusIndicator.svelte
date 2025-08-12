@@ -117,7 +117,7 @@
       </div>
     {/if}
     <span
-      class="text-xs opacity-70 max-w-48 whitespace-pre-line break-words"
+      class="text-xs opacity-70 whitespace-pre-line break-words"
       style="color: var(--pc-text-secondary);"
     >
       {statusMessage}

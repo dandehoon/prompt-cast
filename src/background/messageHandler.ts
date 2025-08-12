@@ -3,7 +3,7 @@ import type { SendMessagePayload, SiteConfig } from '@/types';
 import type { SiteStatusType } from '@/shared';
 import { logger } from '@/shared';
 import { TabManager } from './tabManager';
-import { ExecuteScriptInjector } from './executeScriptInjector';
+import { ExecuteScriptInjector } from './scriptInjector';
 import type { BatchInjectionConfig } from './injections';
 
 export class MessageHandler {

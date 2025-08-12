@@ -18,6 +18,6 @@ export default defineConfig({
       '📢 Broadcast your prompts to multiple AI sites at once (Test Mode)',
     version: '1.2.0',
     permissions: ['tabs', 'activeTab', 'scripting', 'storage'],
-    host_permissions: ['localhost:3000'],
+    host_permissions: ['*://localhost/*'],
   },
 });
