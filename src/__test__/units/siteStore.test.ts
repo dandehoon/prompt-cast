@@ -309,8 +309,6 @@ describe('siteStore', () => {
     });
 
     it('should handle retry count parameter correctly', async () => {
-      const { logger } = await import('../../shared/logger');
-
       mockSendMessage.mockImplementation((action: string) => {
         if (action === 'GET_SITE_CONFIGS') {
           return Promise.resolve({ data: { configs: mockConfigs } });

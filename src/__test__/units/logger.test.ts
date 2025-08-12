@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { logger } from '../../shared/logger';
 
 // Mock console methods
@@ -7,6 +7,7 @@ const originalConsole = {
   warn: console.warn,
   error: console.error,
   debug: console.debug,
+  info: console.info,
 };
 
 describe('Logger', () => {
@@ -16,6 +17,7 @@ describe('Logger', () => {
     console.warn = vi.fn();
     console.error = vi.fn();
     console.debug = vi.fn();
+    console.info = vi.fn();
   });
 
   afterEach(() => {
@@ -25,40 +27,35 @@ describe('Logger', () => {
 
   it('logs info messages', () => {
     logger.info('Test info message');
-    expect(console.log).toHaveBeenCalledWith('[INFO]', 'Test info message');
+    expect(console.info).toHaveBeenCalledWith('Test info message');
   });
 
   it('logs warning messages', () => {
     logger.warn('Test warning message');
-    expect(console.warn).toHaveBeenCalledWith('[WARN]', 'Test warning message');
+    expect(console.warn).toHaveBeenCalledWith('Test warning message');
   });
 
   it('logs error messages', () => {
     logger.error('Test error message');
-    expect(console.error).toHaveBeenCalledWith('[ERROR]', 'Test error message');
+    expect(console.error).toHaveBeenCalledWith('Test error message');
   });
 
   it('logs debug messages', () => {
     logger.debug('Test debug message');
-    expect(console.debug).toHaveBeenCalledWith('[DEBUG]', 'Test debug message');
+    expect(console.log).toHaveBeenCalledWith('Test debug message');
   });
 
   it('handles objects and arrays', () => {
     const testObject = { key: 'value', number: 42 };
     logger.info('Object test:', testObject);
 
-    expect(console.log).toHaveBeenCalledWith(
-      '[INFO]',
-      'Object test:',
-      testObject,
-    );
+    expect(console.info).toHaveBeenCalledWith('Object test:', testObject);
   });
 
   it('handles multiple arguments', () => {
     logger.error('Error:', 'Multiple', 'arguments', 123);
 
     expect(console.error).toHaveBeenCalledWith(
-      '[ERROR]',
       'Error:',
       'Multiple',
       'arguments',
@@ -70,10 +67,6 @@ describe('Logger', () => {
     const error = new Error('Test error');
     logger.error('Exception occurred:', error);
 
-    expect(console.error).toHaveBeenCalledWith(
-      '[ERROR]',
-      'Exception occurred:',
-      error,
-    );
+    expect(console.error).toHaveBeenCalledWith('Exception occurred:', error);
   });
 });

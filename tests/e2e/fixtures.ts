@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const isCI = Boolean(process?.env?.CI);
 
 export const test = base.extend<{
   context: BrowserContext;
@@ -23,7 +24,7 @@ export const test = base.extend<{
 
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
-      headless: false,
+      headless: isCI,
       args: [
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,

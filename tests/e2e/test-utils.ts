@@ -20,16 +20,18 @@ export class TestUtils {
   static async toggleSite(page: Page, siteIndex: number, enabled: boolean) {
     // Ensure we're on settings tab
     await this.switchToTab(page, 'tab-settings');
-    
+
     const siteLabel = page.locator('label[id^="site-toggle-"]').nth(siteIndex);
-    const siteCheckbox = page.locator('input[id^="site-checkbox-"]').nth(siteIndex);
-    
+    const siteCheckbox = page
+      .locator('input[id^="site-checkbox-"]')
+      .nth(siteIndex);
+
     const isCurrentlyChecked = await siteCheckbox.isChecked();
-    
+
     if (isCurrentlyChecked !== enabled) {
       await siteLabel.click();
     }
-    
+
     await expect(siteCheckbox).toBeChecked({ checked: enabled });
   }
 
@@ -38,10 +40,10 @@ export class TestUtils {
    */
   static async ensureAtLeastOneSiteEnabled(page: Page) {
     await this.switchToTab(page, 'tab-settings');
-    
+
     const siteLabels = page.locator('label[id^="site-toggle-"]');
     const labelCount = await siteLabels.count();
-    
+
     if (labelCount > 0) {
       const firstCheckbox = page.locator('input[id^="site-checkbox-"]').first();
       if (!(await firstCheckbox.isChecked())) {
@@ -56,10 +58,10 @@ export class TestUtils {
   static async sendMessage(page: Page, message: string) {
     // Ensure we're on compose tab
     await this.switchToTab(page, 'tab-home');
-    
+
     const messageTextarea = page.locator('#message-input');
     const sendButton = page.locator('#send-message-button');
-    
+
     await messageTextarea.fill(message);
     await expect(sendButton).toBeEnabled();
     await sendButton.click();
@@ -78,7 +80,7 @@ export class TestUtils {
    */
   static async getEnabledSiteCount(page: Page): Promise<number> {
     await this.switchToTab(page, 'tab-home');
-    
+
     const sitesSection = page.locator('#sites-section');
     const siteCards = sitesSection.locator('.pc-card');
     return await siteCards.count();
@@ -89,10 +91,10 @@ export class TestUtils {
    */
   static async selectTheme(page: Page, themeIndex: number) {
     await this.switchToTab(page, 'tab-settings');
-    
+
     const themeSection = page.locator('#theme-settings');
     const themeButtons = themeSection.locator('button[id^="theme-option-"]');
-    
+
     await themeButtons.nth(themeIndex).click();
   }
 
@@ -115,19 +117,21 @@ export class TestUtils {
     // Header with tabs
     const tabButtons = page.locator('header button[id^="tab-"]');
     await expect(tabButtons).toHaveCount(2);
-    
+
     // Message input components
     const messageLabel = page.locator('label[for=message-input]');
     await expect(messageLabel).toBeVisible();
-    
+
     const messageTextarea = page.locator('#message-input');
     await expect(messageTextarea).toBeVisible();
-    
+
     const sendButton = page.locator('#send-message-button');
     await expect(sendButton).toBeVisible();
-    
+
     // Status indicator
-    const statusSection = page.locator('footer .flex.items-center.justify-center');
+    const statusSection = page.locator(
+      'footer .flex.items-center.justify-center',
+    );
     await expect(statusSection).toBeVisible();
   }
 }

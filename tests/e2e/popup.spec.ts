@@ -14,7 +14,10 @@ test.describe('Popup UI Component Tests', () => {
     await expect(messageLabel).toHaveText('Prompt');
 
     const messageTextarea = popupPage.locator('#message-input');
-    await expect(messageTextarea).toHaveAttribute('placeholder', 'Ask anything');
+    await expect(messageTextarea).toHaveAttribute(
+      'placeholder',
+      'Ask anything',
+    );
 
     const sendButton = popupPage.locator('#send-message-button');
     await expect(sendButton).toBeDisabled(); // Should be disabled when no message
@@ -42,7 +45,9 @@ test.describe('Popup UI Component Tests', () => {
     await TestUtils.switchToTab(popupPage, 'tab-settings');
 
     // Check Settings content is visible
-    await expect(popupPage.locator('section').filter({ hasText: 'Sites' }).first()).toBeVisible();
+    await expect(
+      popupPage.locator('section').filter({ hasText: 'Sites' }).first(),
+    ).toBeVisible();
     await expect(popupPage.locator('#theme-settings')).toBeVisible();
 
     // Check Compose content is hidden
@@ -88,7 +93,9 @@ test.describe('Popup UI Component Tests', () => {
 
     if (labelCount > 0) {
       // Test toggling the first site
-      const firstCheckbox = popupPage.locator('input[id^="site-checkbox-"]').first();
+      const firstCheckbox = popupPage
+        .locator('input[id^="site-checkbox-"]')
+        .first();
       const isInitiallyChecked = await firstCheckbox.isChecked();
 
       // Use utility to toggle
@@ -120,7 +127,10 @@ test.describe('Popup UI Component Tests', () => {
     }
   });
 
-  test('should persist settings between sessions', async ({ context, extensionId }) => {
+  test('should persist settings between sessions', async ({
+    context,
+    extensionId,
+  }) => {
     // Open popup page
     let popupPage = await context.newPage();
     await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
@@ -130,13 +140,15 @@ test.describe('Popup UI Component Tests', () => {
     await TestUtils.switchToTab(popupPage, 'tab-settings');
     const siteLabels = popupPage.locator('label[id^="site-toggle-"]');
     const labelCount = await siteLabels.count();
-    
+
     let changedState: boolean | null = null;
-    
+
     if (labelCount > 0) {
-      const firstCheckbox = popupPage.locator('input[id^="site-checkbox-"]').first();
+      const firstCheckbox = popupPage
+        .locator('input[id^="site-checkbox-"]')
+        .first();
       const isInitiallyChecked = await firstCheckbox.isChecked();
-      
+
       // Toggle the setting
       await TestUtils.toggleSite(popupPage, 0, !isInitiallyChecked);
       changedState = !isInitiallyChecked;
@@ -163,7 +175,9 @@ test.describe('Popup UI Component Tests', () => {
     // Verify settings persisted
     if (labelCount > 0 && changedState !== null) {
       await TestUtils.switchToTab(popupPage, 'tab-settings');
-      const firstCheckboxNew = popupPage.locator('input[id^="site-checkbox-"]').first();
+      const firstCheckboxNew = popupPage
+        .locator('input[id^="site-checkbox-"]')
+        .first();
       await expect(firstCheckboxNew).toBeChecked({ checked: changedState });
     }
 

@@ -2,7 +2,10 @@ import { test, expect } from './fixtures';
 import { TestUtils } from './test-utils';
 
 test.describe('Extension Functional Tests', () => {
-  test('should send message to enabled sites', async ({ context, extensionId }) => {
+  test('should send message to enabled sites', async ({
+    context,
+    extensionId,
+  }) => {
     // Open popup
     const popupPage = await context.newPage();
     await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
@@ -14,7 +17,7 @@ test.describe('Extension Functional Tests', () => {
     // Send a test message
     const testMessage = 'Hello from Prompt Cast extension test!';
     const initialPageCount = context.pages().length;
-    
+
     await TestUtils.sendMessage(popupPage, testMessage);
 
     // Wait for extension operations to complete
@@ -42,14 +45,20 @@ test.describe('Extension Functional Tests', () => {
       let messageVerified = false;
       for (const page of aiSitePages) {
         try {
-          await page.waitForSelector('body', { state: 'visible', timeout: 5000 });
+          await page.waitForSelector('body', {
+            state: 'visible',
+            timeout: 5000,
+          });
           await page.waitForTimeout(3000);
 
           // Check for message on different site types
-          if (page.url().includes('claude') || page.url().includes('localhost:3000/claude')) {
+          if (
+            page.url().includes('claude') ||
+            page.url().includes('localhost:3000/claude')
+          ) {
             const humanMessages = page.locator('.human-message');
             const messageCount = await humanMessages.count();
-            
+
             for (let i = 0; i < messageCount; i++) {
               const messageText = await humanMessages.nth(i).textContent();
               if (messageText?.includes(testMessage)) {
@@ -62,7 +71,10 @@ test.describe('Extension Functional Tests', () => {
 
           if (messageVerified) break;
         } catch (error) {
-          console.log(`Failed to verify message on ${page.url()}:`, error.message);
+          console.log(
+            `Failed to verify message on ${page.url()}:`,
+            error.message,
+          );
         }
       }
 
@@ -71,13 +83,18 @@ test.describe('Extension Functional Tests', () => {
       // Clean up
       await TestUtils.cleanupTabs(context, initialPageCount);
     } else {
-      console.log('ℹ No new tabs opened - may indicate no sites enabled in test mode');
+      console.log(
+        'ℹ No new tabs opened - may indicate no sites enabled in test mode',
+      );
     }
 
     await popupPage.close();
   });
 
-  test('should handle multiple site tabs correctly', async ({ context, extensionId }) => {
+  test('should handle multiple site tabs correctly', async ({
+    context,
+    extensionId,
+  }) => {
     // Open popup
     const popupPage = await context.newPage();
     await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
@@ -96,7 +113,7 @@ test.describe('Extension Functional Tests', () => {
     // Send message to multiple sites
     const testMessage = 'Multi-site test message';
     const initialPageCount = context.pages().length;
-    
+
     await TestUtils.sendMessage(popupPage, testMessage);
 
     // Wait for operation to complete
@@ -113,7 +130,10 @@ test.describe('Extension Functional Tests', () => {
     await popupPage.close();
   });
 
-  test('should handle site card navigation', async ({ context, extensionId }) => {
+  test('should handle site card navigation', async ({
+    context,
+    extensionId,
+  }) => {
     // Open popup
     const popupPage = await context.newPage();
     await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
@@ -151,7 +171,10 @@ test.describe('Extension Functional Tests', () => {
     await popupPage.close();
   });
 
-  test('should handle close all tabs functionality', async ({ context, extensionId }) => {
+  test('should handle close all tabs functionality', async ({
+    context,
+    extensionId,
+  }) => {
     // Open popup
     const popupPage = await context.newPage();
     await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);

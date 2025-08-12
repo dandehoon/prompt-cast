@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { utils } from '../../shared/utils';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import * as utils from '../../shared/utils';
 
 describe('Utils', () => {
   describe('debounce', () => {
