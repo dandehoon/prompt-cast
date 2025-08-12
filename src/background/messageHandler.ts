@@ -12,6 +12,13 @@ export class MessageHandler {
   ) {}
 
   /**
+   * Update the sites configuration without recreating the handler
+   */
+  updateSites(newSites: Record<string, SiteConfig>): void {
+    this.sites = newSites;
+  }
+
+  /**
    * Get current status for a site by checking if its tab exists and responds
    */
   async getSiteStatus(site: SiteConfig): Promise<SiteStatusType> {

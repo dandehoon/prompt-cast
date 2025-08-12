@@ -21,8 +21,6 @@ export class ContentScript {
   }
 
   private async detectSite(): Promise<void> {
-    const hostname = window.location.hostname;
-
     try {
       // Get site config from background script using webext-core messaging
       const response = await sendMessage('GET_SITE_BY_URL', {
@@ -33,7 +31,9 @@ export class ContentScript {
         this.currentSiteConfig = response.config;
         logger.debug(`Detected site: ${this.currentSiteConfig.name}`);
       } else {
-        logger.debug(`No site configuration found for hostname: ${hostname}`);
+        logger.debug(
+          `No site configuration found for hostname: ${window.location.hostname}`,
+        );
       }
     } catch (error) {
       logger.error('Failed to get site config from background:', error);

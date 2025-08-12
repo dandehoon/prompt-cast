@@ -5,12 +5,17 @@
     tabOperationsStore,
     tabOperationsActions,
   } from '../../../stores/tabOperationsStore';
+  import { sitesWithStatus } from '../../../stores/siteStore';
+  import { resolvedTheme } from '../../../stores/themeStore';
 
-  interface Props {
-    sites: Record<string, EnhancedSite>;
-  }
-
-  let { sites }: Props = $props();
+  // Get sites from store instead of props
+  const sites = $derived.by(() => {
+    const sitesWithStatusFn = $sitesWithStatus as (
+      isDark?: boolean,
+    ) => Record<string, EnhancedSite>;
+    const isDark = $resolvedTheme === 'dark';
+    return sitesWithStatusFn(isDark);
+  });
 
   // Get loading state from store
   const tabOpsState = $derived($tabOperationsStore);

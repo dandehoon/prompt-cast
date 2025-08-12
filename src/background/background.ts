@@ -1,8 +1,8 @@
 import { onMessage } from '@/shared';
-import { logger } from '@/shared';
 import { TabManager } from './tabManager';
 import { MessageHandler } from './messageHandler';
 import { SiteManager } from './siteManager';
+import { withErrorHandling } from './utils/errorHandling';
 
 export class BackgroundSite {
   private tabManager: TabManager;
@@ -21,60 +21,47 @@ export class BackgroundSite {
 
   private initializeListeners(): void {
     // Handle message sending
-    onMessage('SEND_MESSAGE', async (message) => {
-      try {
+    onMessage(
+      'SEND_MESSAGE',
+      withErrorHandling(async (message) => {
         await this.messageHandler.sendMessageToSitesRobust(message.data);
-      } catch (error) {
-        logger.error('Send message error:', error);
-        throw error;
-      }
-    });
+      }, 'Send message'),
+    );
 
     // Handle site toggle
-    onMessage('SITE_TOGGLE', async (message) => {
-      try {
+    onMessage(
+      'SITE_TOGGLE',
+      withErrorHandling(async (message) => {
         await this.siteManager.toggleSite(message.data);
-      } catch (error) {
-        logger.error('Site toggle error:', error);
-        throw error;
-      }
-    });
+      }, 'Site toggle'),
+    );
 
     // Handle tab focus
-    onMessage('FOCUS_TAB', async (message) => {
-      try {
+    onMessage(
+      'FOCUS_TAB',
+      withErrorHandling(async (message) => {
         await this.tabManager.focusTab(message.data.siteId);
-      } catch (error) {
-        logger.error('Focus tab error:', error);
-        throw error;
-      }
-    });
+      }, 'Focus tab'),
+    );
 
     // Handle close all tabs
-    onMessage('CLOSE_ALL_TABS', async () => {
-      try {
+    onMessage(
+      'CLOSE_ALL_TABS',
+      withErrorHandling(async () => {
         await this.tabManager.closeAllTabs();
-      } catch (error) {
-        logger.error('Close all tabs error:', error);
-        throw error;
-      }
-    });
+      }, 'Close all tabs'),
+    );
 
-    // Handle site config updates
-    onMessage('UPDATE_SITE_CONFIGS', async (message) => {
-      try {
+    // Handle site config updates - optimize to update instead of recreate
+    onMessage(
+      'UPDATE_SITE_CONFIGS',
+      withErrorHandling(async (message) => {
         this.siteManager.initializeSitesFromConfigs(message.data);
-        // Update TabManager with new site configurations
-        this.tabManager = new TabManager(this.siteManager.sites);
-        this.messageHandler = new MessageHandler(
-          this.siteManager.sites,
-          this.tabManager,
-        );
-      } catch (error) {
-        logger.error('Update site configs error:', error);
-        throw error;
-      }
-    });
+        // Update managers with new configurations instead of recreating
+        this.tabManager.updateSites(this.siteManager.sites);
+        this.messageHandler.updateSites(this.siteManager.sites);
+      }, 'Update site configs'),
+    );
 
     // Handle get site configs
     onMessage('GET_SITE_CONFIGS', () => {
@@ -88,13 +75,16 @@ export class BackgroundSite {
     });
 
     // Handle get site status
-    onMessage('GET_SITE_STATUS', async (message) => {
-      const site = this.siteManager.sites[message.data.siteId];
-      if (!site) {
-        return { status: 'disconnected' as const };
-      }
-      const status = await this.messageHandler.getSiteStatus(site);
-      return { status };
-    });
+    onMessage(
+      'GET_SITE_STATUS',
+      withErrorHandling(async (message) => {
+        const site = this.siteManager.sites[message.data.siteId];
+        if (!site) {
+          return { status: 'disconnected' as const };
+        }
+        const status = await this.messageHandler.getSiteStatus(site);
+        return { status };
+      }, 'Get site status'),
+    );
   }
 }

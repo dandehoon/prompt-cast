@@ -10,6 +10,13 @@ export class TabManager {
   constructor(private sites: Record<string, SiteConfig>) {}
 
   /**
+   * Update the sites configuration without recreating the manager
+   */
+  updateSites(newSites: Record<string, SiteConfig>): void {
+    this.sites = newSites;
+  }
+
+  /**
    * Get current tab for a site by querying browser directly (no cached state)
    */
   private async getTabForSite(

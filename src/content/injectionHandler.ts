@@ -36,14 +36,34 @@ export class InjectionHandler {
     // Try each engine
     for (const inject of this.injections) {
       try {
-        const ok = await inject.call(this, inputElement, message);
-        if (ok) return true;
+        const success = await inject.call(this, inputElement, message);
+        if (success) return true;
       } catch (error) {
         logger.error('[Prompt Cast] Engine failed:', error);
       }
     }
 
     return false;
+  }
+
+  /**
+   * Common injection flow: focus → action → delay → send
+   */
+  private async executeInjection(
+    element: Element,
+    message: string,
+    action: () => boolean | Promise<boolean>,
+    delay = CONFIG.content.dom.injectionDelay,
+  ): Promise<boolean> {
+    const htmlElement = element as HTMLElement;
+    htmlElement.focus();
+    await sleep(CONFIG.content.dom.focusDelay);
+
+    const actionSuccess = await action();
+    if (!actionSuccess) return false;
+
+    await sleep(delay);
+    return this.sendMessage(element);
   }
 
   // 📝 Form Engine - textarea/input elements
@@ -57,41 +77,30 @@ export class InjectionHandler {
       return false;
     }
 
-    element.focus();
-    element.value = message;
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-
-    await sleep(CONFIG.content.dom.injectionDelay);
-    return this.sendMessage(element);
+    return this.executeInjection(element, message, () => {
+      element.value = message;
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    });
   };
 
   // ⚡ ExecCommand Engine - Perplexity & similar sites
   private execCommandEngine: InjectionEngine = async (element, message) => {
     const htmlElement = element as HTMLElement;
-
     if (htmlElement.contentEditable !== 'true') return false;
+    if (this.siteConfig.injectionMethod !== 'execCommand') return false;
 
-    const isExecCommandSite = this.siteConfig.injectionMethod === 'execCommand';
-
-    if (!isExecCommandSite) return false;
-
-    htmlElement.focus();
-
-    // Insert the new message
-    const success = document.execCommand('insertText', false, message);
-
-    if (success) {
-      await sleep(100); // Use fixed delay for execCommand sites
-      return this.sendMessage(element);
-    }
-
-    return false;
+    return this.executeInjection(
+      element,
+      message,
+      () => document.execCommand('insertText', false, message),
+      200, // Fixed delay for execCommand sites (matching injectionDelay)
+    );
   };
 
   // 🎨 Rich Text Engine - Quill, ProseMirror, etc.
   private richTextEngine: InjectionEngine = async (element, message) => {
     const htmlElement = element as HTMLElement;
-
     if (htmlElement.contentEditable !== 'true') return false;
 
     const isRichEditor =
@@ -101,15 +110,11 @@ export class InjectionHandler {
 
     if (!isRichEditor) return false;
 
-    htmlElement.focus();
-    await sleep(CONFIG.content.dom.focusDelay);
-
-    // Clear existing content and insert new message
-    htmlElement.innerHTML = `<p>${message}</p>`;
-    htmlElement.dispatchEvent(new Event('input', { bubbles: true }));
-
-    await sleep(CONFIG.content.dom.injectionDelay);
-    return this.sendMessage(element);
+    return this.executeInjection(element, message, () => {
+      htmlElement.innerHTML = `<p>${message}</p>`;
+      htmlElement.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    });
   };
 
   private async sendMessage(element: Element): Promise<boolean> {
