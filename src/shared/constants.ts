@@ -20,13 +20,6 @@ export const EXTENSION_MESSAGE_TYPES = {
   GET_SITE_STATUS: 'GET_SITE_STATUS',
 } as const;
 
-// Content Script Message Types
-export const CONTENT_MESSAGE_TYPES = {
-  INJECT_MESSAGE: 'INJECT_MESSAGE',
-  STATUS_CHECK: 'STATUS_CHECK',
-  INPUT_READY: 'INPUT_READY',
-} as const;
-
 // Toast/Notification Types
 export const TOAST_TYPES = {
   SUCCESS: 'success',
@@ -52,8 +45,6 @@ export const THEME_OPTIONS = {
 // Export type definitions for TypeScript
 export type ExtensionMessageType =
   (typeof EXTENSION_MESSAGE_TYPES)[keyof typeof EXTENSION_MESSAGE_TYPES];
-export type ContentMessageType =
-  (typeof CONTENT_MESSAGE_TYPES)[keyof typeof CONTENT_MESSAGE_TYPES];
 export type ToastType = (typeof TOAST_TYPES)[keyof typeof TOAST_TYPES];
 export type SiteStatusType = (typeof SITE_STATUS)[keyof typeof SITE_STATUS];
 export type ThemeOption = (typeof THEME_OPTIONS)[keyof typeof THEME_OPTIONS];

@@ -1,11 +1,4 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  vi,
-  type MockedFunction,
-} from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TabManager } from '../../background/tabManager';
 import type { SiteConfig } from '../../types/siteConfig';
 import { fakeBrowser } from 'wxt/testing';
@@ -17,10 +10,6 @@ vi.mock('../../shared/config', () => ({
       tab: {
         maxReadyAttempts: 5,
         readyCheckInterval: 100,
-      },
-      contentScript: {
-        maxReadinessAttempts: 10,
-        readinessCheckDelay: 200,
       },
       messageRetry: {
         maxRetries: 3,
@@ -44,19 +33,12 @@ vi.mock('../../shared/logger', () => ({
   },
 }));
 
-vi.mock('../../background/messaging', () => ({
-  BackgroundMessaging: {
-    isContentScriptReady: vi.fn(),
-    sendToTab: vi.fn(),
-  },
-}));
+// Note: Background messaging removed with executeScript approach
 
 describe('TabManager', () => {
   let tabManager: TabManager;
   let mockSites: Record<string, SiteConfig>;
   let mockBrowser: any;
-  let mockBackgroundMessaging: any;
-  let mockSleep: MockedFunction<any>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -101,12 +83,7 @@ describe('TabManager', () => {
       executeScript: vi.fn(),
     };
 
-    // Get mocked utilities
-    const { sleep } = await import('../../shared/utils');
-    mockSleep = sleep as MockedFunction<any>;
-
-    const { BackgroundMessaging } = await import('../../background/messaging');
-    mockBackgroundMessaging = BackgroundMessaging;
+    // Background messaging removed - using executeScript approach now
 
     tabManager = new TabManager(mockSites);
   });
@@ -163,65 +140,27 @@ describe('TabManager', () => {
     });
   });
 
-  describe('waitForContentScriptReady', () => {
-    it('should return immediately when content script is ready', async () => {
+  describe('waitForTabReady', () => {
+    it('should return immediately when tab is ready', async () => {
       mockBrowser.tabs.get.mockResolvedValue(
         createMockTab({ status: 'complete' }),
       );
-      mockBackgroundMessaging.isContentScriptReady.mockResolvedValue(true);
 
-      await tabManager.waitForContentScriptReady(1);
+      await tabManager.waitForTabReady(1);
 
-      expect(mockBackgroundMessaging.isContentScriptReady).toHaveBeenCalledWith(
-        1,
-      );
+      expect(mockBrowser.tabs.get).toHaveBeenCalledWith(1);
     });
 
-    it('should retry until content script is ready', async () => {
-      mockBrowser.tabs.get.mockResolvedValue(
-        createMockTab({ status: 'complete' }),
-      );
-      mockBackgroundMessaging.isContentScriptReady
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(false)
-        .mockResolvedValueOnce(true);
+    it('should retry until tab is ready', async () => {
+      mockBrowser.tabs.get
+        .mockResolvedValueOnce(createMockTab({ status: 'loading' }))
+        .mockResolvedValueOnce(createMockTab({ status: 'complete' }));
 
-      await tabManager.waitForContentScriptReady(1);
+      await tabManager.waitForTabReady(1);
 
-      expect(
-        mockBackgroundMessaging.isContentScriptReady,
-      ).toHaveBeenCalledTimes(3);
+      expect(mockBrowser.tabs.get).toHaveBeenCalledTimes(2);
     });
   });
 
-  describe('sendMessageWithRetry', () => {
-    it('should send message successfully on first attempt', async () => {
-      const mockResponse = { success: true };
-      mockBackgroundMessaging.sendToTab.mockResolvedValue(mockResponse);
-
-      const result = await tabManager.sendMessageWithRetry(
-        1,
-        'INJECT_MESSAGE',
-        { message: 'test' },
-      );
-
-      expect(result).toEqual(mockResponse);
-      expect(mockBackgroundMessaging.sendToTab).toHaveBeenCalledTimes(1);
-    });
-
-    it('should implement exponential backoff with max delay', async () => {
-      const error = new Error('Failure');
-      mockBackgroundMessaging.sendToTab.mockRejectedValue(error);
-
-      await expect(
-        tabManager.sendMessageWithRetry(1, 'INJECT_MESSAGE', {
-          message: 'test',
-        }),
-      ).rejects.toThrow();
-
-      // Should have slept between retries
-      expect(mockSleep).toHaveBeenCalledWith(100); // First retry: 1 * 100
-      expect(mockSleep).toHaveBeenCalledWith(200); // Second retry: 2 * 100
-    });
-  });
+  // Content script related tests removed - using executeScript approach now
 });

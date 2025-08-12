@@ -162,7 +162,9 @@ function createMessageStore() {
         }, 100);
       } catch (error) {
         logger.error('Failed to send message:', error);
-        toastActions.showToast('Failed to send message', 'error');
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to send message';
+        toastActions.showToast(errorMessage, 'error', 8000); // Show longer for detailed errors
         update((state) => ({ ...state, sendLoading: false }));
       }
     },

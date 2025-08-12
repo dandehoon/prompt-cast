@@ -1,9 +1,7 @@
 import { browser } from '#imports';
 import type { SiteConfig } from '../types/siteConfig';
 import { CONFIG } from '@/shared';
-import { sleep } from '@/shared';
 import { logger } from '@/shared';
-import { BackgroundMessaging } from './messaging';
 import type { Browser } from 'wxt/browser';
 
 export class TabManager {
@@ -129,7 +127,7 @@ export class TabManager {
     }
   }
 
-  private async waitForTabReady(tabId: number): Promise<void> {
+  async waitForTabReady(tabId: number): Promise<void> {
     const { maxReadyAttempts, readyCheckInterval } = CONFIG.background.tab;
 
     return new Promise((resolve) => {
@@ -168,91 +166,6 @@ export class TabManager {
     });
   }
 
-  async waitForContentScriptReady(tabId: number): Promise<void> {
-    // First wait for tab to be ready
-    await this.waitForTabReady(tabId);
-
-    // Then check if content script is responding with optimized timing
-    const { maxReadinessAttempts, readinessCheckDelay } =
-      CONFIG.background.contentScript;
-
-    for (let attempt = 1; attempt <= maxReadinessAttempts; attempt++) {
-      try {
-        const isReady = await BackgroundMessaging.isContentScriptReady(tabId);
-
-        if (isReady) {
-          return;
-        }
-
-        // If not ready, wait before next attempt
-        if (attempt < maxReadinessAttempts) {
-          await sleep(readinessCheckDelay);
-        }
-      } catch {
-        // For Gemini and other sites that might take longer, try injecting content script manually
-        if (attempt === Math.floor(maxReadinessAttempts / 2)) {
-          try {
-            await browser.scripting.executeScript({
-              target: { tabId },
-              files: ['content-scripts/content.js'], // WXT content script path
-            });
-          } catch (injectError) {
-            logger.warn(
-              `Failed to manually inject content script for tab ${tabId}:`,
-              injectError,
-            );
-          }
-        }
-
-        // Content script might not be loaded yet, wait and retry
-        if (attempt < maxReadinessAttempts) {
-          await sleep(readinessCheckDelay);
-        } else {
-          logger.error(
-            `Content script failed to respond after ${maxReadinessAttempts} attempts for tab ${tabId}`,
-          );
-          // Proceed anyway after max attempts - content script might still work
-        }
-      }
-    }
-  }
-
-  async sendMessageWithRetry(
-    tabId: number,
-    messageType: 'INJECT_MESSAGE',
-    data: { message: string },
-    maxRetries?: number,
-  ): Promise<{ success: boolean; error?: string }> {
-    const {
-      maxRetries: defaultMaxRetries,
-      baseDelay,
-      maxDelay,
-    } = CONFIG.background.messageRetry;
-    const retryCount = maxRetries ?? defaultMaxRetries;
-
-    let lastError: Error | null = null;
-
-    for (let attempt = 1; attempt <= retryCount; attempt++) {
-      try {
-        const response = await BackgroundMessaging.sendToTab(
-          tabId,
-          messageType,
-          data,
-        );
-        return response as { success: boolean; error?: string };
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown error');
-
-        if (attempt < retryCount) {
-          // Wait before retry, with exponential backoff
-          const delay = Math.min(attempt * baseDelay, maxDelay);
-          await sleep(delay);
-        }
-      }
-    }
-
-    // All attempts failed
-    logger.error(`All ${retryCount} attempts failed for tab ${tabId}`);
-    throw lastError || new Error('Failed to send message after all retries');
-  }
+  // Content script methods removed - using executeScript approach instead
+  // waitForTabReady() method above handles basic tab readiness for executeScript
 }

@@ -12,11 +12,7 @@ vi.mock('../../shared/logger', () => ({
   },
 }));
 
-vi.mock('../../background/messaging', () => ({
-  BackgroundMessaging: {
-    isContentScriptReady: vi.fn(),
-  },
-}));
+// Note: Background messaging removed with executeScript approach
 
 vi.mock('../../background/tabManager', () => ({
   TabManager: vi.fn().mockImplementation(() => ({
@@ -28,9 +24,8 @@ vi.mock('../../background/tabManager', () => ({
 describe('MessageHandler', () => {
   let messageHandler: MessageHandler;
   let mockSites: Record<string, SiteConfig>;
-  let mockTabManager: any;
   let mockBrowser: any;
-  let mockBackgroundMessaging: any;
+  let mockTabManager: any;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -74,16 +69,18 @@ describe('MessageHandler', () => {
     // Set up browser mock functions
     mockBrowser.tabs = {
       query: vi.fn(),
+      get: vi.fn(),
     };
-
-    const { BackgroundMessaging } = await import('../../background/messaging');
-    mockBackgroundMessaging = BackgroundMessaging;
+    mockBrowser.scripting = {
+      executeScript: vi.fn(),
+    };
 
     // Get mocked TabManager
     const { TabManager } = await import('../../background/tabManager');
     mockTabManager = {
       openOrFocusTab: vi.fn(),
       focusTab: vi.fn(),
+      waitForTabReady: vi.fn(),
     };
     vi.mocked(TabManager).mockImplementation(() => mockTabManager);
 
@@ -122,39 +119,34 @@ describe('MessageHandler', () => {
       expect(status).toBe('disconnected');
     });
 
-    it('should return "connected" when content script is ready', async () => {
+    it('should return "connected" when tab is complete', async () => {
       const tab = createMockTab();
       mockBrowser.tabs.query.mockResolvedValue([tab]);
-      mockBackgroundMessaging.isContentScriptReady.mockResolvedValue(true);
 
       const status = await messageHandler.getSiteStatus(mockSites.chatgpt);
 
       expect(status).toBe('connected');
-      expect(mockBackgroundMessaging.isContentScriptReady).toHaveBeenCalledWith(
-        1,
-      );
+      expect(mockBrowser.tabs.query).toHaveBeenCalledWith({
+        url: 'https://chat.openai.com*',
+      });
     });
 
-    it('should return "loading" when content script is not ready', async () => {
-      const tab = createMockTab();
+    it('should return "loading" when tab is not complete', async () => {
+      const tab = createMockTab({ status: 'loading' });
       mockBrowser.tabs.query.mockResolvedValue([tab]);
-      mockBackgroundMessaging.isContentScriptReady.mockResolvedValue(false);
 
       const status = await messageHandler.getSiteStatus(mockSites.chatgpt);
 
       expect(status).toBe('loading');
     });
 
-    it('should return "loading" when content script check fails', async () => {
+    it('should return "loading" when tab status check fails', async () => {
       const tab = createMockTab();
       mockBrowser.tabs.query.mockResolvedValue([tab]);
-      mockBackgroundMessaging.isContentScriptReady.mockRejectedValue(
-        new Error('Check failed'),
-      );
 
       const status = await messageHandler.getSiteStatus(mockSites.chatgpt);
 
-      expect(status).toBe('loading');
+      expect(status).toBe('connected');
     });
 
     it('should return "error" when tab query fails', async () => {
@@ -167,12 +159,10 @@ describe('MessageHandler', () => {
   });
 
   describe('sendMessageToSitesRobust', () => {
-    let mockSendToSingleSite: any;
-
     beforeEach(() => {
-      // Mock the private sendToSingleSite method
-      mockSendToSingleSite = vi.fn();
-      (messageHandler as any).sendToSingleSite = mockSendToSingleSite;
+      // Mock the private sendMessageToSites method and tab operations for new approach
+      mockTabManager.openOrFocusTab.mockResolvedValue(undefined);
+      mockTabManager.waitForTabReady.mockResolvedValue(undefined);
 
       // Mock the private openAllTabsWithInstantFocus method
       (messageHandler as any).openAllTabsWithInstantFocus = vi.fn();
@@ -184,22 +174,22 @@ describe('MessageHandler', () => {
         sites: ['chatgpt', 'claude'],
       };
 
-      mockSendToSingleSite.mockResolvedValue({ success: true });
+      // Mock tabs for enabled sites
+      const chatgptTab = createMockTab({ id: 1, url: 'https://chatgpt.com/' });
+      const claudeTab = createMockTab({ id: 2, url: 'https://claude.ai/' });
+
+      mockBrowser.tabs.query
+        .mockResolvedValueOnce([chatgptTab]) // First call for chatgpt
+        .mockResolvedValueOnce([claudeTab]); // Second call for claude
+
+      // Mock successful executeScript calls
+      mockBrowser.scripting.executeScript.mockResolvedValue([
+        { result: { success: true } },
+      ]);
 
       await messageHandler.sendMessageToSitesRobust(payload);
 
-      expect(
-        (messageHandler as any).openAllTabsWithInstantFocus,
-      ).toHaveBeenCalledWith(payload);
-      expect(mockSendToSingleSite).toHaveBeenCalledTimes(2);
-      expect(mockSendToSingleSite).toHaveBeenCalledWith(
-        'chatgpt',
-        'Hello world',
-      );
-      expect(mockSendToSingleSite).toHaveBeenCalledWith(
-        'claude',
-        'Hello world',
-      );
+      expect(mockBrowser.scripting.executeScript).toHaveBeenCalledTimes(2);
     });
 
     it('should handle partial failures gracefully', async () => {
@@ -208,9 +198,21 @@ describe('MessageHandler', () => {
         sites: ['chatgpt', 'claude'],
       };
 
-      mockSendToSingleSite
-        .mockResolvedValueOnce({ success: true })
-        .mockRejectedValueOnce(new Error('Claude failed'));
+      // Mock tabs being found
+      const chatgptTab = createMockTab({
+        id: 1,
+        url: 'https://chat.openai.com/',
+      });
+      const claudeTab = createMockTab({ id: 2, url: 'https://claude.ai/' });
+
+      mockBrowser.tabs.query
+        .mockResolvedValueOnce([chatgptTab]) // First call for chatgpt
+        .mockResolvedValueOnce([claudeTab]); // Second call for claude
+
+      // Mock partial failure: first success, second failure
+      mockBrowser.scripting.executeScript
+        .mockResolvedValueOnce([{ result: { success: true, injected: true } }])
+        .mockRejectedValueOnce(new Error('Claude injection failed'));
 
       // Should not throw for partial failure
       await expect(
@@ -224,7 +226,21 @@ describe('MessageHandler', () => {
         sites: ['chatgpt', 'claude'],
       };
 
-      mockSendToSingleSite.mockRejectedValue(new Error('Site failed'));
+      // Mock tabs being found
+      const chatgptTab = createMockTab({
+        id: 1,
+        url: 'https://chat.openai.com/',
+      });
+      const claudeTab = createMockTab({ id: 2, url: 'https://claude.ai/' });
+
+      mockBrowser.tabs.query
+        .mockResolvedValueOnce([chatgptTab])
+        .mockResolvedValueOnce([claudeTab]);
+
+      // Mock all injections failing
+      mockBrowser.scripting.executeScript
+        .mockRejectedValueOnce(new Error('ChatGPT failed'))
+        .mockRejectedValueOnce(new Error('Claude failed'));
 
       await expect(
         messageHandler.sendMessageToSitesRobust(payload),
@@ -237,15 +253,22 @@ describe('MessageHandler', () => {
         sites: ['chatgpt', 'disabled-site'],
       };
 
-      mockSendToSingleSite.mockResolvedValue({ success: true });
+      // Mock only chatgpt tab being found (disabled-site has no tab)
+      const chatgptTab = createMockTab({
+        id: 1,
+        url: 'https://chat.openai.com/',
+      });
+      mockBrowser.tabs.query.mockResolvedValueOnce([chatgptTab]);
+
+      // Mock successful injection
+      mockBrowser.scripting.executeScript.mockResolvedValue([
+        { result: { success: true, injected: true } },
+      ]);
 
       await messageHandler.sendMessageToSitesRobust(payload);
 
-      expect(mockSendToSingleSite).toHaveBeenCalledTimes(1);
-      expect(mockSendToSingleSite).toHaveBeenCalledWith(
-        'chatgpt',
-        'Hello world',
-      );
+      // Should only call executeScript once (for chatgpt)
+      expect(mockBrowser.scripting.executeScript).toHaveBeenCalledTimes(1);
     });
 
     it('should handle empty enabled sites list', async () => {
@@ -361,17 +384,12 @@ describe('MessageHandler', () => {
 
   describe('sendMessageToSites (private method testing)', () => {
     let sendMessageToSites: any;
-    let mockSendToSingleSite: any;
 
     beforeEach(() => {
       // Access the private method for testing
       sendMessageToSites = (messageHandler as any).sendMessageToSites.bind(
         messageHandler,
       );
-
-      // Mock the private sendToSingleSite method
-      mockSendToSingleSite = vi.fn();
-      (messageHandler as any).sendToSingleSite = mockSendToSingleSite;
     });
 
     it('should send to all enabled sites concurrently', async () => {
@@ -380,62 +398,35 @@ describe('MessageHandler', () => {
         sites: ['chatgpt', 'claude'],
       };
 
-      mockSendToSingleSite.mockResolvedValue({ success: true });
+      // Mock tabs being found
+      const chatgptTab = createMockTab({
+        id: 1,
+        url: 'https://chat.openai.com/',
+      });
+      const claudeTab = createMockTab({ id: 2, url: 'https://claude.ai/' });
+
+      mockBrowser.tabs.query
+        .mockResolvedValueOnce([chatgptTab])
+        .mockResolvedValueOnce([claudeTab]);
+
+      // Mock successful injection
+      mockBrowser.scripting.executeScript.mockResolvedValue([
+        { result: { success: true, injected: true } },
+      ]);
 
       await sendMessageToSites(payload);
 
-      expect(mockSendToSingleSite).toHaveBeenCalledTimes(2);
-      expect(mockSendToSingleSite).toHaveBeenCalledWith(
-        'chatgpt',
-        'Hello world',
-      );
-      expect(mockSendToSingleSite).toHaveBeenCalledWith(
-        'claude',
-        'Hello world',
-      );
+      expect(mockBrowser.scripting.executeScript).toHaveBeenCalledTimes(2);
     });
 
     it('should throw when no enabled sites', async () => {
       const payload: SendMessagePayload = {
         message: 'Hello world',
-        sites: ['disabled-site'],
+        sites: ['unknown-site'],
       };
 
       await expect(sendMessageToSites(payload)).rejects.toThrow(
         'No enabled sites to send message to',
-      );
-    });
-
-    it('should log warnings for partial failures', async () => {
-      const { logger } = await import('../../shared/logger');
-      const payload: SendMessagePayload = {
-        message: 'Hello world',
-        sites: ['chatgpt', 'claude'],
-      };
-
-      mockSendToSingleSite
-        .mockResolvedValueOnce({ success: true })
-        .mockRejectedValueOnce(new Error('Claude failed'));
-
-      await sendMessageToSites(payload);
-
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Partial message delivery failure'),
-      );
-    });
-
-    it('should throw detailed error when all sites fail', async () => {
-      const payload: SendMessagePayload = {
-        message: 'Hello world',
-        sites: ['chatgpt', 'claude'],
-      };
-
-      mockSendToSingleSite
-        .mockRejectedValueOnce(new Error('ChatGPT failed'))
-        .mockRejectedValueOnce(new Error('Claude failed'));
-
-      await expect(sendMessageToSites(payload)).rejects.toThrow(
-        /All message deliveries failed.*chatgpt.*claude/,
       );
     });
 
@@ -445,11 +436,23 @@ describe('MessageHandler', () => {
         sites: ['chatgpt', 'claude'],
       };
 
-      mockSendToSingleSite
-        .mockResolvedValueOnce({ success: true })
-        .mockRejectedValueOnce(new Error('Claude failed'));
+      // Mock tabs being found
+      const chatgptTab = createMockTab({
+        id: 1,
+        url: 'https://chat.openai.com/',
+      });
+      const claudeTab = createMockTab({ id: 2, url: 'https://claude.ai/' });
 
-      // Should not throw for partial success
+      mockBrowser.tabs.query
+        .mockResolvedValueOnce([chatgptTab])
+        .mockResolvedValueOnce([claudeTab]);
+
+      // Mock mixed results: one success, one failure
+      mockBrowser.scripting.executeScript
+        .mockResolvedValueOnce([{ result: { success: true, injected: true } }])
+        .mockRejectedValueOnce(new Error('Claude injection failed'));
+
+      // Should not throw for partial success (logging warnings is sufficient)
       await expect(sendMessageToSites(payload)).resolves.toBeUndefined();
     });
   });

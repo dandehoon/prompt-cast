@@ -9,23 +9,8 @@ export function getSiteUrls(): string[] {
 }
 
 /**
- * Convert site URLs to content script match patterns
- */
-export function getContentScriptMatches(): string[] {
-  const urls = getSiteUrls();
-  const matches = urls.map((url) => {
-    try {
-      const urlObj = new URL(url);
-      return `*://${urlObj.hostname}/*`;
-    } catch {
-      return url.replace(/^https?:/, '*:') + '*';
-    }
-  });
-  return Array.from(new Set(matches));
-}
-
-/**
  * Convert site URLs to manifest host permissions
+ * With executeScript approach, we only need host permissions, no content script matches
  */
 export function getHostPermissions(): string[] {
   const urls = getSiteUrls();

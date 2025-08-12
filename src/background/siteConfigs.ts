@@ -24,8 +24,14 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
       light: '#cc785c',
       dark: '#cc785c',
     },
-    inputSelectors: ['div[contenteditable]'],
-    submitSelectors: ['button[aria-label="Send message"]'],
+    inputSelectors: [
+      'div[contenteditable]',
+      'div[data-testid="message-input"]',
+    ],
+    submitSelectors: [
+      'button[aria-label="Send Message"]',
+      'button[data-testid="send-button"]',
+    ],
   },
 
   gemini: {

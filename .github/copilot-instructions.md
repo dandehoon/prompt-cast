@@ -8,13 +8,12 @@ Chrome extension (Manifest V3) with Svelte 5 popup UI (via WXT), multi-site AI m
 
 **Three-Context Communication Pattern:**
 
-- **Background Service Worker**: Tab/site management, message routing, persistent state
+- **Background Service Worker**: Tab/site management, message routing, persistent state, dynamic injection
 - **Popup Svelte App**: User interface, site toggles, message composition (Svelte 5, WXT)
-- **Content Scripts**: DOM injection, input detection, message injection per AI site
 
 **Message Flow:**
 
-1. User types in popup → Background script → Content scripts (broadcast to enabled sites)
+1. User types in popup → Background script → executeScript injection (broadcast to enabled sites)
 2. Site configuration changes → Background storage → Popup state sync
 3. Tab events → Background tab manager → Popup status updates
 
@@ -24,12 +23,8 @@ src/
 
 ```
 src/
-├── entrypoints/         # WXT entry points
-│   ├── background.ts    # Service worker
-│   ├── content.ts       # Content script
-│   └── popup/           # Svelte popup UI with stores
-├── background/          # Background script modules
-├── content/             # Content script modules
+├── entrypoints/         # WXT entry points (background, popup)
+├── background/          # Background script modules (injection, tab management)
 ├── shared/              # Types, utilities, messaging
 ├── types/               # TypeScript definitions
 ```
@@ -55,30 +50,33 @@ pnpm test:e2e:playwright  # (Legacy) Playwright browser tests
 
 ### Site Configuration System
 
-- **Single Source of Truth**: `src/background/config/siteConfig.ts` contains all site configs
-- **Auto-generation**: `hostPatterns` auto-generated from URLs to prevent duplication
+- **Single Source of Truth**: `src/background/siteConfigs.ts` contains all site configs
+- **Auto-generation**: Host permissions and match patterns are auto-generated from site URLs via `src/shared/siteUrls.ts`
 - **Site-Specific Selectors**: Each site has `inputSelectors`/`submitSelectors` arrays for DOM targeting
-- **Injection Methods**: Some sites (Perplexity) use `execCommand` instead of direct value setting
+- **Injection Methods**: Each site can specify injection method (form, execCommand, etc.)
 
-### Chrome Extension Communication
+### Chrome Extension Communication & Messaging
 
-- **ChromeMessaging Class**: `src/shared/messaging.ts` - centralized Chrome API wrapper
-- **Type-Safe Messages**: All messages typed in `src/types/messages.ts` with discriminated unions
-- **Error Handling**: All Chrome API calls wrapped with try/catch and consistent error responses
+- **Centralized Messaging**: `src/shared/messaging.ts` provides a type-safe, protocol-driven wrapper for all background/popup communication (via `@webext-core/messaging`)
+- **Type-Safe Messages**: All messages are defined in `src/types/messages.ts` and `src/shared/constants.ts` (discriminated unions)
+- **Error Handling**: All Chrome API calls and message handlers are wrapped with robust try/catch and error reporting (see `withErrorHandling` in background)
+- **Retry Logic**: Tab/message flows use retry and exponential backoff (see `TabManager.sendMessageWithRetry` and readiness checks)
 
-### Content Script Injection Strategy
+### Injection Strategy
 
-- **Readiness Checking**: `waitForContentScriptReady()` with retry logic and fallback injection
-- **Graceful Degradation**: Continues operation even if some content scripts fail to load
-- **Manual Injection**: Fallback for sites like Gemini that load content scripts slowly
+- **Dynamic Injection**: All DOM interaction uses Chrome's executeScript (no persistent content scripts)
+- **Readiness Checking**: executeScript-based readiness check with retry logic for slow-loading sites (e.g., Gemini)
+- **Graceful Degradation**: Continues operation even if some sites fail to inject; robust error reporting
+- **Multiple Injection Engines**: Modular injection logic (form, execCommand, rich text) per site
 
 ### State Management Pattern
 
-- **Background**: Direct Chrome storage API for persistence
-- **Popup**: Svelte stores for UI state
-- **Synchronization**: Background ↔ Popup sync via message passing on state changes
+- **Background**: Uses Chrome storage API for persistent user/site state
+- **Popup**: Svelte stores in `src/entrypoints/popup/stores/` manage all UI state, with derived stores for computed values and localStorage for persistence (see `siteStore.ts`, `messageStore.ts`)
+- **Synchronization**: Popup and background sync via message passing; stores auto-refresh on state changes
+- **Theme Management**: Theme is managed via Svelte store (`themeStore.ts`), with system/auto detection and localStorage persistence
 
-## Mandatory Quality Pipeline
+**Mandatory Quality Pipeline**
 
 **CRITICAL**: Every code change MUST pass the complete verification pipeline:
 
@@ -94,6 +92,25 @@ This runs:
 4. Production build verification
 
 **Never consider any task complete until `pnpm check` passes without errors.**
+
+---
+
+**v2 Note:**
+
+- Content scripts have been fully removed. All message injection now uses executeScript for improved performance, security, and error reporting.
+
+---
+
+## AI Agent Quick Reference
+
+- **Injection is always via executeScript**: See `src/background/injections/` for modular logic per site.
+- **Site configs**: Single source in `src/background/siteConfigs.ts` (selectors, injection method, etc.)
+- **Tab management**: `src/background/tabManager.ts` handles tab focus, readiness, and retry logic.
+- **Popup state**: Svelte stores in `src/entrypoints/popup/stores/` (see `siteStore.ts`, `messageStore.ts`).
+- **Messaging**: All background/popup comms via `src/shared/messaging.ts` (type-safe, protocol-driven).
+- **Testing**: Unified under Vitest (`pnpm test`), E2E infra in `tests/e2e/`, test pages in `tests/pages/`.
+- **Build/quality**: Always use `pnpm check` before commit (runs type-check, lint, test, build).
+- **No content scripts**: If you see references, they're legacy and should be removed.
 
 ## Configuration Files
 
@@ -140,6 +157,7 @@ This runs:
 - **Environment**: Node.js
 - **Control**: Pure Vitest lifecycle hooks (`beforeAll`/`afterAll`)
 - **Location**: `tests/e2e/setup-integration.test.ts`
+- **Test Server Utility**: E2E tests use a custom server (`tests/e2e/server.ts`) for static test pages; see `tests/e2e/README.md` for manual/automated usage
 
 **Legacy Playwright Tests** (Optional)
 
