@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-Chrome extension (manifest v3) with React TSX popup interface. Multi-site AI messaging with sophisticated tab management, content script injection, and state synchronization across background/popup/content contexts.
+Chrome extension (Manifest V3) with Svelte 5 popup UI (via WXT), multi-site AI messaging, robust tab management, and state synchronization across background/popup/content contexts. All build, test, and quality workflows are unified under pnpm scripts—no external scripts required.
 
 ## Architecture & Data Flow
 
 **Three-Context Communication Pattern:**
 
 - **Background Service Worker**: Tab/site management, message routing, persistent state
-- **Popup React App**: User interface, site toggles, message composition
+- **Popup Svelte App**: User interface, site toggles, message composition (Svelte 5, WXT)
 - **Content Scripts**: DOM injection, input detection, message injection per AI site
 
 **Message Flow:**
@@ -18,52 +18,37 @@ Chrome extension (manifest v3) with React TSX popup interface. Multi-site AI mes
 2. Site configuration changes → Background storage → Popup state sync
 3. Tab events → Background tab manager → Popup status updates
 
-## Repository Structure
+src/
+
+## Repository Structure & Entrypoints
 
 ```
 src/
-├── background/           # Service worker + modules
-│   ├── config/          # Site-specific configurations & selectors
-│   ├── modules/         # TabManager, MessageHandler, SiteManager
-│   └── stores/          # Background state management
-├── content/             # Content scripts for DOM injection
-│   └── modules/         # InjectionHandler, ReadinessChecker
-├── popup/               # React popup interface
-│   ├── components/      # React components + tests
-│   ├── hooks/          # Custom hooks + tests
-│   └── stores/         # Popup state management (Zustand)
-├── shared/             # Cross-context utilities
-│   └── test-setup.ts   # Chrome API mocking for tests
-└── types/              # TypeScript definitions
+├── entrypoints/         # WXT entry points
+│   ├── background.ts    # Service worker
+│   ├── content.ts       # Content script
+│   └── popup/           # Svelte popup UI with stores
+├── background/          # Background script modules
+├── content/             # Content script modules
+├── shared/              # Types, utilities, messaging
+├── types/               # TypeScript definitions
 ```
 
 ## Essential Commands
 
-### Development
-
 ```bash
 pnpm install              # Install dependencies
-pnpm run watch            # Development mode with hot reload + Tailwind CSS processing
-pnpm run dev              # Alias for watch mode
-```
-
-### Quality Control
-
-```bash
-pnpm check               # Complete pipeline: type-check + lint + test + build
-pnpm run type-check      # TypeScript compilation validation
-pnpm run lint            # ESLint check and auto-fix
-pnpm test                # Run all tests with Jest
-pnpm run build           # Production build (includes Tailwind CSS processing)
-```
-
-### Testing
-
-```bash
-pnpm test                # Run all tests
-pnpm test:watch          # Watch mode for tests
-pnpm test:coverage       # Generate coverage report
-pnpm test -- ThemeSelector  # Run specific test file
+pnpm dev                  # Dev mode with hot reload (alias for watch)
+pnpm build                # Production build (includes Tailwind CSS)
+pnpm check                # Complete pipeline: type-check + lint + test + build
+pnpm type-check           # TypeScript compilation
+pnpm lint                 # ESLint check and fix
+pnpm test                 # Run all tests (Vitest, unified)
+pnpm test:run             # Run all tests once
+pnpm test:ui              # Run tests with UI
+pnpm test:coverage        # Run tests with coverage
+pnpm test:setup           # Run E2E setup integration tests only
+pnpm test:e2e:playwright  # (Legacy) Playwright browser tests
 ```
 
 ## Critical Architecture Patterns
@@ -90,7 +75,7 @@ pnpm test -- ThemeSelector  # Run specific test file
 ### State Management Pattern
 
 - **Background**: Direct Chrome storage API for persistence
-- **Popup**: Zustand stores (`siteUIStore.ts`) for React state
+- **Popup**: Svelte stores for UI state
 - **Synchronization**: Background ↔ Popup sync via message passing on state changes
 
 ## Mandatory Quality Pipeline
@@ -105,7 +90,7 @@ This runs:
 
 1. TypeScript compilation check
 2. ESLint code quality checks
-3. Full test suite (Jest + React Testing Library)
+3. Full test suite (Vitest, all types)
 4. Production build verification
 
 **Never consider any task complete until `pnpm check` passes without errors.**
@@ -115,7 +100,6 @@ This runs:
 ### Build & Tooling
 
 - `esbuild.config.js` - Build configuration (watch/production modes)
-- `jest.config.js` - Test configuration (stable parallel execution)
 - `tailwind.config.js` - CSS utilities and design tokens
 - `tsconfig.json` - TypeScript compiler settings
 - `eslint.config.js` - Code quality and style rules
@@ -133,34 +117,53 @@ This runs:
 
 ## Testing Architecture
 
-Jest + React Testing Library with comprehensive Chrome API mocking:
+**Unified Vitest Control**
 
-- **Test Location**: `src/**/__tests__/**/*.{test,spec}.{ts,tsx}`
-- **Mock Setup**: `src/shared/test-setup.ts` - Complete Chrome API simulation
-- **Parallel Execution**: `maxWorkers: '50%'` for stability
-- **Coverage**: All source files, excludes tests and type definitions
+- **All testing controlled via Vitest commands** - No external scripts
+- **Automatic lifecycle management** - Setup/teardown via test hooks
+- **Extension building** - Controlled via Vitest `beforeAll` hooks
+- **Server management** - Controlled via Vitest lifecycle
+- **Process cleanup** - Automatic via `afterAll` and signal handlers
 
-**Testing Patterns:**
+**Unit Tests**
 
-- Hooks tested with `renderHook()` and `act()`
-- Components tested with integration approach
-- Chrome API calls mocked with jest.Mocked types
-- Async operations tested with proper promise handling
-- One intentionally skipped test (documented in code)
+- **Framework**: Vitest with WXT's testing plugin
+- **Environment**: Node.js with WXT's `fakeBrowser`
+- **APIs**: In-memory Chrome extension APIs via `@webext-core/fake-browser`
+- **Setup**: Automatic via `WxtVitest()` plugin
+- **Location**: `src/**/*.test.ts`
 
-**Key Test Examples:**
+**E2E Infrastructure Tests**
 
-- `useTabOperations.test.ts` - Complex hook with Chrome messaging
-- `PopupApp.test.tsx` - Full component integration
+- **Framework**: Vitest (same as unit tests)
+- **Purpose**: Validates extension building, server startup, file structure
+- **Environment**: Node.js
+- **Control**: Pure Vitest lifecycle hooks (`beforeAll`/`afterAll`)
+- **Location**: `tests/e2e/setup-integration.test.ts`
+
+**Legacy Playwright Tests** (Optional)
+
+- **Framework**: Playwright (for comparison)
+- **Purpose**: Real browser automation with extension loading
+- **Environment**: Chromium browser with loaded extension
+- **Location**: `tests/e2e/playwright-*.spec.ts`
+
+**Key Achievements**:
+
+- Zero external scripts—everything via `pnpm test` commands
+- Automatic setup/teardown—no manual server management
+- Unified test runner—single command controls all test types
+- Integrated lifecycle—extension building, server startup, cleanup all automated
+- Graceful shutdown—process signal handling for clean termination
 
 ## Development Workflow
 
 1. **Setup**: `pnpm install`
-2. **Development**: `pnpm run watch`
-3. **Load extension**: Chrome → Extensions → "Load unpacked" → select project root
-4. **Testing**: `pnpm test` or `pnpm test:watch`
+2. **Development**: `pnpm dev`
+3. **Load extension**: Chrome → Extensions → "Load unpacked" → select `dist` folder
+4. **Testing**: `pnpm test` (Vitest)
 5. **Quality check**: `pnpm check` (before commits)
-6. **Production build**: `pnpm run build`
+6. **Production build**: `pnpm build`
 
 ## Dependency Management
 
@@ -175,11 +178,11 @@ Using pnpm for efficient package management:
 
 Extension loading for development:
 
-1. Build: `pnpm run build`
+1. Build: `pnpm build`
 2. Chrome → `chrome://extensions/`
 3. Enable "Developer mode"
 4. Click "Load unpacked"
-5. Select project root directory
+5. Select the `dist` folder
 6. Reload extension after changes
 
 ## Recent Architectural Improvements
@@ -192,7 +195,7 @@ Extension loading for development:
 
 **Build Pipeline Optimization**:
 
-- Jest stability improvements
+- Unified on Vitest for all test types
 - Parallel execution support
 - Consistent `pnpm check` behavior
 
@@ -201,6 +204,8 @@ Extension loading for development:
 - Clear separation of concerns
 - Consistent test placement
 - Logical module boundaries
+
+dist/
 
 ## Build Process
 
@@ -213,7 +218,7 @@ esbuild handles all bundling with custom configuration:
 
 **Key Build Features:**
 
-- TypeScript + JSX compilation with React automatic runtime
+- TypeScript + Svelte compilation (WXT)
 - Tailwind CSS processing via CLI (not PostCSS)
 - Static asset copying (manifest, icons, HTML)
 - Source maps in development, minification in production
@@ -243,23 +248,22 @@ dist/
 ### ESLint Rules
 
 - TypeScript-specific rules
-- React hooks rules
-- Import/export validation
+- Svelte/JS import/export validation
 - Automatic fixing enabled
 
 ### Testing Requirements
 
-- Unit tests for all hooks
-- Component integration tests
-- Chrome API mocking
+- Unit tests for all Svelte stores and modules
+- E2E/infrastructure tests for extension build and startup
+- Chrome API mocking via `@webext-core/fake-browser`
 - 100% critical path coverage
 
 ## File Naming Conventions
 
-- Components: PascalCase (`PopupApp.tsx`)
-- Hooks: camelCase with `use` prefix (`useTabOperations.ts`)
+- Components: PascalCase (`PopupApp.svelte`)
+- Stores: camelCase with `use` prefix (`useSiteStore.ts`)
 - Types: PascalCase (`SiteConfig.ts`)
-- Tests: Same as source + `.test.` (`PopupApp.test.tsx`)
+- Tests: Same as source + `.test.` (`PopupApp.test.ts`)
 - Configs: kebab-case (`site-config.ts`)
 
 ## Dependency Management

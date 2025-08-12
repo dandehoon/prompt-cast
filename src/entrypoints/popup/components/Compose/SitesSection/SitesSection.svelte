@@ -21,12 +21,13 @@
   );
 </script>
 
-<section class="space-y-2">
+<section class="space-y-2" id="sites-section">
   <header class="flex items-center justify-between">
     <h2 class="text-sm font-medium" style="color: var(--pc-text-primary);">
       Sites
     </h2>
     <button
+      id="close-all-tabs-button"
       onclick={tabOperationsActions.closeAllTabs}
       disabled={tabOpsState.closeAllLoading}
       class="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

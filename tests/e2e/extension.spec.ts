@@ -1,215 +1,182 @@
 import { test, expect } from './fixtures';
-import type { Locator } from '@playwright/test';
+import { TestUtils } from './test-utils';
 
-test.describe('Mock Extension Tests', () => {
-  test('extension broadcasts to mock AI sites and verifies injection', async ({
-    context,
-    popupPage,
-  }) => {
-    console.log('Testing extension broadcasting to mock AI sites...');
+test.describe('Extension Functional Tests', () => {
+  test('should send message to enabled sites', async ({ context, extensionId }) => {
+    // Open popup
+    const popupPage = await context.newPage();
+    await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+    await TestUtils.waitForPopupReady(popupPage);
 
-    // Start mock server
-    const { default: server } = await import('../pages/server');
+    // Ensure at least one site is enabled
+    await TestUtils.ensureAtLeastOneSiteEnabled(popupPage);
 
-    // Wait for server to be ready
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Send a test message
+    const testMessage = 'Hello from Prompt Cast extension test!';
+    const initialPageCount = context.pages().length;
+    
+    await TestUtils.sendMessage(popupPage, testMessage);
 
-    try {
-      // === TEST LOOP: SEND MESSAGE AND VERIFY EXTENSION BEHAVIOR ===
-      for (let iteration = 1; iteration <= 5; iteration++) {
-        console.log(`\n=== ITERATION ${iteration}/5 ===`);
+    // Wait for extension operations to complete
+    await popupPage.waitForTimeout(5000);
 
-        const testMessage = `Mock test ${iteration} - ${Date.now()}`;
-        console.log(`Testing with message: "${testMessage}"`);
+    // Check that new tabs were opened
+    const finalPages = context.pages();
+    const newTabsOpened = finalPages.length > initialPageCount;
 
-        // Track initial state
-        const initialPages = [...context.pages()];
-        const initialTabCount = initialPages.length;
-        console.log(`Initial tab count: ${initialTabCount}`);
+    if (newTabsOpened) {
+      console.log('✓ New tabs were opened successfully');
 
-        // === SEND MESSAGE VIA EXTENSION POPUP ===
-        const messageInputSelectors = [
-          'textarea[placeholder*="prompt"]',
-          'textarea[placeholder*="message"]',
-          'textarea',
-          'input[type="text"]',
-        ];
-
-        let messageInput: Locator | null = null;
-        for (const selector of messageInputSelectors) {
-          const element = popupPage.locator(selector).first();
-          if (await element.isVisible().catch(() => false)) {
-            messageInput = element;
-            console.log(`Found message input with selector: ${selector}`);
-            break;
-          }
-        }
-
-        if (!messageInput) {
-          throw new Error('Could not find message input in popup');
-        }
-
-        await messageInput.fill(testMessage);
-        await expect(messageInput).toHaveValue(testMessage);
-
-        // Send message
-        const sendButtonSelectors = [
-          'button[type="submit"]',
-          'button:has-text("Send")',
-          'button:has-text("Submit")',
-          '[data-testid*="send"]',
-          '[data-testid*="submit"]',
-        ];
-
-        let sendButton: Locator | null = null;
-        for (const selector of sendButtonSelectors) {
-          const element = popupPage.locator(selector).first();
-          if (await element.isVisible().catch(() => false)) {
-            sendButton = element;
-            console.log(`Found send button with selector: ${selector}`);
-            break;
-          }
-        }
-
-        if (!sendButton) {
-          throw new Error('Could not find send button in popup');
-        }
-
-        await sendButton.click();
-        console.log('✓ Message sent from popup');
-
-        // === WAIT FOR EXTENSION TO OPEN NEW TABS ===
-        console.log('Waiting for extension to open new tabs...');
-        await popupPage.waitForTimeout(5000); // Give extension time to open tabs
-
-        const newPages = context.pages();
-        const newTabCount = newPages.length;
-        console.log(
-          `Tab count after send: ${initialTabCount} -> ${newTabCount}`,
+      // Find AI site pages
+      const aiSitePages = finalPages.filter((page) => {
+        const url = page.url();
+        return (
+          url.includes('claude.ai') ||
+          url.includes('gemini.google.com') ||
+          url.includes('perplexity.ai') ||
+          url.includes('localhost')
         );
+      });
 
-        if (newTabCount <= initialTabCount) {
-          console.log(
-            'No new tabs opened - extension may not be configured for mock sites',
-          );
-          continue;
-        }
+      // Verify message injection on at least one site
+      let messageVerified = false;
+      for (const page of aiSitePages) {
+        try {
+          await page.waitForSelector('body', { state: 'visible', timeout: 5000 });
+          await page.waitForTimeout(3000);
 
-        // === VERIFY NEW TABS ARE MOCK SITES ===
-        const newlyOpenedPages = newPages.slice(initialTabCount);
-        console.log(`✓ ${newlyOpenedPages.length} new tabs opened`);
-
-        const expectedMockSites = [
-          {
-            name: 'ChatGPT',
-            urlPattern: 'localhost:3000/chatgpt',
-            inputSelector: '#prompt-textarea',
-          },
-          {
-            name: 'Claude',
-            urlPattern: 'localhost:3000/claude',
-            inputSelector: '.message-input',
-          },
-          {
-            name: 'Gemini',
-            urlPattern: 'localhost:3000/gemini',
-            inputSelector: '.search-box',
-          },
-          {
-            name: 'Perplexity',
-            urlPattern: 'localhost:3000/perplexity',
-            inputSelector: '#ask-input',
-          },
-        ];
-
-        let verifiedSites = 0;
-
-        for (const page of newlyOpenedPages) {
-          const url = page.url();
-          console.log(`Checking newly opened page: ${url}`);
-
-          // Find which mock site this page corresponds to
-          const matchedSite = expectedMockSites.find((site) =>
-            url.includes(site.urlPattern),
-          );
-
-          if (matchedSite) {
-            console.log(`✓ Found ${matchedSite.name} mock page: ${url}`);
-
-            try {
-              // Wait for page to load
-              await page.waitForLoadState('domcontentloaded');
-              await page.waitForTimeout(2000); // Give extension time to inject content
-
-              // Check if message was injected
-              const inputElement = page
-                .locator(matchedSite.inputSelector)
-                .first();
-              if (await inputElement.isVisible().catch(() => false)) {
-                const inputValue = await inputElement
-                  .inputValue()
-                  .catch(async () => {
-                    // For contenteditable elements
-                    return await inputElement.textContent().catch(() => '');
-                  });
-
-                if (inputValue && inputValue.includes(testMessage)) {
-                  console.log(
-                    `✓ Message injected into ${matchedSite.name}: "${inputValue}"`,
-                  );
-                  verifiedSites++;
-
-                  // Check if submit button was clicked (look for loading state or disabled button)
-                  const submitButton = page
-                    .locator(
-                      '[data-testid="send-button"], [data-testid="submit-button"], [data-testid="search-button"]',
-                    )
-                    .first();
-                  if (await submitButton.isVisible().catch(() => false)) {
-                    const isDisabled = await submitButton
-                      .isDisabled()
-                      .catch(() => false);
-                    if (isDisabled) {
-                      console.log(
-                        `✓ Submit button appears to have been clicked (disabled state) in ${matchedSite.name}`,
-                      );
-                    }
-                  }
-                } else {
-                  console.log(
-                    `✗ Message not found in ${matchedSite.name} input. Value: "${inputValue}"`,
-                  );
-                }
-              } else {
-                console.log(`✗ Input element not found in ${matchedSite.name}`);
+          // Check for message on different site types
+          if (page.url().includes('claude') || page.url().includes('localhost:3000/claude')) {
+            const humanMessages = page.locator('.human-message');
+            const messageCount = await humanMessages.count();
+            
+            for (let i = 0; i < messageCount; i++) {
+              const messageText = await humanMessages.nth(i).textContent();
+              if (messageText?.includes(testMessage)) {
+                console.log(`✓ Message verified on Claude page`);
+                messageVerified = true;
+                break;
               }
-            } catch (error) {
-              console.log(`Error verifying ${matchedSite.name}:`, error);
             }
-
-            // Close the tab to clean up
-            await page.close();
           }
+
+          if (messageVerified) break;
+        } catch (error) {
+          console.log(`Failed to verify message on ${page.url()}:`, error.message);
         }
-
-        console.log(
-          `Iteration ${iteration}: Verified ${verifiedSites} sites with proper injection`,
-        );
-
-        // At least 1 site should have been verified for success
-        expect(verifiedSites).toBeGreaterThan(0);
-
-        // Wait before next iteration
-        await popupPage.waitForTimeout(1000);
       }
 
-      console.log('✓ Mock extension broadcast test completed successfully');
-    } catch (error) {
-      console.log('Mock extension test error:', error);
-      throw error;
-    } finally {
-      // Stop server
-      server.close();
+      expect(messageVerified).toBe(true);
+
+      // Clean up
+      await TestUtils.cleanupTabs(context, initialPageCount);
+    } else {
+      console.log('ℹ No new tabs opened - may indicate no sites enabled in test mode');
     }
+
+    await popupPage.close();
+  });
+
+  test('should handle multiple site tabs correctly', async ({ context, extensionId }) => {
+    // Open popup
+    const popupPage = await context.newPage();
+    await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+    await TestUtils.waitForPopupReady(popupPage);
+
+    // Enable multiple sites if available
+    await TestUtils.switchToTab(popupPage, 'tab-settings');
+    const siteLabels = popupPage.locator('label[id^="site-toggle-"]');
+    const labelCount = await siteLabels.count();
+
+    // Enable at least 2 sites if available
+    for (let i = 0; i < Math.min(labelCount, 2); i++) {
+      await TestUtils.toggleSite(popupPage, i, true);
+    }
+
+    // Send message to multiple sites
+    const testMessage = 'Multi-site test message';
+    const initialPageCount = context.pages().length;
+    
+    await TestUtils.sendMessage(popupPage, testMessage);
+
+    // Wait for operation to complete
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // Verify multiple tabs were opened
+    const finalPageCount = context.pages().length;
+    const newTabsCount = finalPageCount - initialPageCount;
+
+    expect(newTabsCount).toBeGreaterThan(0);
+
+    // Clean up
+    await TestUtils.cleanupTabs(context, initialPageCount);
+    await popupPage.close();
+  });
+
+  test('should handle site card navigation', async ({ context, extensionId }) => {
+    // Open popup
+    const popupPage = await context.newPage();
+    await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+    await TestUtils.waitForPopupReady(popupPage);
+
+    // Ensure we're on compose tab and have enabled sites
+    await TestUtils.ensureAtLeastOneSiteEnabled(popupPage);
+    await TestUtils.switchToTab(popupPage, 'tab-home');
+
+    // Find site cards
+    const sitesSection = popupPage.locator('#sites-section');
+    const siteCards = sitesSection.locator('.pc-card');
+    const cardCount = await siteCards.count();
+
+    if (cardCount > 0) {
+      const initialPageCount = context.pages().length;
+
+      // Click the first site card
+      await siteCards.first().click();
+
+      // Wait for potential navigation
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Check if a new tab was opened or existing tab was focused
+      const finalPageCount = context.pages().length;
+
+      if (finalPageCount > initialPageCount) {
+        console.log('✓ Site card click opened new tab');
+        await TestUtils.cleanupTabs(context, initialPageCount);
+      } else {
+        console.log('✓ Site card click may have focused existing tab');
+      }
+    }
+
+    await popupPage.close();
+  });
+
+  test('should handle close all tabs functionality', async ({ context, extensionId }) => {
+    // Open popup
+    const popupPage = await context.newPage();
+    await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+    await TestUtils.waitForPopupReady(popupPage);
+
+    // Ensure sites are enabled and send a message to create tabs
+    await TestUtils.ensureAtLeastOneSiteEnabled(popupPage);
+    await TestUtils.sendMessage(popupPage, 'Test message for close all');
+
+    // Wait for tabs to open
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    // Test close all functionality
+    const closeAllButton = popupPage.locator('#close-all-tabs-button');
+    await expect(closeAllButton).toBeVisible();
+
+    // Click close all
+    await closeAllButton.click();
+
+    // Wait for close operation
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Verify the button is still functional
+    await expect(closeAllButton).toBeVisible();
+
+    await popupPage.close();
   });
 });

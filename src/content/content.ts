@@ -25,7 +25,9 @@ export class ContentScript {
 
     try {
       // Get site config from background script using webext-core messaging
-      const response = await sendMessage('GET_SITE_BY_HOSTNAME', { hostname });
+      const response = await sendMessage('GET_SITE_BY_URL', {
+        url: window.location.href,
+      });
 
       if (response?.config) {
         this.currentSiteConfig = response.config;

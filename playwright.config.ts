@@ -1,15 +1,21 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const isCI = Boolean(process?.env?.CI);
 
 export default defineConfig({
   testDir: './tests/e2e',
-  testMatch: ['**/popup.spec.{js,ts}', '**/extension.spec.{js,ts}'], // Run all E2E tests
-  fullyParallel: false, // Single worker for extension testing
+  testMatch: ['**/*.spec.{js,ts}'], // Run all spec files
+  fullyParallel: true,
   forbidOnly: isCI,
   retries: 0, // No retries for faster failure feedback
-  workers: 1, // Single worker to avoid conflicts
+  workers: 4, // Multiple workers for parallel execution
   timeout: 60000, // 60 seconds max per consolidated test
+  globalSetup: path.resolve(__dirname, './tests/e2e/global-setup.ts'),
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['json', { outputFile: 'test-results/results.json' }],

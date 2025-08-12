@@ -9,14 +9,6 @@ export function getSiteUrls(): string[] {
 }
 
 /**
- * Get all site URLs from the centralized site configuration (runtime)
- */
-export function getSiteUrlsRuntime(): string[] {
-  const configs = getAllSiteConfigs();
-  return Object.values(configs).map((config) => config.url);
-}
-
-/**
  * Convert site URLs to content script match patterns
  */
 export function getContentScriptMatches(): string[] {
@@ -24,10 +16,8 @@ export function getContentScriptMatches(): string[] {
   const matches = urls.map((url) => {
     try {
       const urlObj = new URL(url);
-      // Convert https://example.com/ to *://example.com/*
       return `*://${urlObj.hostname}/*`;
     } catch {
-      // Fallback for invalid URLs
       return url.replace(/^https?:/, '*:') + '*';
     }
   });
@@ -38,11 +28,8 @@ export function getContentScriptMatches(): string[] {
  * Convert site URLs to manifest host permissions
  */
 export function getHostPermissions(): string[] {
-  if (import.meta.env?.NODE_ENV === 'test') {
-    return ['*://localhost/*'];
-  }
   const urls = getSiteUrls();
-  return urls.map((url) => {
+  const permissions = urls.map((url) => {
     try {
       const urlObj = new URL(url);
       // Convert https://example.com/ to https://example.com/*
@@ -52,4 +39,5 @@ export function getHostPermissions(): string[] {
       return url.endsWith('/') ? url + '*' : url + '/*';
     }
   });
+  return Array.from(new Set(permissions));
 }

@@ -14,7 +14,6 @@ export default defineConfig({
     description: '📢 Broadcast your prompts to multiple AI sites at once',
     version: '1.2.0',
     permissions: ['tabs', 'activeTab', 'scripting', 'storage'],
-    // Automatically generated from centralized site configuration
     host_permissions: getHostPermissions(),
   },
 });

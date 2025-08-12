@@ -22,8 +22,8 @@ export const test = base.extend<{
     console.log('Loading extension from:', pathToExtension);
 
     const context = await chromium.launchPersistentContext('', {
-      channel: 'chromium', // Use chromium for better extension support
-      headless: false, // Set to true for CI
+      channel: 'chromium',
+      headless: false,
       args: [
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
@@ -45,21 +45,20 @@ export const test = base.extend<{
   },
 
   extensionId: async ({ context }, use) => {
-    // Give extension more time to initialize
+    // Give extension time to initialize
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     let extensionId = '';
 
-    // Method 1: Get from service worker (most reliable for Manifest v3)
+    // Primary method: Get from service worker
     try {
-      console.log('Waiting for service worker...');
+      console.log('Looking for extension service worker...');
 
-      // First check if any workers already exist
       let workers = context.serviceWorkers();
-      console.log(`Current service workers: ${workers.length}`);
+      console.log(`Found ${workers.length} existing service workers`);
 
       if (workers.length === 0) {
-        // Wait for service worker with reduced timeout
+        console.log('Waiting for service worker to start...');
         const worker = await context.waitForEvent('serviceworker', {
           timeout: 10000,
         });
@@ -72,70 +71,65 @@ export const test = base.extend<{
         const match = url.match(/chrome-extension:\/\/([a-z]{32})/);
         if (match) {
           extensionId = match[1];
-          console.log('Found extension ID from service worker:', extensionId);
+          console.log('✓ Extension ID found:', extensionId);
           break;
         }
       }
     } catch (error) {
-      console.log('Could not get extension from service worker:', error);
+      console.log('Service worker method failed:', error.message);
     }
 
-    // Method 2: Check for existing pages with chrome-extension URLs
+    // Fallback method: Check existing pages
     if (!extensionId) {
       console.log('Checking existing pages for extension URLs...');
       const pages = context.pages();
       for (const page of pages) {
         const url = page.url();
-        console.log('Page URL:', url);
         if (url.includes('chrome-extension://')) {
           const match = url.match(/chrome-extension:\/\/([a-z]{32})/);
           if (match) {
             extensionId = match[1];
-            console.log('Found extension ID from page URL:', extensionId);
+            console.log('✓ Extension ID found from page:', extensionId);
             break;
           }
         }
       }
     }
 
-    // Method 3: Try to trigger extension by opening a popup
+    // Final fallback: Trigger extension loading
     if (!extensionId) {
-      console.log('Trying to trigger extension by opening new page...');
+      console.log('Triggering extension by opening test page...');
       try {
         const triggerPage = await context.newPage();
-        await triggerPage.goto('https://chatgpt.com');
+        await triggerPage.goto('https://claude.ai');
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        // Check for service workers again
         const workers = context.serviceWorkers();
         for (const worker of workers) {
           const url = worker.url();
           const match = url.match(/chrome-extension:\/\/([a-z]{32})/);
           if (match) {
             extensionId = match[1];
-            console.log('Found extension ID after page trigger:', extensionId);
+            console.log('✓ Extension ID found after trigger:', extensionId);
             break;
           }
         }
 
         await triggerPage.close();
       } catch (error) {
-        console.log('Error triggering extension:', error);
+        console.log('Trigger method failed:', error.message);
       }
     }
 
     if (!extensionId) {
-      throw new Error(`Could not find extension ID. Make sure extension is built and loaded.
-        Check that the extension exists at: ${path.resolve(
-          __dirname,
-          '../../.output/chrome-mv3',
-        )}
-        Run 'pnpm build' to build the extension first.
+      const buildPath = path.resolve(__dirname, '../../.output/chrome-mv3');
+      throw new Error(`Could not find extension ID.
+        Build path: ${buildPath}
 
         Troubleshooting:
-        1. Ensure Chrome/Chromium is installed
-        2. Check that manifest.json exists in the build output
-        3. Verify service worker is properly configured`);
+        1. Run 'pnpm build' to build the extension
+        2. Ensure Chrome/Chromium is installed
+        3. Check that manifest.json exists in build output`);
     }
 
     console.log('Using extension ID:', extensionId);
@@ -146,9 +140,9 @@ export const test = base.extend<{
     const page = await context.newPage();
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    // Wait for popup to be fully loaded
+    // Wait for popup to be ready
     await page.waitForSelector('body', { state: 'visible' });
-    await page.waitForTimeout(1000); // Give time for Svelte to initialize
+    await page.waitForTimeout(1000); // Allow Svelte to initialize
 
     await use(page);
     await page.close();

@@ -81,9 +81,9 @@ export class BackgroundSite {
       return { data: { configs: this.siteManager.sites } };
     });
 
-    // Handle get site by hostname
-    onMessage('GET_SITE_BY_HOSTNAME', (message) => {
-      const config = this.siteManager.getSiteByHostname(message.data.hostname);
+    // Handle get site by URL
+    onMessage('GET_SITE_BY_URL', (message) => {
+      const config = this.siteManager.getSiteByUrl(message.data.url);
       return { config };
     });
 

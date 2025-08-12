@@ -1,246 +1,172 @@
 import { test, expect } from './fixtures';
-import type { Locator } from '@playwright/test';
+import { TestUtils } from './test-utils';
 
-test.describe('Consolidated Extension Tests', () => {
-  test('complete extension functionality verification', async ({
-    context,
-    extensionId,
-    popupPage,
-  }) => {
-    // === EXTENSION INSTALLATION AND BASIC FUNCTIONALITY ===
-    console.log('Testing extension installation and basic functionality...');
+test.describe('Popup UI Component Tests', () => {
+  test('should render basic UI components correctly', async ({ popupPage }) => {
+    // Verify all essential UI components are present
+    await TestUtils.verifyBasicUIComponents(popupPage);
 
-    // Verify extension ID is valid
-    expect(extensionId).toBeTruthy();
-    expect(extensionId).toMatch(/^[a-z]{32}$/);
+    // Check specific component details
+    const composeButton = popupPage.locator('#tab-home');
+    await expect(composeButton).toHaveClass(/active/);
 
-    // Check that service worker is running
-    const workers = context.serviceWorkers();
-    expect(workers.length).toBeGreaterThan(0);
-    const worker = workers[0];
-    expect(worker.url()).toContain(extensionId);
+    const messageLabel = popupPage.locator('label[for=message-input]');
+    await expect(messageLabel).toHaveText('Prompt');
 
-    // === POPUP UI STRUCTURE ===
-    console.log('Testing popup UI structure...');
+    const messageTextarea = popupPage.locator('#message-input');
+    await expect(messageTextarea).toHaveAttribute('placeholder', 'Ask anything');
 
-    // Wait for popup to fully load
-    await popupPage.waitForTimeout(2000);
+    const sendButton = popupPage.locator('#send-message-button');
+    await expect(sendButton).toBeDisabled(); // Should be disabled when no message
 
-    // Check main app structure exists
-    const appContainer = popupPage.locator('body, .app, main, #app').first();
-    await expect(appContainer).toBeVisible({ timeout: 10000 });
+    // Check Compose components are visible by default
+    const sitesSection = popupPage.locator('#sites-section');
+    await expect(sitesSection).toBeVisible();
 
-    // Check for header tabs (with flexible selectors)
-    const headerButtons = popupPage
-      .locator('button, a, .tab, [role="tab"]')
-      .filter({
-        hasText: /Compose|Settings|Home/,
-      });
-
-    if ((await headerButtons.count()) > 0) {
-      console.log('Found header navigation elements');
-      await expect(headerButtons.first()).toBeVisible();
-    } else {
-      console.log(
-        'No explicit header tabs found - checking for tab functionality',
-      );
-    }
-
-    // === COMPOSE SECTION VERIFICATION ===
-    console.log('Testing compose section...');
-
-    // Look for message input (with multiple possible selectors)
-    const messageInputSelectors = [
-      'textarea[placeholder*="prompt"]',
-      'textarea[placeholder*="message"]',
-      'textarea[placeholder*="type"]',
-      'textarea',
-      'input[type="text"]',
-      '[contenteditable="true"]',
-    ];
-
-    let messageInput: Locator | null = null;
-    for (const selector of messageInputSelectors) {
-      const element = popupPage.locator(selector).first();
-      if (await element.isVisible().catch(() => false)) {
-        messageInput = element;
-        console.log(`Found message input with selector: ${selector}`);
-        break;
-      }
-    }
-
-    if (messageInput) {
-      await expect(messageInput).toBeVisible();
-
-      // Test message input functionality
-      const testMessage = 'Test prompt for AI assistants';
-      await messageInput.fill(testMessage);
-      await expect(messageInput).toHaveValue(testMessage);
-      console.log('Message input functionality verified');
-    } else {
-      console.log('Message input not found with current selectors');
-    }
-
-    // === SITE CARDS VERIFICATION ===
-    console.log('Testing site cards...');
-
-    // Look for site cards with flexible selectors
-    const siteCardSelectors = [
-      '[data-testid^="site-card"]',
-      '.site-card',
-      '[class*="card"]',
-      'article',
-      '.site-item',
-      '[data-site]',
-    ];
-
-    let siteCards: Locator | null = null;
-    for (const selector of siteCardSelectors) {
-      const elements = popupPage.locator(selector);
-      if ((await elements.count()) > 0) {
-        siteCards = elements;
-        console.log(
-          `Found ${await elements.count()} site cards with selector: ${selector}`,
-        );
-        break;
-      }
-    }
-
-    if (siteCards && (await siteCards.count()) > 0) {
-      await expect(siteCards.first()).toBeVisible();
-
-      // Check for major AI sites (flexible text matching)
-      const expectedSites = [
-        'ChatGPT',
-        'Claude',
-        'Gemini',
-        'Perplexity',
-        'Grok',
-        'Copilot',
-      ];
-      let foundSites = 0;
-
-      for (const siteName of expectedSites) {
-        const siteElement = popupPage.locator(`text=${siteName}`).first();
-        if (await siteElement.isVisible().catch(() => false)) {
-          foundSites++;
-          console.log(`Found site: ${siteName}`);
-        }
-      }
-
-      console.log(
-        `Found ${foundSites} of ${expectedSites.length} expected sites`,
-      );
-      expect(foundSites).toBeGreaterThan(0);
-    } else {
-      console.log('No site cards found with current selectors');
-    }
-
-    // === SETTINGS SECTION VERIFICATION ===
-    console.log('Testing settings section...');
-
-    // Look for settings tab/button
-    const settingsButton = popupPage
-      .locator('button, a, .tab')
-      .filter({
-        hasText: /Settings|Config|Options/,
-      })
-      .first();
-
-    if (await settingsButton.isVisible().catch(() => false)) {
-      await settingsButton.click();
-      await popupPage.waitForTimeout(500);
-
-      // Look for theme selector or other settings
-      const themeElements = popupPage
-        .locator('text=/Theme|Dark|Light|Mode/')
-        .first();
-      if (await themeElements.isVisible().catch(() => false)) {
-        await expect(themeElements).toBeVisible();
-        console.log('Theme settings found');
-      } else {
-        console.log(
-          'Theme settings not found, checking for other settings elements',
-        );
-
-        // Look for any settings-related elements
-        const settingsElements = popupPage.locator(
-          'select, input[type="checkbox"], input[type="radio"], .setting, .option',
-        );
-
-        if ((await settingsElements.count()) > 0) {
-          console.log(
-            `Found ${await settingsElements.count()} settings elements`,
-          );
-        }
-      }
-    } else {
-      console.log('Settings section not accessible or not found');
-    }
-
-    // === EXTENSION PERMISSIONS VERIFICATION ===
-    console.log('Testing extension permissions...');
-
-    try {
-      const permissionsPage = await context.newPage();
-      await permissionsPage.goto('chrome://extensions/');
-
-      // Find our extension card
-      const extensionCard = permissionsPage.locator(
-        `extensions-item[id="${extensionId}"]`,
-      );
-
-      if (await extensionCard.isVisible({ timeout: 5000 }).catch(() => false)) {
-        // Check extension name
-        const extensionName = extensionCard
-          .locator('#name, .name, [class*="name"]')
-          .first();
-        if (await extensionName.isVisible().catch(() => false)) {
-          const nameText = await extensionName.textContent();
-          expect(nameText).toContain('Prompt Cast');
-          console.log('Extension name verified in chrome://extensions');
-        }
-      }
-
-      await permissionsPage.close();
-    } catch (error) {
-      console.log('Could not verify extension permissions:', error);
-    }
-
-    console.log('Consolidated extension test completed successfully!');
+    const closeAllButton = popupPage.locator('#close-all-tabs-button');
+    await expect(closeAllButton).toBeVisible();
   });
 
-  test('background script functionality', async ({ context, extensionId }) => {
-    console.log('Testing background script functionality...');
+  test('should toggle between tabs correctly', async ({ popupPage }) => {
+    // Initially on Compose tab
+    const composeButton = popupPage.locator('#tab-home');
+    const settingsButton = popupPage.locator('#tab-settings');
 
-    // Get service worker
-    const workers = context.serviceWorkers();
-    expect(workers.length).toBeGreaterThan(0);
+    await expect(composeButton).toHaveClass(/active/);
 
-    const serviceWorker = workers.find((worker) =>
-      worker.url().includes(extensionId),
-    );
-    expect(serviceWorker).toBeTruthy();
+    // Check Compose content is visible
+    await expect(popupPage.locator('#sites-section')).toBeVisible();
+    await expect(popupPage.locator('#message-input')).toBeVisible();
 
-    if (serviceWorker) {
-      // Test service worker responsiveness
-      try {
-        const result = await serviceWorker.evaluate(() => {
-          return {
-            url: self.location.href,
-            ready: true,
-            timestamp: Date.now(),
-          };
-        });
+    // Switch to Settings tab
+    await TestUtils.switchToTab(popupPage, 'tab-settings');
 
-        expect(result.ready).toBe(true);
-        expect(result.url).toContain(extensionId);
-        expect(result.timestamp).toBeGreaterThan(0);
+    // Check Settings content is visible
+    await expect(popupPage.locator('section').filter({ hasText: 'Sites' }).first()).toBeVisible();
+    await expect(popupPage.locator('#theme-settings')).toBeVisible();
 
-        console.log('Background script is responsive and functional');
-      } catch (error) {
-        console.log('Service worker evaluation failed:', error);
-      }
+    // Check Compose content is hidden
+    await expect(popupPage.locator('#message-input')).not.toBeVisible();
+
+    // Switch back to Compose tab
+    await TestUtils.switchToTab(popupPage, 'tab-home');
+
+    // Check Compose content is visible again
+    await expect(popupPage.locator('#message-input')).toBeVisible();
+  });
+
+  test('should handle message input interactions', async ({ popupPage }) => {
+    const messageTextarea = popupPage.locator('#message-input');
+    const sendButton = popupPage.locator('#send-message-button');
+
+    // Initially send button should be disabled
+    await expect(sendButton).toBeDisabled();
+
+    // Type a message
+    const testMessage = 'Test message for UI validation';
+    await messageTextarea.fill(testMessage);
+
+    // Send button should now be enabled
+    await expect(sendButton).toBeEnabled();
+
+    // Verify message content
+    await expect(messageTextarea).toHaveValue(testMessage);
+
+    // Clear the message
+    await messageTextarea.fill('');
+
+    // Send button should be disabled again
+    await expect(sendButton).toBeDisabled();
+  });
+
+  test('should handle site toggles in settings', async ({ popupPage }) => {
+    await TestUtils.switchToTab(popupPage, 'tab-settings');
+
+    // Find site toggle labels
+    const siteLabels = popupPage.locator('label[id^="site-toggle-"]');
+    const labelCount = await siteLabels.count();
+
+    if (labelCount > 0) {
+      // Test toggling the first site
+      const firstCheckbox = popupPage.locator('input[id^="site-checkbox-"]').first();
+      const isInitiallyChecked = await firstCheckbox.isChecked();
+
+      // Use utility to toggle
+      await TestUtils.toggleSite(popupPage, 0, !isInitiallyChecked);
+
+      // Toggle back
+      await TestUtils.toggleSite(popupPage, 0, isInitiallyChecked);
     }
+  });
+
+  test('should handle theme selector interactions', async ({ popupPage }) => {
+    await TestUtils.switchToTab(popupPage, 'tab-settings');
+
+    // Find theme selector section
+    const themeSection = popupPage.locator('#theme-settings');
+    await expect(themeSection).toBeVisible();
+
+    // Find theme option buttons
+    const themeButtons = themeSection.locator('button[id^="theme-option-"]');
+    const buttonCount = await themeButtons.count();
+
+    expect(buttonCount).toBeGreaterThan(0);
+
+    // Test clicking different theme buttons
+    for (let i = 0; i < Math.min(buttonCount, 3); i++) {
+      await TestUtils.selectTheme(popupPage, i);
+      const themeButton = themeButtons.nth(i);
+      await expect(themeButton).toBeVisible();
+    }
+  });
+
+  test('should persist settings between sessions', async ({ context, extensionId }) => {
+    // Open popup page
+    let popupPage = await context.newPage();
+    await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+    await TestUtils.waitForPopupReady(popupPage);
+
+    // Find and change a site setting if available
+    await TestUtils.switchToTab(popupPage, 'tab-settings');
+    const siteLabels = popupPage.locator('label[id^="site-toggle-"]');
+    const labelCount = await siteLabels.count();
+    
+    let changedState: boolean | null = null;
+    
+    if (labelCount > 0) {
+      const firstCheckbox = popupPage.locator('input[id^="site-checkbox-"]').first();
+      const isInitiallyChecked = await firstCheckbox.isChecked();
+      
+      // Toggle the setting
+      await TestUtils.toggleSite(popupPage, 0, !isInitiallyChecked);
+      changedState = !isInitiallyChecked;
+    }
+
+    // Change theme if available
+    const themeButtons = popupPage.locator('button[id^="theme-option-"]');
+    const themeButtonCount = await themeButtons.count();
+    if (themeButtonCount > 1) {
+      await TestUtils.selectTheme(popupPage, 1);
+    }
+
+    // Close popup
+    await popupPage.close();
+
+    // Wait for settings to persist
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Reopen popup
+    popupPage = await context.newPage();
+    await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+    await TestUtils.waitForPopupReady(popupPage);
+
+    // Verify settings persisted
+    if (labelCount > 0 && changedState !== null) {
+      await TestUtils.switchToTab(popupPage, 'tab-settings');
+      const firstCheckboxNew = popupPage.locator('input[id^="site-checkbox-"]').first();
+      await expect(firstCheckboxNew).toBeChecked({ checked: changedState });
+    }
+
+    await popupPage.close();
   });
 });

@@ -68,11 +68,13 @@
 
             <label
               class="relative inline-flex items-center cursor-pointer flex-shrink-0"
+              id="site-toggle-{site.id}"
             >
               <input
                 type="checkbox"
                 class="sr-only peer"
                 checked={site.enabled}
+                id="site-checkbox-{site.id}"
                 onchange={(e) => {
                   const target = e.target as HTMLInputElement;
                   handleSiteToggle(site.id, target.checked);
@@ -94,7 +96,7 @@
   </section>
 
   <!-- Theme Settings -->
-  <section>
+  <section id="theme-settings">
     <ThemeSelector
       {currentTheme}
       themeOptions={availableThemeOptions}

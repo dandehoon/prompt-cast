@@ -22,6 +22,7 @@
     <div class="flex items-center space-x-2">
       {#each themeOptions as option (option.value)}
         <button
+          id="theme-option-{option.value}"
           type="button"
           onclick={() => onThemeChange(option.value)}
           class="p-1 rounded pc-transition cursor-pointer"

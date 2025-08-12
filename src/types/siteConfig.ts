@@ -12,7 +12,6 @@ export interface SiteConfig {
     light: string;
     dark: string;
   };
-  hostPatterns?: string[]; // Optional - auto-generated from URL
   inputSelectors: string[];
   submitSelectors: string[];
   injectionMethod?: 'execCommand';

@@ -18,6 +18,7 @@
   <div class="flex">
     {#each tabs as tab (tab.id)}
       <button
+        id="tab-{tab.id}"
         class="flex-1 flex items-center justify-center py-2 px-4 text-sm font-medium transition-colors focus:outline-none focus:ring-0 cursor-pointer"
         class:active={activeTab === tab.id}
         onclick={() => onTabChange(tab.id)}

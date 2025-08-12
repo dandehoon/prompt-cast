@@ -44,14 +44,14 @@
 
 <div class="space-y-2">
   <label
-    for="messageInput"
+    for="message-input"
     class="block text-sm font-medium"
     style="color: var(--pc-text-primary);"
   >
     Prompt
   </label>
   <textarea
-    id="messageInput"
+    id="message-input"
     bind:this={messageInputRef}
     {value}
     oninput={handleInput}

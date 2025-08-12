@@ -50,6 +50,7 @@
   </div>
 
   <button
+    id="send-message-button"
     onclick={messageActions.sendMessage}
     disabled={!hasMessage || sendLoading}
     class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
