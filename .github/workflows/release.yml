@@ -55,15 +55,14 @@ jobs:
       run: pnpm install --frozen-lockfile
 
     - name: Run tests
-      run: pnpm test
+      run: pnpm check
       env:
         CI: true
 
     - name: Build extension
       run: |
         pnpm run build
-        cd dist
-        zip -r ../$EXT_NAME.zip .
+        pnpm run zip
 
     - name: Generate changelog
       id: changelog
@@ -100,6 +99,6 @@ jobs:
           - Click "Load unpacked" and select the extracted folder
           - Or install from Chrome Web Store (if published)
         files: |
-          ${{ env.EXT_NAME }}.zip
+          .output/*.zip
         draft: false
         prerelease: false

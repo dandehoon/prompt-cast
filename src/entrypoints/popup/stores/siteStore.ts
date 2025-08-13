@@ -1,0 +1,246 @@
+import { writable, derived, get } from 'svelte/store';
+import type { SiteConfig, EnhancedSite } from '@/types';
+import type { SiteStatusType } from '@/shared';
+import { SITE_STATUS } from '@/shared';
+import { sendMessage } from '@/shared';
+import { logger } from '@/shared';
+
+// Internal stores
+const siteConfigs = writable<Record<string, SiteConfig>>({});
+const siteStatuses = writable<Record<string, SiteStatusType>>({});
+const siteStates = writable<Record<string, { enabled: boolean }>>({});
+const isLoading = writable<boolean>(true);
+
+// Fetch configurations from background script
+const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
+  try {
+    const response = await sendMessage('GET_SITE_CONFIGS');
+    return response.data.configs;
+  } catch (error) {
+    logger.error('Failed to fetch site configs from background:', error);
+    return {};
+  }
+};
+
+// Load saved site states from localStorage
+const loadSavedStates = (
+  configs: Record<string, SiteConfig>,
+): Record<string, { enabled: boolean }> => {
+  const initialStates: Record<string, { enabled: boolean }> = {};
+
+  // Initialize from configs
+  Object.keys(configs).forEach((siteId) => {
+    initialStates[siteId] = { enabled: configs[siteId].enabled };
+  });
+
+  // Load saved states from localStorage
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const savedStates = window.localStorage.getItem(
+        'prompt-cast-site-states',
+      );
+      if (savedStates) {
+        const parsedStates = JSON.parse(savedStates);
+        // Merge saved states with initial states
+        Object.keys(parsedStates).forEach((siteId) => {
+          if (initialStates[siteId]) {
+            initialStates[siteId] = parsedStates[siteId];
+          }
+        });
+      }
+    }
+  } catch (error) {
+    logger.warn('Failed to load saved site states:', error);
+  }
+
+  return initialStates;
+};
+
+// Initialize site states from configs
+const initializeSites = async () => {
+  try {
+    isLoading.set(true);
+
+    // Fetch configs from background
+    const configs = await fetchSiteConfigs();
+    siteConfigs.set(configs);
+
+    // Load saved states
+    const states = loadSavedStates(configs);
+    siteStates.set(states);
+    siteStatuses.set({});
+
+    // Refresh site statuses (with automatic retry if needed)
+    await siteActions.refreshSiteStates();
+  } catch (error) {
+    logger.error('Failed to initialize sites:', error);
+  } finally {
+    isLoading.set(false);
+  }
+};
+
+// Derived stores for computed values
+export const isLoadingSites = isLoading;
+
+export const enabledSites = derived(
+  [siteConfigs, siteStates],
+  ([$siteConfigs, $siteStates]) => {
+    return Object.keys($siteConfigs).filter((siteId) => {
+      const siteState = $siteStates[siteId];
+      return siteState?.enabled ?? $siteConfigs[siteId].enabled;
+    });
+  },
+);
+
+export const enabledCount = derived(
+  enabledSites,
+  ($enabledSites) => $enabledSites.length,
+);
+
+export const connectedCount = derived(
+  [enabledSites, siteStatuses],
+  ([$enabledSites, $siteStatuses]) => {
+    return $enabledSites.filter(
+      (siteId) => $siteStatuses[siteId] === SITE_STATUS.CONNECTED,
+    ).length;
+  },
+);
+
+export const sitesWithStatus = derived(
+  [siteConfigs, siteStatuses, siteStates],
+  ([$siteConfigs, $siteStatuses, $siteStates]) => {
+    return (isDark = false): Record<string, EnhancedSite> => {
+      const result: Record<string, EnhancedSite> = {};
+
+      Object.keys($siteConfigs).forEach((siteId) => {
+        const config = $siteConfigs[siteId];
+        if (config) {
+          const color = isDark ? config.colors.dark : config.colors.light;
+          result[siteId] = {
+            ...config,
+            status: $siteStatuses[siteId] || SITE_STATUS.DISCONNECTED,
+            enabled: $siteStates[siteId]?.enabled ?? config.enabled,
+            color,
+          };
+        }
+      });
+
+      return result;
+    };
+  },
+);
+
+// Actions
+export const siteActions = {
+  updateSiteStatus: (siteId: string, status: SiteStatusType) => {
+    siteStatuses.update((current) => ({
+      ...current,
+      [siteId]: status,
+    }));
+  },
+
+  toggleSite: async (siteId: string, enabled: boolean) => {
+    // Update local state
+    siteStates.update((current) => ({
+      ...current,
+      [siteId]: { enabled },
+    }));
+
+    try {
+      // Persist to localStorage
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const currentStates = get(siteStates);
+        window.localStorage.setItem(
+          'prompt-cast-site-states',
+          JSON.stringify(currentStates),
+        );
+      }
+
+      // Send message to background
+      await sendMessage('SITE_TOGGLE', { siteId, enabled });
+    } catch (error) {
+      logger.error('Failed to save site toggle:', error);
+    }
+  },
+
+  getSiteWithStatus: (siteId: string, isDark = false): EnhancedSite | null => {
+    const configs = get(siteConfigs);
+    const statuses = get(siteStatuses);
+    const states = get(siteStates);
+
+    const config = configs[siteId];
+    if (!config) return null;
+
+    const color = isDark ? config.colors.dark : config.colors.light;
+    return {
+      ...config,
+      status: statuses[siteId] || SITE_STATUS.DISCONNECTED,
+      enabled: states[siteId]?.enabled ?? config.enabled,
+      color,
+    };
+  },
+
+  getSiteColor: (siteId: string, isDark = false): string => {
+    const configs = get(siteConfigs);
+    const config = configs[siteId];
+    if (!config) {
+      return '#6b7280'; // Default gray color
+    }
+    return isDark ? config.colors.dark : config.colors.light;
+  },
+
+  refreshSiteStates: async (retryCount = 0) => {
+    try {
+      const configs = get(siteConfigs);
+      const updates: Record<string, SiteStatusType> = {};
+
+      // Check status for each site
+      await Promise.all(
+        Object.keys(configs).map(async (siteId) => {
+          try {
+            const response = await sendMessage('GET_SITE_STATUS', { siteId });
+            updates[siteId] = response.status;
+          } catch (error) {
+            logger.error(`Failed to get status for ${siteId}:`, error);
+            updates[siteId] = SITE_STATUS.DISCONNECTED;
+          }
+        }),
+      );
+
+      siteStatuses.update((current) => ({
+        ...current,
+        ...updates,
+      }));
+
+      logger.debug('Site states refreshed:', updates);
+
+      // If this is the first attempt and we got mostly disconnected states, retry once after a delay
+      const disconnectedCount = Object.values(updates).filter(
+        (status) => status === SITE_STATUS.DISCONNECTED,
+      ).length;
+      const totalSites = Object.keys(configs).length;
+
+      if (
+        retryCount === 0 &&
+        disconnectedCount === totalSites &&
+        totalSites > 0
+      ) {
+        logger.debug(
+          'All sites disconnected on first check, retrying in 2 seconds...',
+        );
+        setTimeout(() => {
+          siteActions.refreshSiteStates(1); // Retry once
+        }, 2000);
+      }
+    } catch (error) {
+      logger.error('Failed to refresh site states:', error);
+    }
+  },
+
+  initializeSites,
+};
+
+// Initialize the store
+initializeSites().catch((error) => {
+  logger.error('Failed to initialize sites:', error);
+});

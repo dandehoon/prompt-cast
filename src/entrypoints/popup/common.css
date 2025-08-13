@@ -1,0 +1,231 @@
+/* Common utility classes using CSS variables from app.css */
+/* These classes provide consistent theming across all components */
+
+/* Background Colors */
+.pc-bg-primary {
+  background-color: var(--pc-bg-primary);
+}
+
+.pc-bg-secondary {
+  background-color: var(--pc-bg-secondary);
+}
+
+.pc-bg-card {
+  background-color: var(--pc-bg-card);
+}
+
+.pc-bg-hover {
+  background-color: var(--pc-bg-hover);
+}
+
+.pc-bg-active {
+  background-color: var(--pc-bg-active);
+}
+
+/* Status Background Colors */
+.pc-bg-success {
+  background-color: var(--pc-success);
+}
+
+.pc-bg-success-light {
+  background-color: var(--pc-success-light);
+}
+
+.pc-bg-warning {
+  background-color: var(--pc-warning);
+}
+
+.pc-bg-warning-light {
+  background-color: var(--pc-warning-light);
+}
+
+.pc-bg-error {
+  background-color: var(--pc-error);
+}
+
+.pc-bg-error-light {
+  background-color: var(--pc-error-light);
+}
+
+.pc-bg-info {
+  background-color: var(--pc-info);
+}
+
+.pc-bg-info-light {
+  background-color: var(--pc-info-light);
+}
+
+/* Accent Background Colors */
+.pc-bg-accent {
+  background-color: var(--pc-accent);
+}
+
+.pc-bg-accent-hover {
+  background-color: var(--pc-accent-hover);
+}
+
+.pc-bg-accent-light {
+  background-color: var(--pc-accent-light);
+}
+
+/* Text Colors */
+.pc-text-primary {
+  color: var(--pc-text-primary);
+}
+
+.pc-text-secondary {
+  color: var(--pc-text-secondary);
+}
+
+.pc-text-muted {
+  color: var(--pc-text-muted);
+}
+
+.pc-text-disabled {
+  color: var(--pc-text-disabled);
+}
+
+.pc-text-inverted {
+  color: var(--pc-text-inverted);
+}
+
+/* Status Text Colors */
+.pc-text-success {
+  color: var(--pc-success);
+}
+
+.pc-text-warning {
+  color: var(--pc-warning);
+}
+
+.pc-text-error {
+  color: var(--pc-error);
+}
+
+.pc-text-info {
+  color: var(--pc-info);
+}
+
+.pc-text-accent {
+  color: var(--pc-accent);
+}
+
+/* Border Colors */
+.pc-border {
+  border-color: var(--pc-border);
+}
+
+.pc-border-hover {
+  border-color: var(--pc-border-hover);
+}
+
+.pc-border-focus {
+  border-color: var(--pc-border-focus);
+}
+
+.pc-border-success {
+  border-color: var(--pc-success);
+}
+
+.pc-border-warning {
+  border-color: var(--pc-warning);
+}
+
+.pc-border-error {
+  border-color: var(--pc-error);
+}
+
+.pc-border-accent {
+  border-color: var(--pc-accent);
+}
+
+/* Interactive States */
+.pc-hover-bg {
+  background-color: var(--pc-interactive-hover);
+}
+
+.pc-active-bg {
+  background-color: var(--pc-interactive-active);
+}
+
+/* Shadows */
+.pc-shadow-sm {
+  box-shadow: var(--pc-shadow-sm);
+}
+
+.pc-shadow-md {
+  box-shadow: var(--pc-shadow-md);
+}
+
+.pc-shadow-lg {
+  box-shadow: var(--pc-shadow-lg);
+}
+
+/* Focus Ring */
+.pc-focus-ring {
+  box-shadow: 0 0 0 2px var(--pc-focus);
+}
+
+/* Common Component Patterns */
+.pc-card {
+  background-color: var(--pc-bg-card);
+  border: 1px solid var(--pc-border);
+  border-radius: 0.5rem;
+}
+
+.pc-card:hover {
+  border-color: var(--pc-border-hover);
+  background-color: var(--pc-bg-hover);
+}
+
+.pc-button-primary {
+  background-color: var(--pc-accent);
+  color: var(--pc-text-inverted);
+  border: 1px solid var(--pc-accent);
+}
+
+.pc-button-primary:hover {
+  background-color: var(--pc-accent-hover);
+  border-color: var(--pc-accent-hover);
+}
+
+.pc-button-secondary {
+  background-color: var(--pc-bg-card);
+  color: var(--pc-text-primary);
+  border: 1px solid var(--pc-border);
+}
+
+.pc-button-secondary:hover {
+  background-color: var(--pc-bg-hover);
+  border-color: var(--pc-border-hover);
+}
+
+/* Status Indicators */
+.pc-status-connected {
+  background-color: var(--pc-success);
+}
+
+.pc-status-loading {
+  background-color: var(--pc-warning);
+}
+
+.pc-status-error {
+  background-color: var(--pc-error);
+}
+
+.pc-status-disconnected {
+  background-color: var(--pc-text-disabled);
+}
+
+/* Transitions */
+.pc-transition {
+  transition: all 0.2s ease;
+}
+
+.pc-transition-fast {
+  transition: all 0.15s ease;
+}
+
+.pc-transition-slow {
+  transition: all 0.3s ease;
+}

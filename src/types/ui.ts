@@ -9,6 +9,7 @@ export interface ToastMessage {
   message: string;
   type: ToastType;
   duration?: number;
+  timestamp?: number;
 }
 
 // Tab Types

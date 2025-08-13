@@ -4,31 +4,11 @@
  */
 
 // Core types
-export type { Response } from './core';
+export * from './core';
+export * from './messages';
+export * from './siteConfig';
+export * from './storage';
+export * from './ui';
 
-// Message types
-export type {
-  ExtensionMessage,
-  ContentMessage,
-  SendMessagePayload,
-  SiteTogglePayload,
-  GetSiteByHostnamePayload,
-} from './messages';
-
-// Site types
-export type { SiteConfig, SiteConfigsPayload, EnhancedSite } from './site';
-
-// UI types
-export type { ToastMessage, TabId, Tab } from './ui';
-
-// Storage types
-export type { UserPreferences } from './storage';
-
-// Re-export types from constants
-export type {
-  SiteStatusType,
-  ThemeOption,
-  ToastType,
-  ExtensionMessageType,
-  ContentMessageType,
-} from '../shared/constants';
+// Re-export from shared constants
+export type { ThemeOption, ToastType } from '../shared/constants';

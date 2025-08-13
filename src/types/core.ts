@@ -1,7 +1,7 @@
 /**
  * Core shared types used across the extension
  */
-import type { SiteConfig } from './site';
+import type { SiteConfig } from './siteConfig';
 
 export interface Response<T = unknown> {
   success: boolean;

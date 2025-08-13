@@ -1,0 +1,106 @@
+@import 'tailwindcss';
+@import './common.css';
+
+/* CSS Custom Properties for Complete Theme System */
+:root {
+  /* Light theme colors - structured depth layers like dark mode */
+  --pc-bg-primary: #f5f7fa;
+  --pc-bg-secondary: #edf2f7;
+  --pc-bg-card: #ffffff;
+  --pc-bg-hover: #e2e8f0;
+  --pc-bg-active: #cbd5e1;
+
+  --pc-border: #d1d7db;
+  --pc-border-hover: #b4bcc2;
+  --pc-border-focus: #8b92a5;
+
+  --pc-text-primary: #1e293b;
+  --pc-text-secondary: #475569;
+  --pc-text-muted: #64748b;
+  --pc-text-disabled: #94a3b8;
+  --pc-text-inverted: #ffffff;
+
+  --pc-accent: #3b82f6;
+  --pc-accent-hover: #2563eb;
+  --pc-accent-light: #dbeafe;
+  --pc-focus: rgba(59, 130, 246, 0.5);
+
+  /* Status colors */
+  --pc-success: #10b981;
+  --pc-success-light: #d1fae5;
+  --pc-error: #ef4444;
+  --pc-error-light: #fee2e2;
+  --pc-warning: #f59e0b;
+  --pc-warning-light: #fef3c7;
+  --pc-info: #3b82f6;
+  --pc-info-light: #dbeafe;
+
+  /* Interactive states */
+  --pc-interactive-hover: rgba(0, 0, 0, 0.06);
+  --pc-interactive-active: rgba(0, 0, 0, 0.12);
+  --pc-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
+  --pc-shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.12);
+  --pc-shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.15);
+}
+
+.dark {
+  /* Dark theme with grey color scheme */
+  --pc-bg-primary: #222;
+  --pc-bg-secondary: #2f2f2f;
+  --pc-bg-tertiary: #3a3a3a;
+  --pc-bg-hover: #404040;
+  --pc-bg-card: #333;
+  --pc-bg-input: #444;
+
+  /* Text colors */
+  --pc-text-primary: #ffffff;
+  --pc-text-secondary: #e0e0e0;
+  --pc-text-muted: #a0a0a0;
+  --pc-text-disabled: #666666;
+  --pc-text-inverted: #ffffff;
+
+  /* Border colors */
+  --pc-border: #404040;
+  --pc-border-hover: #525252;
+  --pc-border-focus: #666666;
+
+  /* Accent colors - keep blue for brand consistency */
+  --pc-accent: #3b82f6;
+  --pc-accent-hover: #2563eb;
+  --pc-accent-light: rgba(59, 130, 246, 0.1);
+
+  /* Status colors */
+  --pc-success: #10b981;
+  --pc-warning: #f59e0b;
+  --pc-error: #ef4444;
+
+  /* Shadows */
+  --pc-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --pc-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --pc-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
+    0 4px 6px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Reset styles for popup */
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  overflow: hidden; /* Prevent body scroll in popup */
+}
+
+/* Custom popup styles */
+.app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  width: 320px;
+  min-height: 200px; /* Minimum height */
+  max-height: 600px; /* Maximum height */
+  height: auto; /* Dynamic height */
+  overflow: hidden;
+}

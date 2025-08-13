@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini</title>
+    <style>
+      body {
+        font-family: 'Google Sans', Arial, sans-serif;
+        margin: 20px;
+        background: #f8f9fa;
+      }
+      .chat-container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .logo {
+        color: #1a73e8;
+        font-size: 2.5em;
+        font-weight: 500;
+      }
+      .input-section {
+        background: white;
+        border-radius: 24px;
+        padding: 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .search-box {
+        width: 100%;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        min-height: 40px;
+        resize: vertical;
+      }
+      .search-button {
+        background: #1a73e8;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      .search-button:hover {
+        background: #1557b0;
+      }
+      .results {
+        margin-top: 20px;
+      }
+      .result-item {
+        background: white;
+        margin: 10px 0;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .result-title {
+        color: #1a73e8;
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+      .result-content {
+        line-height: 1.5;
+        color: #3c4043;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-container">
+      <div class="header">
+        <div class="logo">Gemini</div>
+        <p>AI-powered search and chat interface for testing</p>
+      </div>
+
+      <div class="input-section">
+        <div
+          class="search-box ql-editor"
+          contenteditable="true"
+          role="textbox"
+          placeholder="Enter a prompt here..."
+          data-testid="search-input"
+          style="
+            min-height: 80px;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            font-family: inherit;
+            background: white;
+          "
+        ></div>
+        <br />
+        <button
+          data-testid="search-button"
+          data-test-id="send-button"
+          aria-label="Submit"
+          onclick="searchQuery()"
+          style="
+            padding: 10px 16px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+          "
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M8 0L6.59 1.41 12.17 7H0v2h12.17L6.59 14.59 8 16l8-8-8-8z"
+            />
+          </svg>
+          Ask Gemini
+        </button>
+      </div>
+
+      <div class="results" id="results">
+        <div class="result-item">
+          <div class="result-title">Welcome to Gemini Mock</div>
+          <div class="result-content">
+            This is a mock Gemini interface for testing the Prompt Cast
+            extension. Ask me anything and I'll provide a simulated response.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function searchQuery() {
+        const searchBox = document.querySelector('.search-box');
+        const results = document.getElementById('results');
+        const query = searchBox.textContent || searchBox.innerText || '';
+
+        if (query.trim()) {
+          // Add user query
+          const queryDiv = document.createElement('div');
+          queryDiv.className = 'result-item user-query';
+          queryDiv.innerHTML = `<strong>You:</strong> ${query}`;
+          results.appendChild(queryDiv);
+
+          // Add Gemini response after a short delay
+          setTimeout(() => {
+            const responseDiv = document.createElement('div');
+            responseDiv.className = 'result-item gemini-response';
+            responseDiv.innerHTML = `<strong>Gemini:</strong> Here's what I found about "${query}". This is a mock response for testing the Prompt Cast extension.`;
+            results.appendChild(responseDiv);
+          }, 800);
+
+          // Clear search box
+          searchBox.textContent = '';
+
+          // Scroll to bottom
+          results.scrollTop = results.scrollHeight;
+        }
+      }
+
+      // Allow Enter to search
+      document
+        .querySelector('.search-box')
+        .addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            searchQuery();
+          }
+        });
+
+      // Simulate extension injection detection
+      window.addEventListener('load', () => {
+        console.log('Gemini mock page loaded');
+        // Mark as ready for extension testing
+        document.body.setAttribute('data-extension-ready', 'true');
+      });
+    </script>
+  </body>
+</html>

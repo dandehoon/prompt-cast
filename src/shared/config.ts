@@ -8,16 +8,6 @@
  */
 export const BACKGROUND_CONFIG = {
   /**
-   * Content script readiness detection
-   */
-  contentScript: {
-    /** Maximum attempts to check if content script is ready */
-    maxReadinessAttempts: 10,
-    /** Delay between content script readiness checks (ms) */
-    readinessCheckDelay: 500,
-  },
-
-  /**
    * Tab management configuration
    */
   tab: {
@@ -37,51 +27,6 @@ export const BACKGROUND_CONFIG = {
     baseDelay: 500,
     /** Maximum delay for exponential backoff (ms) */
     maxDelay: 1500,
-  },
-} as const;
-
-/**
- * Content script configuration for DOM interaction and message injection
- */
-export const CONTENT_CONFIG = {
-  /**
-   * Input element detection
-   */
-  input: {
-    /** Maximum attempts to find input element during injection */
-    maxInjectionAttempts: 15,
-    /** Maximum attempts for input readiness checking */
-    maxReadinessAttempts: 10,
-    /** Delay between input detection attempts (ms) */
-    detectionDelay: 100,
-  },
-
-  /**
-   * DOM interaction timing
-   */
-  dom: {
-    /** Delay after focusing element before interaction (ms) */
-    focusDelay: 50,
-    /** Delay after message injection before sending (ms) */
-    injectionDelay: 200,
-  },
-
-  /**
-   * Input readiness polling
-   */
-  polling: {
-    /** Maximum attempts for input ready polling */
-    maxPollingAttempts: 20,
-    /** Interval for input ready status checking (ms) */
-    pollingInterval: 500,
-  },
-
-  /**
-   * DOM observer configuration
-   */
-  observer: {
-    /** Timeout for DOM mutation observer (ms) */
-    timeout: 15000,
   },
 } as const;
 
@@ -123,7 +68,6 @@ export const TEST_CONFIG = {
  */
 export const CONFIG = {
   background: BACKGROUND_CONFIG,
-  content: CONTENT_CONFIG,
   popup: POPUP_CONFIG,
   test: TEST_CONFIG,
 } as const;
@@ -132,7 +76,6 @@ export const CONFIG = {
  * Type definitions for configuration objects
  */
 export type BackgroundConfig = typeof BACKGROUND_CONFIG;
-export type ContentConfig = typeof CONTENT_CONFIG;
 export type PopupConfig = typeof POPUP_CONFIG;
 export type TestConfig = typeof TEST_CONFIG;
 export type AppConfig = typeof CONFIG;
