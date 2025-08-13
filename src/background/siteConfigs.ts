@@ -24,14 +24,8 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
       light: '#cc785c',
       dark: '#cc785c',
     },
-    inputSelectors: [
-      'div[contenteditable]',
-      'div[data-testid="message-input"]',
-    ],
-    submitSelectors: [
-      'button[aria-label="Send Message"]',
-      'button[data-testid="send-button"]',
-    ],
+    inputSelectors: ['div[contenteditable]'],
+    submitSelectors: ['button[aria-label="Send message"]'],
   },
 
   gemini: {
@@ -64,7 +58,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     id: 'perplexity',
     name: 'Perplexity',
     url: 'https://www.perplexity.ai/',
-    enabled: true,
+    enabled: false,
     colors: {
       light: '#31b8c6',
       dark: '#31b8c6',
@@ -78,7 +72,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     id: 'copilot',
     name: 'Copilot',
     url: 'https://copilot.microsoft.com/',
-    enabled: true,
+    enabled: false,
     colors: {
       light: '#d84a12ff',
       dark: '#d84a12ff',
