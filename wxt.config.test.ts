@@ -17,7 +17,7 @@ export default defineConfig({
     description:
       '📢 Broadcast your prompts to multiple AI sites at once (Test Mode)',
     version: '1.2.0',
-    permissions: ['tabs', 'activeTab', 'scripting', 'storage'],
+    permissions: ['tabs', 'scripting', 'storage'],
     host_permissions: ['*://localhost/*'],
   },
 });

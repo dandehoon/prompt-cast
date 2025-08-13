@@ -13,7 +13,7 @@ export default defineConfig({
     name: 'Prompt Cast',
     description: '📢 Broadcast your prompts to multiple AI sites at once',
     version: '1.2.0',
-    permissions: ['tabs', 'activeTab', 'scripting', 'storage'],
+    permissions: ['tabs', 'scripting', 'storage'],
     host_permissions: getHostPermissions(),
   },
 });
