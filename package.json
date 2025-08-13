@@ -2,7 +2,7 @@
   "name": "prompt-cast",
   "description": "📢 Broadcast your prompts to multiple AI sites at once",
   "private": true,
-  "version": "1.1.1",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
