@@ -290,7 +290,9 @@ describe('siteStore', () => {
       await siteActions.refreshSiteStates();
 
       expect(logger.debug).toHaveBeenCalledWith(
-        'All sites disconnected on first check, retrying in 2 seconds...',
+        expect.stringMatching(
+          /sites disconnected on attempt \d+, retrying in \d+ms\.\.\./,
+        ),
       );
 
       // Fast-forward timers

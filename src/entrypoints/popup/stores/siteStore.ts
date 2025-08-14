@@ -191,23 +191,25 @@ export const siteActions = {
 
       logger.debug('Site states refreshed:', updates);
 
-      // If this is the first attempt and we got mostly disconnected states, retry once after a delay
+      // If this is early attempt and we got mostly disconnected states, retry with increasing delays
       const disconnectedCount = Object.values(updates).filter(
         (status) => status === SITE_STATUS.DISCONNECTED,
       ).length;
       const totalSites = Object.keys(configs).length;
+      const disconnectedRatio =
+        totalSites > 0 ? disconnectedCount / totalSites : 0;
 
-      if (
-        retryCount === 0 &&
-        disconnectedCount === totalSites &&
-        totalSites > 0
-      ) {
+      // Retry strategy for slow networks
+      if (retryCount < 3 && disconnectedRatio >= 0.8 && totalSites > 0) {
+        const delayMs = Math.min(2000 * Math.pow(2, retryCount), 8000); // 2s, 4s, 8s max
         logger.debug(
-          'All sites disconnected on first check, retrying in 2 seconds...',
+          `${disconnectedCount}/${totalSites} sites disconnected on attempt ${
+            retryCount + 1
+          }, retrying in ${delayMs}ms...`,
         );
         setTimeout(() => {
-          siteActions.refreshSiteStates(1); // Retry once
-        }, 2000);
+          siteActions.refreshSiteStates(retryCount + 1);
+        }, delayMs);
       }
     } catch (error) {
       logger.error('Failed to refresh site states:', error);

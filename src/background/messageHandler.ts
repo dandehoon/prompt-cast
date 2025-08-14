@@ -1,10 +1,8 @@
-import { browser } from '#imports';
 import type { SendMessagePayload, SiteConfig } from '@/types';
 import type { SiteStatusType } from '@/shared';
 import { logger } from '@/shared';
 import { TabManager } from './tabManager';
 import { ExecuteScriptInjector } from './scriptInjector';
-import type { BatchInjectionConfig } from './injections';
 import type { SiteManager } from './siteManager';
 
 export class MessageHandler {
@@ -22,34 +20,13 @@ export class MessageHandler {
    * With executeScript approach, we don't need to check content script readiness
    */
   async getSiteStatus(site: SiteConfig): Promise<SiteStatusType> {
-    try {
-      const tabs = await browser.tabs.query({ url: site.url + '*' });
-
-      if (tabs.length === 0) {
-        return 'disconnected';
-      }
-
-      const tab = tabs[0];
-      if (!tab.id) {
-        return 'disconnected';
-      }
-
-      // With executeScript, if tab exists and is loaded, we can inject
-      if (tab.status === 'complete') {
-        return 'connected';
-      } else {
-        return 'loading';
-      }
-    } catch (error) {
-      logger.error(`Failed to get status for ${site.name}:`, error);
-      return 'error';
-    }
+    return this.tabManager.getSiteStatus(site);
   }
 
   async sendMessageToSitesRobust(payload: SendMessagePayload): Promise<void> {
     try {
       // First, ensure all tabs are open and ready
-      await this.openAllTabsWithInstantFocus(payload);
+      await this.tabManager.openAllTabsWithInstantFocus(payload.sites);
 
       // Then send messages to all sites with better error handling
       await this.sendMessageToSites(payload);
@@ -63,197 +40,100 @@ export class MessageHandler {
     }
   }
 
-  private async openAllTabsWithInstantFocus(
-    payload: SendMessagePayload,
-  ): Promise<void> {
-    const sitesToOpen = payload.sites.filter(
-      (siteId) => this.siteManager.getSite(siteId)?.enabled,
-    );
-
-    if (sitesToOpen.length === 0) return;
-
-    // Check if any AI site tab is currently active
-    const currentTab = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-
-    const isCurrentTabAISite =
-      currentTab[0] &&
-      sitesToOpen.some((siteId) => {
-        const site = this.siteManager.getSite(siteId);
-        if (!site) return false;
-
-        const tabUrl = currentTab[0].url || '';
-        const siteHost = site.url.split('/')[2];
-
-        // Support test environment
-        if (tabUrl.includes('localhost') && tabUrl.includes(`/${siteId}`)) {
-          return true;
-        }
-
-        return tabUrl.includes(siteHost);
-      });
-
-    // Open all tabs and track the first new one
-    let firstNewTabSite: string | null = null;
-
-    for (const siteId of sitesToOpen) {
-      const site = this.siteManager.getSite(siteId);
-      if (!site) continue;
-
-      const existingTabs = await browser.tabs.query({ url: site.url + '*' });
-      const isNewTab = existingTabs.length === 0;
-
-      await this.tabManager.openOrFocusTab(site, false);
-
-      if (isNewTab && !firstNewTabSite) {
-        firstNewTabSite = siteId;
-      }
-    }
-
-    // Focus the first new tab if no AI site is currently active
-    if (!isCurrentTabAISite && firstNewTabSite) {
-      await this.tabManager.focusTab(firstNewTabSite);
-    }
-  }
-
   private async sendMessageToSites(payload: SendMessagePayload): Promise<void> {
-    const enabledSites = payload.sites.filter(
-      (siteId) => this.siteManager.getSite(siteId)?.enabled,
+    const sites = await Promise.all(
+      payload.sites.map(async (siteId) => this.siteManager.getSite(siteId)),
+    );
+    const enabledSites = sites.filter(
+      (site): site is SiteConfig => site?.enabled || false,
     );
 
     if (enabledSites.length === 0) {
       throw new Error('No enabled sites to send message to');
     }
 
-    // Prepare batch injection data
-    const injections: Array<{
-      tabId: number;
-      message: string;
-      siteConfig: SiteConfig;
-    }> = [];
+    // Step 1: Launch ALL tabs concurrently (no waiting for readiness)
+    logger.debug('Launching tabs for all enabled sites concurrently...');
+    const validTabs = await this.tabManager.launchAllTabs(enabledSites);
 
-    // First, ensure all tabs are available and get their IDs
-    for (const siteId of enabledSites) {
-      const site = this.siteManager.getSite(siteId);
-      if (!site) continue;
-
-      try {
-        // Query for tabs with the site URL pattern
-        let tabs = await browser.tabs.query({ url: site.url + '*' });
-
-        // Also check for test environment tabs (localhost)
-        if (tabs.length === 0) {
-          const testTabs = await browser.tabs.query({
-            url: `*://localhost:*/${siteId}*`,
-          });
-          tabs = testTabs;
-        }
-
-        // If no tabs exist, open one
-        if (tabs.length === 0) {
-          await this.tabManager.openOrFocusTab(site, false);
-          tabs = await browser.tabs.query({ url: site.url + '*' });
-
-          // Try test URL again if production URL didn't work
-          if (tabs.length === 0) {
-            const testTabs = await browser.tabs.query({
-              url: `*://localhost:*/${siteId}*`,
-            });
-            tabs = testTabs;
-          }
-        }
-
-        if (tabs.length > 0 && tabs[0].id) {
-          // Wait for tab to be ready
-          await this.tabManager.waitForTabReady(tabs[0].id);
-
-          injections.push({
-            tabId: tabs[0].id,
-            message: payload.message,
-            siteConfig: site,
-          });
-        } else {
-          logger.error(`Failed to get tab for site ${siteId}`);
-        }
-      } catch (error) {
-        logger.error(`Failed to prepare injection for ${siteId}:`, error);
-      }
+    if (validTabs.length === 0) {
+      throw new Error('No tabs could be launched for message injection');
     }
 
-    if (injections.length === 0) {
-      throw new Error('No tabs available for message injection');
+    // Step 2: Focus first tab if current tab is not an AI site (no waiting)
+    const tabIds = validTabs.map((t) => t.tabId);
+    await this.tabManager.focusFirstTabIfNeeded(tabIds);
+
+    // Step 3: Start independent processing for each tab (each waits for its own readiness)
+    logger.debug('Starting independent processing for each tab...');
+    const injectionPromises = validTabs.map(async ({ site, tabId }) => {
+      return this.processTabIndependently(tabId, site, payload.message);
+    });
+
+    // Step 4: Wait for all independent processes to complete
+    const results = await Promise.all(injectionPromises);
+
+    // Check if any injections succeeded
+    const successCount = results.filter((r) => r.result.success).length;
+    const failureCount = results.length - successCount;
+
+    if (successCount === 0) {
+      throw new Error(`All ${results.length} injection attempts failed`);
     }
 
-    // Convert injections to BatchInjectionConfig format
-    const batchConfigs: BatchInjectionConfig[] = injections.map((inj) => ({
-      tabId: inj.tabId,
-      siteConfig: inj.siteConfig,
-    }));
-
-    // Execute batch injection using executeScript
-    const results = await this.injector.batchInject(
-      payload.message,
-      batchConfigs,
-      3,
+    logger.info(
+      `Message injection completed: ${successCount} succeeded, ${failureCount} failed`,
     );
+  }
 
-    // Analyze results
-    const failed = results.filter((r) => !r.result.success);
+  /**
+   * Process a single tab independently: wait for ready → inject message → return result
+   */
+  private async processTabIndependently(
+    tabId: number,
+    site: SiteConfig,
+    message: string,
+  ): Promise<{
+    tabId: number;
+    result: {
+      success: boolean;
+      error?: string;
+      details?: Record<string, unknown>;
+    };
+  }> {
+    try {
+      // Step 1: Wait for this tab to be ready (independent of other tabs)
+      await this.tabManager.waitForTabReady(tabId);
 
-    // Log failures for debugging
-    failed.forEach((result) => {
-      const site = batchConfigs.find(
-        (inj) => inj.tabId === result.tabId,
-      )?.siteConfig;
-      logger.error(
-        `Failed to inject message to ${site?.name || result.tabId}:`,
-        result.result.error,
+      // Step 2: Inject message into this tab (independent of other tabs)
+      const injectionConfig = { tabId, siteConfig: site };
+      const results = await this.injector.batchInject(
+        message,
+        [injectionConfig],
+        5, // maxRetries
       );
-    });
 
-    // If all sites failed, throw an error with detailed info
-    if (failed.length === results.length) {
-      const errorDetails = failed
-        .map((r) => {
-          const site = batchConfigs.find(
-            (inj) => inj.tabId === r.tabId,
-          )?.siteConfig;
-          return `${site?.name || r.tabId}: ${r.result.error}`;
-        })
-        .join('\n');
-      throw new Error(`All message injections failed:\n${errorDetails}`);
+      // Return the result for this tab
+      return (
+        results[0] || {
+          tabId,
+          result: {
+            success: false,
+            error: 'No injection result returned',
+          },
+        }
+      );
+    } catch (error) {
+      return {
+        tabId,
+        result: {
+          success: false,
+          error: `Tab processing failed: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        },
+      };
     }
-
-    // If some failed, log warnings but don't throw (robust behavior)
-    if (failed.length > 0) {
-      const errorDetails = failed
-        .map((r) => {
-          const site = batchConfigs.find(
-            (inj) => inj.tabId === r.tabId,
-          )?.siteConfig;
-          return `${site?.name || r.tabId}: ${r.result.error}`;
-        })
-        .join('\n');
-
-      const successCount = results.length - failed.length;
-      logger.warn(
-        `Partial injection failure (${successCount}/${results.length} succeeded):\n${errorDetails}`,
-      );
-    }
-
-    // Log successful injections for debugging
-    const successful = results.filter((r) => r.result.success);
-    successful.forEach((result) => {
-      const site = batchConfigs.find(
-        (inj) => inj.tabId === result.tabId,
-      )?.siteConfig;
-      logger.debug(
-        `Successfully injected message to ${site?.name || result.tabId}`,
-        result.result.details,
-      );
-    });
   }
 
   // Legacy method removed - now using executeScript batch injection approach

@@ -1,47 +1,67 @@
 import { browser } from '#imports';
-import type {
-  SiteTogglePayload,
-  UserPreferences,
-  SiteConfigsPayload,
-  SiteConfig,
-} from '../types';
+import type { SiteTogglePayload, UserPreferences, SiteConfig } from '../types';
 import { logger } from '@/shared';
 import { getAllSiteConfigs } from './siteConfigs';
 
 export class SiteManager {
   private sites: Record<string, SiteConfig> = {};
+  private isInitialized = false;
+  private initializationPromise: Promise<void>;
 
   constructor() {
     this.sites = getAllSiteConfigs();
-    this.loadUserPreferences();
+    // Start initialization but don't block constructor
+    this.initializationPromise = this.initialize();
+  }
+
+  /**
+   * Initialize the site manager by loading user preferences
+   */
+  private async initialize(): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+
+    await this.loadUserPreferences();
+    this.isInitialized = true;
+    logger.info('SiteManager initialized successfully');
+  }
+
+  /**
+   * Ensure initialization is complete before proceeding
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (!this.isInitialized) {
+      await this.initializationPromise;
+    }
   }
 
   /**
    * Get all site configurations (read-only access)
    */
-  getAllSites(): Record<string, SiteConfig> {
+  async getAllSites(): Promise<Record<string, SiteConfig>> {
+    await this.ensureInitialized();
     return { ...this.sites }; // Return a copy to prevent external modification
   }
 
   /**
    * Get site by ID
    */
-  getSite(siteId: string): SiteConfig | undefined {
+  async getSite(siteId: string): Promise<SiteConfig | undefined> {
+    await this.ensureInitialized();
     return this.sites[siteId];
   }
 
   /**
    * Get all site values as array
    */
-  getSiteValues(): SiteConfig[] {
+  async getSiteValues(): Promise<SiteConfig[]> {
+    await this.ensureInitialized();
     return Object.values(this.sites);
   }
 
-  initializeSitesFromConfigs(payload: SiteConfigsPayload): void {
-    this.sites = payload.configs;
-  }
-
-  getSiteByUrl(href: string): SiteConfig | null {
+  async getSiteByUrl(href: string): Promise<SiteConfig | null> {
+    await this.ensureInitialized();
     for (const config of Object.values(this.sites)) {
       if (config.url.match(href)) {
         return config;
@@ -51,6 +71,7 @@ export class SiteManager {
   }
 
   async toggleSite(payload: SiteTogglePayload): Promise<void> {
+    await this.ensureInitialized();
     const site = this.sites[payload.siteId];
     if (site) {
       site.enabled = payload.enabled;

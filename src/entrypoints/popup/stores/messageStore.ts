@@ -148,10 +148,10 @@ function createMessageStore() {
           'success',
         );
 
-        // Refresh site statuses after sending (tabs are now open/focused)
+        // Refresh site statuses after sending with longer delay for slow networks
         setTimeout(() => {
           siteActions.refreshSiteStates();
-        }, 1500); // Give tabs time to fully load
+        }, 3000); // Increased from 1500ms to give more time for tabs to load
 
         // Refocus input
         setTimeout(() => {
