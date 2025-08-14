@@ -22,36 +22,16 @@ const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
   }
 };
 
-// Load saved site states from localStorage
-const loadSavedStates = (
+// Helper to get initial site states from configs only
+const getInitialStates = (
   configs: Record<string, SiteConfig>,
 ): Record<string, { enabled: boolean }> => {
   const initialStates: Record<string, { enabled: boolean }> = {};
 
-  // Initialize from configs
+  // Initialize from configs (background will override with user preferences)
   Object.keys(configs).forEach((siteId) => {
     initialStates[siteId] = { enabled: configs[siteId].enabled };
   });
-
-  // Load saved states from localStorage
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const savedStates = window.localStorage.getItem(
-        'prompt-cast-site-states',
-      );
-      if (savedStates) {
-        const parsedStates = JSON.parse(savedStates);
-        // Merge saved states with initial states
-        Object.keys(parsedStates).forEach((siteId) => {
-          if (initialStates[siteId]) {
-            initialStates[siteId] = parsedStates[siteId];
-          }
-        });
-      }
-    }
-  } catch (error) {
-    logger.warn('Failed to load saved site states:', error);
-  }
 
   return initialStates;
 };
@@ -61,12 +41,12 @@ const initializeSites = async () => {
   try {
     isLoading.set(true);
 
-    // Fetch configs from background
+    // Fetch configs from background (includes user preferences already applied)
     const configs = await fetchSiteConfigs();
     siteConfigs.set(configs);
 
-    // Load saved states
-    const states = loadSavedStates(configs);
+    // Initialize states from the configs (which already have user preferences applied)
+    const states = getInitialStates(configs);
     siteStates.set(states);
     siteStatuses.set({});
 
@@ -140,26 +120,23 @@ export const siteActions = {
   },
 
   toggleSite: async (siteId: string, enabled: boolean) => {
-    // Update local state
+    // Update local state immediately for UI responsiveness
     siteStates.update((current) => ({
       ...current,
       [siteId]: { enabled },
     }));
 
     try {
-      // Persist to localStorage
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const currentStates = get(siteStates);
-        window.localStorage.setItem(
-          'prompt-cast-site-states',
-          JSON.stringify(currentStates),
-        );
-      }
-
-      // Send message to background
+      // Send message to background (background will persist to browser.storage.sync)
       await sendMessage('SITE_TOGGLE', { siteId, enabled });
     } catch (error) {
-      logger.error('Failed to save site toggle:', error);
+      logger.error('Failed to toggle site:', error);
+      // Revert local state on error
+      const configs = get(siteConfigs);
+      siteStates.update((current) => ({
+        ...current,
+        [siteId]: { enabled: configs[siteId]?.enabled ?? false },
+      }));
     }
   },
 

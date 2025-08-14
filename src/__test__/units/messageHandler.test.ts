@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MessageHandler } from '../../background/messageHandler';
 import type { SiteConfig, SendMessagePayload } from '@/types';
+import type { SiteManager } from '../../background/siteManager';
 import { fakeBrowser } from 'wxt/testing';
 
 vi.mock('../../shared/logger', () => ({
@@ -24,6 +25,7 @@ vi.mock('../../background/tabManager', () => ({
 describe('MessageHandler', () => {
   let messageHandler: MessageHandler;
   let mockSites: Record<string, SiteConfig>;
+  let mockSiteManager: SiteManager;
   let mockBrowser: any;
   let mockTabManager: any;
 
@@ -84,7 +86,14 @@ describe('MessageHandler', () => {
     };
     vi.mocked(TabManager).mockImplementation(() => mockTabManager);
 
-    messageHandler = new MessageHandler(mockSites, mockTabManager);
+    // Create mock SiteManager
+    mockSiteManager = {
+      getSite: vi.fn((siteId: string) => mockSites[siteId]),
+      getSiteValues: vi.fn(() => Object.values(mockSites)),
+      getAllSites: vi.fn(() => mockSites),
+    } as any;
+
+    messageHandler = new MessageHandler(mockSiteManager, mockTabManager);
   });
 
   function createMockTab(overrides: any = {}) {

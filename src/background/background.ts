@@ -11,11 +11,8 @@ export class BackgroundSite {
 
   constructor() {
     this.siteManager = new SiteManager();
-    this.tabManager = new TabManager(this.siteManager.sites);
-    this.messageHandler = new MessageHandler(
-      this.siteManager.sites,
-      this.tabManager,
-    );
+    this.tabManager = new TabManager(this.siteManager);
+    this.messageHandler = new MessageHandler(this.siteManager, this.tabManager);
     this.initializeListeners();
   }
 
@@ -57,15 +54,13 @@ export class BackgroundSite {
       'UPDATE_SITE_CONFIGS',
       withErrorHandling(async (message) => {
         this.siteManager.initializeSitesFromConfigs(message.data);
-        // Update managers with new configurations instead of recreating
-        this.tabManager.updateSites(this.siteManager.sites);
-        this.messageHandler.updateSites(this.siteManager.sites);
+        // Sites are now managed centrally by SiteManager
       }, 'Update site configs'),
     );
 
     // Handle get site configs
     onMessage('GET_SITE_CONFIGS', () => {
-      return { data: { configs: this.siteManager.sites } };
+      return { data: { configs: this.siteManager.getAllSites() } };
     });
 
     // Handle get site by URL
@@ -78,7 +73,7 @@ export class BackgroundSite {
     onMessage(
       'GET_SITE_STATUS',
       withErrorHandling(async (message) => {
-        const site = this.siteManager.sites[message.data.siteId];
+        const site = this.siteManager.getSite(message.data.siteId);
         if (!site) {
           return { status: 'disconnected' as const };
         }

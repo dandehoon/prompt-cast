@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TabManager } from '../../background/tabManager';
 import type { SiteConfig } from '../../types/siteConfig';
+import type { SiteManager } from '../../background/siteManager';
 import { fakeBrowser } from 'wxt/testing';
 
 // Mock specific modules
@@ -38,6 +39,7 @@ vi.mock('../../shared/logger', () => ({
 describe('TabManager', () => {
   let tabManager: TabManager;
   let mockSites: Record<string, SiteConfig>;
+  let mockSiteManager: SiteManager;
   let mockBrowser: any;
 
   beforeEach(async () => {
@@ -85,7 +87,14 @@ describe('TabManager', () => {
 
     // Background messaging removed - using executeScript approach now
 
-    tabManager = new TabManager(mockSites);
+    // Create mock SiteManager
+    mockSiteManager = {
+      getSite: vi.fn((siteId: string) => mockSites[siteId]),
+      getSiteValues: vi.fn(() => Object.values(mockSites)),
+      getAllSites: vi.fn(() => mockSites),
+    } as any;
+
+    tabManager = new TabManager(mockSiteManager);
   });
 
   function createMockTab(overrides: any = {}) {

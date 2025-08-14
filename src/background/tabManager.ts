@@ -3,16 +3,10 @@ import type { SiteConfig } from '../types/siteConfig';
 import { CONFIG } from '@/shared';
 import { logger } from '@/shared';
 import type { Browser } from 'wxt/browser';
+import type { SiteManager } from './siteManager';
 
 export class TabManager {
-  constructor(private sites: Record<string, SiteConfig>) {}
-
-  /**
-   * Update the sites configuration without recreating the manager
-   */
-  updateSites(newSites: Record<string, SiteConfig>): void {
-    this.sites = newSites;
-  }
+  constructor(private siteManager: SiteManager) {}
 
   /**
    * Get current tab for a site by querying browser directly (no cached state)
@@ -36,9 +30,9 @@ export class TabManager {
     try {
       const allTabs = await browser.tabs.query({});
       return allTabs.filter((tab) =>
-        Object.values(this.sites).some(
-          (site) => tab.url && tab.url.startsWith(site.url),
-        ),
+        this.siteManager
+          .getSiteValues()
+          .some((site) => tab.url && tab.url.startsWith(site.url)),
       );
     } catch (error) {
       logger.error('Failed to query all AI site tabs:', error);
@@ -77,7 +71,7 @@ export class TabManager {
   }
 
   async focusTab(siteId: string): Promise<void> {
-    const site = this.sites[siteId];
+    const site = this.siteManager.getSite(siteId);
     if (!site || !site.enabled) {
       logger.warn(`Cannot focus tab for disabled site: ${siteId}`);
       return;
@@ -98,7 +92,7 @@ export class TabManager {
   }
 
   async closeTab(siteId: string): Promise<void> {
-    const site = this.sites[siteId];
+    const site = this.siteManager.getSite(siteId);
     if (!site) return;
 
     const existingTab = await this.getTabForSite(site);

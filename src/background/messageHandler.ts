@@ -5,22 +5,16 @@ import { logger } from '@/shared';
 import { TabManager } from './tabManager';
 import { ExecuteScriptInjector } from './scriptInjector';
 import type { BatchInjectionConfig } from './injections';
+import type { SiteManager } from './siteManager';
 
 export class MessageHandler {
   private injector: ExecuteScriptInjector;
 
   constructor(
-    private sites: Record<string, SiteConfig>,
+    private siteManager: SiteManager,
     private tabManager: TabManager,
   ) {
     this.injector = new ExecuteScriptInjector();
-  }
-
-  /**
-   * Update the sites configuration without recreating the handler
-   */
-  updateSites(newSites: Record<string, SiteConfig>): void {
-    this.sites = newSites;
   }
 
   /**
@@ -73,7 +67,7 @@ export class MessageHandler {
     payload: SendMessagePayload,
   ): Promise<void> {
     const sitesToOpen = payload.sites.filter(
-      (siteId) => this.sites[siteId]?.enabled,
+      (siteId) => this.siteManager.getSite(siteId)?.enabled,
     );
 
     if (sitesToOpen.length === 0) return;
@@ -87,7 +81,7 @@ export class MessageHandler {
     const isCurrentTabAISite =
       currentTab[0] &&
       sitesToOpen.some((siteId) => {
-        const site = this.sites[siteId];
+        const site = this.siteManager.getSite(siteId);
         if (!site) return false;
 
         const tabUrl = currentTab[0].url || '';
@@ -105,7 +99,7 @@ export class MessageHandler {
     let firstNewTabSite: string | null = null;
 
     for (const siteId of sitesToOpen) {
-      const site = this.sites[siteId];
+      const site = this.siteManager.getSite(siteId);
       if (!site) continue;
 
       const existingTabs = await browser.tabs.query({ url: site.url + '*' });
@@ -126,7 +120,7 @@ export class MessageHandler {
 
   private async sendMessageToSites(payload: SendMessagePayload): Promise<void> {
     const enabledSites = payload.sites.filter(
-      (siteId) => this.sites[siteId]?.enabled,
+      (siteId) => this.siteManager.getSite(siteId)?.enabled,
     );
 
     if (enabledSites.length === 0) {
@@ -142,7 +136,7 @@ export class MessageHandler {
 
     // First, ensure all tabs are available and get their IDs
     for (const siteId of enabledSites) {
-      const site = this.sites[siteId];
+      const site = this.siteManager.getSite(siteId);
       if (!site) continue;
 
       try {
