@@ -111,17 +111,14 @@ describe('siteStore', () => {
   });
 
   describe('toggleSite', () => {
-    it('should toggle site enabled state and persist to localStorage', async () => {
+    it('should toggle site enabled state and send to background', async () => {
       await siteActions.toggleSite('chatgpt', false);
 
       expect(mockSendMessage).toHaveBeenCalledWith('SITE_TOGGLE', {
         siteId: 'chatgpt',
         enabled: false,
       });
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'prompt-cast-site-states',
-        expect.stringContaining('chatgpt'),
-      );
+      // No longer persists to localStorage - background handles persistence
     });
 
     it('should handle toggle with enabled true', async () => {
@@ -140,31 +137,25 @@ describe('siteStore', () => {
       await siteActions.toggleSite('chatgpt', false);
 
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to save site toggle:',
+        'Failed to toggle site:',
         expect.any(Error),
       );
     });
 
-    it('should handle localStorage not available', async () => {
-      // Mock localStorage to throw error instead of deleting it
-      const originalLocalStorage = window.localStorage;
-      Object.defineProperty(window, 'localStorage', {
-        value: undefined,
-        configurable: true,
-      });
+    it('should handle message sending failure and revert state', async () => {
+      // First get the initial state
+      await siteActions.initializeSites();
+      const initialEnabled = get(enabledSites).includes('chatgpt');
 
-      await siteActions.toggleSite('chatgpt', false);
+      // Mock sendMessage to fail
+      mockSendMessage.mockRejectedValue(new Error('Network error'));
 
-      expect(mockSendMessage).toHaveBeenCalledWith('SITE_TOGGLE', {
-        siteId: 'chatgpt',
-        enabled: false,
-      });
+      // Try to toggle
+      await siteActions.toggleSite('chatgpt', !initialEnabled);
 
-      // Restore localStorage
-      Object.defineProperty(window, 'localStorage', {
-        value: originalLocalStorage,
-        configurable: true,
-      });
+      // State should be reverted to original on error
+      const finalEnabled = get(enabledSites).includes('chatgpt');
+      expect(finalEnabled).toBe(initialEnabled);
     });
   });
 
@@ -299,7 +290,9 @@ describe('siteStore', () => {
       await siteActions.refreshSiteStates();
 
       expect(logger.debug).toHaveBeenCalledWith(
-        'All sites disconnected on first check, retrying in 2 seconds...',
+        expect.stringMatching(
+          /sites disconnected on attempt \d+, retrying in \d+ms\.\.\./,
+        ),
       );
 
       // Fast-forward timers
@@ -341,13 +334,22 @@ describe('siteStore', () => {
 
   describe('derived stores', () => {
     beforeEach(async () => {
-      // Setup localStorage with saved states
-      localStorageMock.getItem.mockReturnValue(
-        JSON.stringify({
-          chatgpt: { enabled: false },
-          claude: { enabled: true },
-        }),
-      );
+      // Mock background returning configs with user preferences applied
+      const configsWithPreferences = {
+        ...mockConfigs,
+        chatgpt: { ...mockConfigs.chatgpt, enabled: false },
+        claude: { ...mockConfigs.claude, enabled: true },
+      };
+
+      mockSendMessage.mockImplementation((action: string) => {
+        if (action === 'GET_SITE_CONFIGS') {
+          return Promise.resolve({ data: { configs: configsWithPreferences } });
+        }
+        if (action === 'GET_SITE_STATUS') {
+          return Promise.resolve({ status: SITE_STATUS.DISCONNECTED });
+        }
+        return Promise.resolve({ success: true });
+      });
 
       await siteActions.initializeSites();
 
@@ -359,8 +361,8 @@ describe('siteStore', () => {
     describe('enabledSites', () => {
       it('should return list of enabled site IDs', () => {
         const enabled = get(enabledSites);
-        expect(enabled).toContain('claude'); // Enabled via localStorage
-        expect(enabled).not.toContain('chatgpt'); // Disabled via localStorage
+        expect(enabled).toContain('claude'); // Enabled via background config
+        expect(enabled).not.toContain('chatgpt'); // Disabled via background config
       });
     });
 
@@ -393,7 +395,7 @@ describe('siteStore', () => {
           id: 'chatgpt',
           name: 'ChatGPT',
           status: SITE_STATUS.DISCONNECTED,
-          enabled: false, // From localStorage
+          enabled: false, // From background config with user preferences
           color: '#10a37f',
         });
       });
@@ -409,13 +411,21 @@ describe('siteStore', () => {
     });
   });
 
-  describe('localStorage integration', () => {
-    it('should load saved states from localStorage on initialization', async () => {
-      const savedStates = {
-        chatgpt: { enabled: false },
-        claude: { enabled: true },
+  describe('background integration', () => {
+    it('should load initial states from background configs', async () => {
+      // Mock background returning configs with specific enabled states
+      const configsWithPreferences = {
+        ...mockConfigs,
+        chatgpt: { ...mockConfigs.chatgpt, enabled: false },
+        claude: { ...mockConfigs.claude, enabled: true },
       };
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(savedStates));
+
+      mockSendMessage.mockImplementation((action: string) => {
+        if (action === 'GET_SITE_CONFIGS') {
+          return Promise.resolve({ data: { configs: configsWithPreferences } });
+        }
+        return Promise.resolve({ success: true });
+      });
 
       await siteActions.initializeSites();
 
@@ -424,30 +434,40 @@ describe('siteStore', () => {
       expect(enabled).not.toContain('chatgpt');
     });
 
-    it('should handle corrupted localStorage data gracefully', async () => {
+    it('should handle background config fetch failure gracefully', async () => {
       const { logger } = await import('../../shared/logger');
-      localStorageMock.getItem.mockReturnValue('invalid-json');
+      mockSendMessage.mockRejectedValue(new Error('Background error'));
 
       await siteActions.initializeSites();
 
-      expect(logger.warn).toHaveBeenCalledWith(
-        'Failed to load saved site states:',
+      expect(logger.error).toHaveBeenCalledWith(
+        'Failed to fetch site configs from background:',
         expect.any(Error),
       );
     });
 
-    it('should ignore saved states for unknown sites', async () => {
-      const savedStates = {
-        'chatgpt': { enabled: false },
-        'unknown-site': { enabled: true }, // Should be ignored
+    it('should handle different site configurations from background', async () => {
+      // Test with various site states from background
+      const configsWithVariousStates = {
+        chatgpt: { ...mockConfigs.chatgpt, enabled: false },
+        claude: { ...mockConfigs.claude, enabled: true },
       };
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(savedStates));
+
+      mockSendMessage.mockImplementation((action: string) => {
+        if (action === 'GET_SITE_CONFIGS') {
+          return Promise.resolve({
+            data: { configs: configsWithVariousStates },
+          });
+        }
+        return Promise.resolve({ success: true });
+      });
 
       await siteActions.initializeSites();
 
-      // Should not crash and should handle known sites correctly
+      // Should handle all known sites correctly
       const enabled = get(enabledSites);
-      expect(enabled).not.toContain('unknown-site');
+      expect(enabled).toContain('claude');
+      expect(enabled).not.toContain('chatgpt');
     });
   });
 

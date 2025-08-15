@@ -17,10 +17,6 @@ export interface SiteConfig {
   injectionMethod?: 'execCommand';
 }
 
-export interface SiteConfigsPayload {
-  configs: Record<string, SiteConfig>;
-}
-
 // Enhanced site interface that includes dynamic properties for UI
 export interface EnhancedSite extends SiteConfig {
   status: SiteStatusType;

@@ -11,22 +11,26 @@ export const BACKGROUND_CONFIG = {
    * Tab management configuration
    */
   tab: {
-    /** Maximum attempts to wait for tab to be ready */
-    maxReadyAttempts: 40,
-    /** Interval for tab ready status polling (ms) */
-    readyCheckInterval: 250,
+    /** Time to wait after tab creation for page to start loading (ms) */
+    postCreationDelay: 2000,
   },
 
   /**
    * Message retry configuration
    */
   messageRetry: {
-    /** Maximum retry attempts for message sending */
-    maxRetries: 3,
-    /** Base delay for exponential backoff (ms) */
-    baseDelay: 500,
-    /** Maximum delay for exponential backoff (ms) */
-    maxDelay: 1500,
+    /** Maximum retry attempts for message injection */
+    maxRetries: 5,
+    /** Base delay between retry attempts (ms) */
+    baseDelay: 1000,
+  },
+
+  /**
+   * Injection script configuration
+   */
+  injection: {
+    /** Timeout for DOMContentLoaded waiting (ms) */
+    domReadyTimeout: 5000,
   },
 } as const;
 
@@ -61,6 +65,10 @@ export const TEST_CONFIG = {
   integrationDelay: 150,
   /** Toast duration for tests (ms) */
   toastDuration: 1000,
+  /** Tab creation delay for tests (ms) */
+  tabCreationDelay: 100,
+  /** Retry base delay for tests (ms) */
+  retryBaseDelay: 50,
 } as const;
 
 /**

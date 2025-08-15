@@ -21,13 +21,59 @@ src/
 
 ## Repository Structure & Entrypoints
 
+
+### File Structure Overview
+
 ```
 src/
-├── entrypoints/         # WXT entry points (background, popup)
-├── background/          # Background script modules (injection, tab management)
-├── shared/              # Types, utilities, messaging
-├── types/               # TypeScript definitions
+├── entrypoints/
+│   ├── background.ts         # Background entry (service worker)
+│   ├── popup/                # Svelte popup UI, stores, main.ts
+│   └── content.ts            # (Legacy, not used)
+├── background/
+│   ├── background.ts         # Main background logic
+│   ├── tabManager.ts         # Tab focus, readiness, retry logic
+│   ├── siteConfigs.ts        # Site config single source
+│   ├── siteManager.ts        # Site enable/disable, state
+│   ├── scriptInjector.ts     # Injection engine
+│   ├── injections/           # Modular per-site injection logic
+│   └── utils/                # Background utilities
+├── shared/
+│   ├── messaging.ts          # Type-safe protocol wrapper
+│   ├── siteUrls.ts           # Auto-generated host/match patterns
+│   ├── constants.ts          # Message types, enums
+│   ├── logger.ts             # Logging utilities
+│   └── utils.ts              # Shared helpers
+├── types/
+│   ├── messages.ts           # Discriminated unions for messaging
+│   ├── siteConfig.ts         # Site config types
+│   ├── core.ts               # Core extension types
+│   └── ui.ts                 # UI types
+├── entrypoints/popup/stores/
+│   ├── siteStore.ts          # Site state (enabled, config)
+│   ├── messageStore.ts       # Message state
+│   └── themeStore.ts         # Theme state
+__test__/
+│   ├── setup.test.ts         # Test setup
+│   └── units/                # Unit tests for modules
+tests/
+│   ├── e2e/                  # E2E infra, server utility, Playwright
+│   └── pages/                # Static test pages for E2E
+public/
+│   └── icon/                 # Extension icons
+dist/
+│   ├── background/           # Built background scripts
+│   ├── content/              # Built content scripts
+│   ├── popup/                # Built popup UI
+│   └── icons/                # Built icons
+│   └── manifest.json         # Built manifest
 ```
+
+**Key files:**
+- `src/background/siteConfigs.ts`: Site config single source
+- `src/shared/messaging.ts`: Messaging protocol
+- `src/entrypoints/popup/stores/`: Svelte stores for UI state
+- `tests/e2e/server.ts`: E2E server utility
 
 ## Essential Commands
 

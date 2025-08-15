@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TabManager } from '../../background/tabManager';
 import type { SiteConfig } from '../../types/siteConfig';
+import type { SiteManager } from '../../background/siteManager';
 import { fakeBrowser } from 'wxt/testing';
 
 // Mock specific modules
@@ -38,6 +39,7 @@ vi.mock('../../shared/logger', () => ({
 describe('TabManager', () => {
   let tabManager: TabManager;
   let mockSites: Record<string, SiteConfig>;
+  let mockSiteManager: SiteManager;
   let mockBrowser: any;
 
   beforeEach(async () => {
@@ -85,7 +87,14 @@ describe('TabManager', () => {
 
     // Background messaging removed - using executeScript approach now
 
-    tabManager = new TabManager(mockSites);
+    // Create mock SiteManager
+    mockSiteManager = {
+      getSite: vi.fn((siteId: string) => mockSites[siteId]),
+      getSiteValues: vi.fn(() => Object.values(mockSites)),
+      getAllSites: vi.fn(() => mockSites),
+    } as any;
+
+    tabManager = new TabManager(mockSiteManager);
   });
 
   function createMockTab(overrides: any = {}) {
@@ -141,26 +150,39 @@ describe('TabManager', () => {
   });
 
   describe('waitForTabReady', () => {
-    it('should return immediately when tab is ready', async () => {
+    it('should return immediately when tab is complete', async () => {
       mockBrowser.tabs.get.mockResolvedValue(
-        createMockTab({ status: 'complete' }),
+        createMockTab({ status: 'complete', url: 'https://example.com' }),
       );
 
+      const startTime = Date.now();
       await tabManager.waitForTabReady(1);
+      const elapsed = Date.now() - startTime;
 
       expect(mockBrowser.tabs.get).toHaveBeenCalledWith(1);
+      expect(elapsed).toBeLessThan(100); // Should be very quick
     });
 
-    it('should retry until tab is ready', async () => {
+    it('should retry when tab is loading and then complete', async () => {
       mockBrowser.tabs.get
         .mockResolvedValueOnce(createMockTab({ status: 'loading' }))
-        .mockResolvedValueOnce(createMockTab({ status: 'complete' }));
+        .mockResolvedValueOnce(
+          createMockTab({ status: 'complete', url: 'https://example.com' }),
+        );
 
       await tabManager.waitForTabReady(1);
 
       expect(mockBrowser.tabs.get).toHaveBeenCalledTimes(2);
     });
-  });
 
-  // Content script related tests removed - using executeScript approach now
+    it('should timeout if tab never becomes ready', async () => {
+      mockBrowser.tabs.get.mockResolvedValue(
+        createMockTab({ status: 'loading' }),
+      );
+
+      await expect(tabManager.waitForTabReady(1)).rejects.toThrow(
+        'Tab 1 did not become ready within timeout',
+      );
+    }, 10000); // Give it enough time for the actual timeout
+  }); // Content script related tests removed - using executeScript approach now
 });

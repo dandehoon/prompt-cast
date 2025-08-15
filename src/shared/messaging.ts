@@ -2,7 +2,6 @@ import { defineExtensionMessaging } from '@webext-core/messaging';
 import type {
   SendMessagePayload,
   SiteTogglePayload,
-  SiteConfigsPayload,
   SiteConfig,
 } from '../types';
 import type { SiteStatusType } from '@/shared';
@@ -14,7 +13,6 @@ export interface ExtensionProtocolMap {
   SITE_TOGGLE(data: SiteTogglePayload): void;
   FOCUS_TAB(data: { siteId: string }): void;
   CLOSE_ALL_TABS(): void;
-  UPDATE_SITE_CONFIGS(data: SiteConfigsPayload): void;
 
   // Query operations that return data
   GET_SITE_CONFIGS(): { data: { configs: Record<string, SiteConfig> } };

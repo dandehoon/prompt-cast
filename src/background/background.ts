@@ -11,11 +11,8 @@ export class BackgroundSite {
 
   constructor() {
     this.siteManager = new SiteManager();
-    this.tabManager = new TabManager(this.siteManager.sites);
-    this.messageHandler = new MessageHandler(
-      this.siteManager.sites,
-      this.tabManager,
-    );
+    this.tabManager = new TabManager(this.siteManager);
+    this.messageHandler = new MessageHandler(this.siteManager, this.tabManager);
     this.initializeListeners();
   }
 
@@ -52,33 +49,29 @@ export class BackgroundSite {
       }, 'Close all tabs'),
     );
 
-    // Handle site config updates - optimize to update instead of recreate
+    // Handle get site configs
     onMessage(
-      'UPDATE_SITE_CONFIGS',
-      withErrorHandling(async (message) => {
-        this.siteManager.initializeSitesFromConfigs(message.data);
-        // Update managers with new configurations instead of recreating
-        this.tabManager.updateSites(this.siteManager.sites);
-        this.messageHandler.updateSites(this.siteManager.sites);
-      }, 'Update site configs'),
+      'GET_SITE_CONFIGS',
+      withErrorHandling(async () => {
+        const configs = await this.siteManager.getAllSites();
+        return { data: { configs } };
+      }, 'Get site configs'),
     );
 
-    // Handle get site configs
-    onMessage('GET_SITE_CONFIGS', () => {
-      return { data: { configs: this.siteManager.sites } };
-    });
-
     // Handle get site by URL
-    onMessage('GET_SITE_BY_URL', (message) => {
-      const config = this.siteManager.getSiteByUrl(message.data.url);
-      return { config };
-    });
+    onMessage(
+      'GET_SITE_BY_URL',
+      withErrorHandling(async (message) => {
+        const config = await this.siteManager.getSiteByUrl(message.data.url);
+        return { config };
+      }, 'Get site by URL'),
+    );
 
     // Handle get site status
     onMessage(
       'GET_SITE_STATUS',
       withErrorHandling(async (message) => {
-        const site = this.siteManager.sites[message.data.siteId];
+        const site = await this.siteManager.getSite(message.data.siteId);
         if (!site) {
           return { status: 'disconnected' as const };
         }
