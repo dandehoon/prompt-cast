@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-// Skip importing the actual Svelte component due to Svelte 5 syntax issues in test environment
+// ThemeSelector component tests are skipped due to Svelte 5 $props() syntax compatibility issues
+// These tests should be re-enabled once Vitest provides better Svelte 5 support
 // import ThemeSelector from '../../entrypoints/popup/components/Settings/ThemeSelector.svelte';
 import { writable } from 'svelte/store';
 
@@ -14,19 +15,20 @@ describe('ThemeSelector Component', () => {
     vi.clearAllMocks();
   });
 
-  // Skip these tests until Svelte 5 support is better in Vitest
+  // TODO: Re-enable these tests when Svelte 5 support improves in Vitest
+  // Current issue: $props() syntax is not supported in test environment
   it.skip('renders theme selector options', () => {
-    // Test skipped due to Svelte 5 $props() syntax not being supported in test environment
+    // Test implementation pending Svelte 5 test support
     expect(true).toBe(true);
   });
 
   it.skip('calls onThemeChange when theme button is clicked', async () => {
-    // Test skipped due to Svelte 5 $props() syntax not being supported in test environment
+    // Test implementation pending Svelte 5 test support
     expect(true).toBe(true);
   });
 
   it.skip('reflects current theme selection with correct styling', () => {
-    // Test skipped due to Svelte 5 $props() syntax not being supported in test environment
+    // Test implementation pending Svelte 5 test support
     expect(true).toBe(true);
   });
 });

@@ -8,14 +8,81 @@ export class TabManager {
   constructor(private siteManager: SiteManager) {}
 
   /**
+   * Check if a tab URL matches the chat URI patterns for a site
+   */
+  private isTabInChatContext(tabUrl: string, site: SiteConfig): boolean {
+    // If no chat URI patterns are defined, fall back to basic URL matching
+    if (!site.chatUriPatterns || site.chatUriPatterns.length === 0) {
+      return tabUrl.startsWith(site.url);
+    }
+
+    try {
+      const siteUrlObj = new URL(site.url);
+      const tabUrlObj = new URL(tabUrl);
+
+      // Must be same host first
+      if (tabUrlObj.hostname !== siteUrlObj.hostname) {
+        return false;
+      }
+
+      // Check if tab URL matches any of the chat URI patterns
+      return site.chatUriPatterns.some((pattern) => {
+        if (pattern === '/') {
+          // Root path pattern matches the base path
+          return (
+            tabUrlObj.pathname === siteUrlObj.pathname ||
+            tabUrlObj.pathname === siteUrlObj.pathname.replace(/\/$/, '')
+          );
+        }
+
+        // Convert pattern to regex
+        // /c/* becomes /^\/c\/.*$/
+        // /app becomes /^\/app$/
+        // /app/* becomes /^\/app\/.*$/ or /^\/app$/
+        const regexPattern = pattern
+          .replace(/\*/g, '.*') // Replace * with .*
+          .replace(/\//g, '\\/'); // Escape forward slashes
+
+        const regex = new RegExp(`^${regexPattern}$`);
+
+        // For patterns ending with /*, also match the path without trailing content
+        if (pattern.endsWith('/*')) {
+          const basePattern = pattern.slice(0, -2); // Remove /*
+          const baseRegex = new RegExp(
+            `^${basePattern.replace(/\//g, '\\/')}$`,
+          );
+          return (
+            regex.test(tabUrlObj.pathname) || baseRegex.test(tabUrlObj.pathname)
+          );
+        }
+
+        return regex.test(tabUrlObj.pathname);
+      });
+    } catch (error) {
+      logger.warn(
+        `Failed to parse URLs for chat context check: ${tabUrl}, ${site.url}`,
+        error,
+      );
+      return false;
+    }
+  }
+
+  /**
    * Get current tab for a site by querying browser directly (no cached state)
+   * Now filters for tabs that are in chat context based on chatUriPatterns
    */
   private async getTabForSite(
     site: SiteConfig,
   ): Promise<Browser.tabs.Tab | null> {
     try {
       const tabs = await browser.tabs.query({ url: site.url + '*' });
-      return tabs.length > 0 ? tabs[0] : null;
+
+      // Filter tabs to only those in chat context
+      const chatTabs = tabs.filter(
+        (tab) => tab.url && this.isTabInChatContext(tab.url, site),
+      );
+
+      return chatTabs.length > 0 ? chatTabs[0] : null;
     } catch (error) {
       logger.error(`Failed to query tabs for ${site.name}:`, error);
       return null;
@@ -23,15 +90,20 @@ export class TabManager {
   }
 
   /**
-   * Get all AI site tabs currently open
+   * Get all AI site tabs currently open that are in chat context
    */
   private async getAllSiteTabs(): Promise<Browser.tabs.Tab[]> {
     try {
       const allTabs = await browser.tabs.query({});
       const siteValues = await this.siteManager.getSiteValues();
-      return allTabs.filter((tab) =>
-        siteValues.some((site) => tab.url && tab.url.startsWith(site.url)),
-      );
+
+      return allTabs.filter((tab) => {
+        if (!tab.url) return false;
+
+        return siteValues.some(
+          (site) => tab.url && this.isTabInChatContext(tab.url, site),
+        );
+      });
     } catch (error) {
       logger.error('Failed to query all AI site tabs:', error);
       return [];
@@ -40,6 +112,7 @@ export class TabManager {
 
   /**
    * Get status of a site by checking its tab existence and state
+   * Now checks for tabs in chat context only
    */
   async getSiteStatus(
     site: SiteConfig,
@@ -47,11 +120,16 @@ export class TabManager {
     try {
       const tabs = await browser.tabs.query({ url: site.url + '*' });
 
-      if (tabs.length === 0) {
+      // Filter to only chat context tabs
+      const chatTabs = tabs.filter(
+        (tab) => tab.url && this.isTabInChatContext(tab.url, site),
+      );
+
+      if (chatTabs.length === 0) {
         return 'disconnected';
       }
 
-      const tab = tabs[0];
+      const tab = chatTabs[0];
       if (!tab.id) {
         return 'disconnected';
       }
@@ -69,7 +147,7 @@ export class TabManager {
   }
 
   /**
-   * Check if current active tab is an AI site
+   * Check if current active tab is an AI site in chat context
    */
   async isCurrentTabAISite(enabledSiteIds: string[]): Promise<boolean> {
     try {
@@ -89,14 +167,12 @@ export class TabManager {
           const site = await this.siteManager.getSite(siteId);
           if (!site) return false;
 
-          const siteHost = site.url.split('/')[2];
-
           // Support test environment
           if (tabUrl.includes('localhost') && tabUrl.includes(`/${siteId}`)) {
             return true;
           }
 
-          return tabUrl.includes(siteHost);
+          return this.isTabInChatContext(tabUrl, site);
         }),
       );
 
@@ -130,7 +206,11 @@ export class TabManager {
 
     for (const site of sitesToOpen) {
       const existingTabs = await browser.tabs.query({ url: site.url + '*' });
-      const isNewTab = existingTabs.length === 0;
+      // Check if any existing tabs are in chat context
+      const chatTabs = existingTabs.filter(
+        (tab) => tab.url && this.isTabInChatContext(tab.url, site),
+      );
+      const isNewTab = chatTabs.length === 0;
 
       await this.openOrFocusTab(site, false);
 
@@ -250,12 +330,12 @@ export class TabManager {
         return;
       }
 
-      // Check if current tab is an AI site
+      // Check if current tab is an AI site in chat context
       const enabledSites = (await this.siteManager.getSiteValues()).filter(
         (site) => site.enabled,
       );
       const isCurrentTabAISite = enabledSites.some((site) =>
-        currentUrl.startsWith(site.url),
+        this.isTabInChatContext(currentUrl, site),
       );
 
       if (!isCurrentTabAISite) {
@@ -350,8 +430,8 @@ export class TabManager {
    * Wait for tab to be ready by actively checking tab status
    */
   async waitForTabReady(tabId: number): Promise<void> {
-    const maxRetries = 20; // 20 retries = up to 4 seconds total
-    const checkInterval = 200; // Check every 200ms
+    const maxRetries = 60; // 60 retries = up to 60 seconds total
+    const checkInterval = 1000; // Check every 1000ms
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {

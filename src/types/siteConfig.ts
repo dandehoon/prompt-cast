@@ -15,6 +15,7 @@ export interface SiteConfig {
   inputSelectors: string[];
   submitSelectors: string[];
   injectionMethod?: 'execCommand';
+  chatUriPatterns?: string[];
 }
 
 // Enhanced site interface that includes dynamic properties for UI

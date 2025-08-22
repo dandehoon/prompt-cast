@@ -302,11 +302,9 @@ describe('MessageHandler', () => {
 
       // Should only call batchInject once (for chatgpt only, disabled-site filtered out)
       expect(mockInjector.batchInject).toHaveBeenCalledTimes(1);
-      expect(mockInjector.batchInject).toHaveBeenCalledWith(
-        'Hello world',
-        [{ tabId: 1, siteConfig: mockSites.chatgpt }],
-        5,
-      );
+      expect(mockInjector.batchInject).toHaveBeenCalledWith('Hello world', [
+        { tabId: 1, siteConfig: mockSites.chatgpt },
+      ]);
     });
 
     it('should handle empty enabled sites list', async () => {

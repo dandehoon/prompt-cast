@@ -107,11 +107,9 @@ export class MessageHandler {
 
       // Step 2: Inject message into this tab (independent of other tabs)
       const injectionConfig = { tabId, siteConfig: site };
-      const results = await this.injector.batchInject(
-        message,
-        [injectionConfig],
-        5, // maxRetries
-      );
+      const results = await this.injector.batchInject(message, [
+        injectionConfig,
+      ]);
 
       // Return the result for this tab
       return (
