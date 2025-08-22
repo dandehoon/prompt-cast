@@ -227,9 +227,10 @@ describe('MessageHandler', () => {
 
       await messageHandler.sendMessageToSitesRobust(payload);
 
-      expect(mockTabManager.openAllTabsWithInstantFocus).toHaveBeenCalledWith([
-        'chatgpt',
-        'claude',
+      // Verify that launchAllTabs is called with the enabled sites
+      expect(mockTabManager.launchAllTabs).toHaveBeenCalledWith([
+        mockSites.chatgpt,
+        mockSites.claude,
       ]);
     });
 

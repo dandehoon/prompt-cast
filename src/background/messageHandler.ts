@@ -25,10 +25,7 @@ export class MessageHandler {
 
   async sendMessageToSitesRobust(payload: SendMessagePayload): Promise<void> {
     try {
-      // First, ensure all tabs are open and ready
-      await this.tabManager.openAllTabsWithInstantFocus(payload.sites);
-
-      // Then send messages to all sites with better error handling
+      // Send messages to all sites with built-in tab launching and error handling
       await this.sendMessageToSites(payload);
     } catch (error) {
       logger.error('Message delivery failed:', error);

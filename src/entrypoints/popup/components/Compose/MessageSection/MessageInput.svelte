@@ -4,6 +4,7 @@
     onChange: (value: string) => void;
     onSend: () => void;
     onArrowUp?: () => void;
+    onArrowDown?: () => void;
     disabled?: boolean;
     placeholder?: string;
     messageInputRef?: HTMLTextAreaElement;
@@ -14,6 +15,7 @@
     onChange,
     onSend,
     onArrowUp,
+    onArrowDown,
     disabled = false,
     placeholder = 'Ask anything',
     messageInputRef = $bindable(),
@@ -34,10 +36,24 @@
       }
     }
 
-    // Arrow up fills with previous prompt when input is empty
-    if (event.key === 'ArrowUp' && !value.trim() && onArrowUp) {
-      event.preventDefault();
-      onArrowUp();
+    // Arrow up fills with previous prompt when cursor is at start
+    if (event.key === 'ArrowUp' && onArrowUp) {
+      const target = event.target as HTMLTextAreaElement;
+      // Only trigger history if cursor is at the very beginning of the text
+      if (target.selectionStart === 0 && target.selectionEnd === 0) {
+        event.preventDefault();
+        onArrowUp();
+      }
+    }
+
+    // Arrow down fills with next prompt when cursor is at end and we're in history mode
+    if (event.key === 'ArrowDown' && onArrowDown) {
+      const target = event.target as HTMLTextAreaElement;
+      // Only trigger if cursor is at the very end of the text
+      if (target.selectionStart === value.length && target.selectionEnd === value.length) {
+        event.preventDefault();
+        onArrowDown();
+      }
     }
   }
 </script>
