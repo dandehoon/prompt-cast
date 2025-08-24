@@ -14,6 +14,7 @@ export class BackgroundSite {
     this.tabManager = new TabManager(this.siteManager);
     this.messageHandler = new MessageHandler(this.siteManager, this.tabManager);
     this.initializeListeners();
+    this.initializeCommands();
   }
 
   private initializeListeners(): void {
@@ -78,6 +79,21 @@ export class BackgroundSite {
         const status = await this.messageHandler.getSiteStatus(site);
         return { status };
       }, 'Get site status'),
+    );
+  }
+
+  private initializeCommands(): void {
+    // Handle keyboard shortcuts
+    browser.commands.onCommand.addListener(
+      withErrorHandling(async (command) => {
+        switch (command) {
+          case 'close-all-tabs':
+            await this.tabManager.closeAllTabs();
+            break;
+          default:
+            console.warn(`Unknown command: ${command}`);
+        }
+      }, 'Handle command'),
     );
   }
 }

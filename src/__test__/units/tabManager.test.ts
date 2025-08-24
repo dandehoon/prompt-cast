@@ -56,6 +56,7 @@ describe('TabManager', () => {
         submitSelectors: ['button[data-testid="send-button"]'],
         colors: { light: '#10a37f', dark: '#10a37f' },
         injectionMethod: 'execCommand',
+        chatUriPatterns: ['/', '/c/*'],
       },
       claude: {
         id: 'claude',
@@ -66,6 +67,17 @@ describe('TabManager', () => {
         submitSelectors: ['.send-button'],
         colors: { light: '#cc785c', dark: '#cc785c' },
         injectionMethod: undefined,
+        chatUriPatterns: ['/', '/new', '/chat/*'],
+      },
+      gemini: {
+        id: 'gemini',
+        name: 'Gemini',
+        url: 'https://gemini.google.com/',
+        enabled: true,
+        inputSelectors: ['div.ql-editor[contenteditable]'],
+        submitSelectors: ['button.send-button'],
+        colors: { light: '#4285f4', dark: '#4285f4' },
+        chatUriPatterns: ['/', '/app', '/app/*'],
       },
     };
 
@@ -100,7 +112,7 @@ describe('TabManager', () => {
   function createMockTab(overrides: any = {}) {
     return {
       id: 1,
-      url: 'https://chat.openai.com/chat',
+      url: 'https://chat.openai.com/', // Change to base URL to match chat URI patterns
       title: 'ChatGPT',
       status: 'complete',
       windowId: 100,
@@ -180,9 +192,105 @@ describe('TabManager', () => {
         createMockTab({ status: 'loading' }),
       );
 
+      // Mock the private sleep method to avoid actual delays
+      const sleepSpy = vi
+        .spyOn(tabManager as any, 'sleep')
+        .mockResolvedValue(undefined);
+
       await expect(tabManager.waitForTabReady(1)).rejects.toThrow(
         'Tab 1 did not become ready within timeout',
       );
-    }, 10000); // Give it enough time for the actual timeout
-  }); // Content script related tests removed - using executeScript approach now
+
+      sleepSpy.mockRestore();
+    }, 15000); // Give it enough time for the actual timeout
+  });
+
+  // Test the private isTabInChatContext method via reflection
+  describe('isTabInChatContext (via getTabForSite)', () => {
+    it('should match base URL when root path pattern is included', async () => {
+      mockBrowser.tabs.query.mockResolvedValue([
+        createMockTab({ url: 'https://chat.openai.com/' }),
+        createMockTab({ url: 'https://chat.openai.com/settings' }),
+      ]);
+
+      const result = await (tabManager as any).getTabForSite(mockSites.chatgpt);
+
+      // Should return first tab that matches chat context (base URL)
+      expect(result).toBeTruthy();
+      expect(result.url).toBe('https://chat.openai.com/');
+    });
+
+    it('should match conversation URLs with wildcard patterns', async () => {
+      mockBrowser.tabs.query.mockResolvedValue([
+        createMockTab({ url: 'https://chat.openai.com/c/abc123-def456' }),
+        createMockTab({ url: 'https://chat.openai.com/settings' }),
+      ]);
+
+      const result = await (tabManager as any).getTabForSite(mockSites.chatgpt);
+
+      // Should return the conversation tab, not the settings tab
+      expect(result).toBeTruthy();
+      expect(result.url).toBe('https://chat.openai.com/c/abc123-def456');
+    });
+
+    it('should not match non-chat URLs', async () => {
+      mockBrowser.tabs.query.mockResolvedValue([
+        createMockTab({ url: 'https://chat.openai.com/settings' }),
+        createMockTab({ url: 'https://chat.openai.com/help' }),
+      ]);
+
+      const result = await (tabManager as any).getTabForSite(mockSites.chatgpt);
+
+      // Should return null as no tabs match chat context
+      expect(result).toBeNull();
+    });
+
+    it('should handle Claude chat patterns correctly', async () => {
+      mockBrowser.tabs.query.mockResolvedValue([
+        createMockTab({ url: 'https://claude.ai/new' }),
+        createMockTab({ url: 'https://claude.ai/chat/conversation123' }),
+        createMockTab({ url: 'https://claude.ai/profile' }),
+      ]);
+
+      const result = await (tabManager as any).getTabForSite(mockSites.claude);
+
+      // Should return the first matching chat tab (/new)
+      expect(result).toBeTruthy();
+      expect(result.url).toBe('https://claude.ai/new');
+    });
+
+    it('should handle Gemini app patterns correctly', async () => {
+      mockBrowser.tabs.query.mockResolvedValue([
+        createMockTab({ url: 'https://gemini.google.com/app/conversation456' }),
+        createMockTab({ url: 'https://gemini.google.com/help' }),
+      ]);
+
+      const result = await (tabManager as any).getTabForSite(mockSites.gemini);
+
+      // Should return the app conversation tab
+      expect(result).toBeTruthy();
+      expect(result.url).toBe('https://gemini.google.com/app/conversation456');
+    });
+
+    it('should handle sites without chatUriPatterns as fallback', async () => {
+      const siteWithoutPatterns = {
+        ...mockSites.chatgpt,
+        chatUriPatterns: undefined,
+      };
+
+      mockBrowser.tabs.query.mockResolvedValue([
+        createMockTab({ url: 'https://chat.openai.com/settings' }),
+      ]);
+
+      const result = await (tabManager as any).getTabForSite(
+        siteWithoutPatterns,
+      );
+
+      // Should fall back to basic URL matching
+      expect(result).toBeTruthy();
+      expect(result.url).toBe('https://chat.openai.com/settings');
+    });
+  });
+
+  // Content script related tests removed - using executeScript approach now
 });

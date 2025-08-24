@@ -33,6 +33,17 @@ jobs:
         skip-commit: true
         skip-push: true
 
+    - name: Update wxt.config.ts version
+      run: |
+        NEW_VERSION=$(jq -r .version package.json)
+        sed -i "s/version: '[^']*'/version: '$NEW_VERSION'/" wxt.config.ts
+
+    - name: Update CHANGELOG.md
+      run: |
+        NEW_VERSION=$(jq -r .version package.json)
+        chmod +x ./scripts/update-changelog.sh
+        ./scripts/update-changelog.sh "$NEW_VERSION"
+
     - name: Create Pull Request
       if: steps.bump-version.outputs.newTag != ''
       uses: peter-evans/create-pull-request@v6
@@ -47,10 +58,17 @@ jobs:
           This PR contains the version bump for the next release.
 
           **Changes:**
-          - Bump version to ${{ steps.bump-version.outputs.newTag }}
+          - Bump version to ${{ steps.bump-version.outputs.newTag }} in package.json
+          - Update version in wxt.config.ts to match
+          - Convert [Unreleased] section in CHANGELOG.md to versioned entry
+          - Add new [Unreleased] section for future changes
 
           **Next steps:**
           - Review and merge this PR
           - The release workflow will automatically create a tag, GitHub release, and publish the extension
         commit-message: "release: bump version to ${{ steps.bump-version.outputs.newTag }}"
+        add-paths: |
+          package.json
+          wxt.config.ts
+          CHANGELOG.md
         delete-branch: true

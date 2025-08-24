@@ -13,6 +13,7 @@ export interface MessageState {
 }
 
 const STORAGE_KEY = 'prompt-cast-temp-message';
+const HISTORY_STORAGE_KEY = 'prompt-cast-message-history';
 const MAX_HISTORY = 10;
 
 // Create the store
@@ -32,9 +33,28 @@ function createMessageStore() {
     initialize() {
       try {
         const savedMessage = window.localStorage.getItem(STORAGE_KEY);
-        if (savedMessage) {
-          update((state) => ({ ...state, current: savedMessage }));
-        }
+        const savedHistory = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+
+        update((state) => {
+          const newState = { ...state };
+
+          if (savedMessage) {
+            newState.current = savedMessage;
+          }
+
+          if (savedHistory) {
+            try {
+              const parsedHistory = JSON.parse(savedHistory);
+              if (Array.isArray(parsedHistory)) {
+                newState.history = parsedHistory.slice(0, MAX_HISTORY); // Ensure max limit
+              }
+            } catch {
+              // Ignore invalid JSON
+            }
+          }
+
+          return newState;
+        });
       } catch {
         // Ignore if localStorage is not available
       }
@@ -42,7 +62,40 @@ function createMessageStore() {
 
     // Set current message
     setMessage(message: string) {
-      update((state) => ({ ...state, current: message }));
+      update((state) => {
+        let newHistory = [...state.history];
+        let newIndex = -1; // Default to fresh state
+
+        // If user is currently navigating history and changes the text
+        if (
+          state.historyIndex >= 0 &&
+          message.trim() &&
+          message !== state.current
+        ) {
+          // Treat the modified text as a new item, but only if it's not already the first item
+          if (newHistory.length === 0 || newHistory[0] !== message) {
+            newHistory = [message, ...state.history].slice(0, MAX_HISTORY);
+
+            // Save updated history to localStorage
+            try {
+              window.localStorage.setItem(
+                HISTORY_STORAGE_KEY,
+                JSON.stringify(newHistory),
+              );
+            } catch {
+              // Ignore if localStorage is not available
+            }
+          }
+          newIndex = -1; // Reset to fresh navigation state
+        }
+
+        return {
+          ...state,
+          current: message,
+          history: newHistory,
+          historyIndex: newIndex,
+        };
+      });
 
       // Auto-save to localStorage with debounce
       setTimeout(() => {
@@ -66,33 +119,75 @@ function createMessageStore() {
     // Handle arrow up for history
     handleArrowUp() {
       update((state) => {
-        if (state.history.length === 0) return state;
-
-        const newIndex = Math.min(
-          state.historyIndex + 1,
-          state.history.length - 1,
-        );
-        const historyMessage = state.history[newIndex];
-
-        if (historyMessage) {
-          // Focus and position cursor at end
-          setTimeout(() => {
-            if (state.inputRef) {
-              state.inputRef.focus();
-              state.inputRef.setSelectionRange(
-                historyMessage.length,
-                historyMessage.length,
-              );
-            }
-          }, 0);
-
-          return {
-            ...state,
-            current: historyMessage,
-            historyIndex: newIndex,
-          };
+        if (state.history.length === 0 && !state.current.trim()) {
+          // No history and no current text to save
+          return state;
         }
-        return state;
+
+        let newHistory = [...state.history];
+        let newIndex = state.historyIndex;
+
+        // If we're starting fresh navigation (historyIndex === -1) and have current text
+        if (state.historyIndex === -1 && state.current.trim()) {
+          // Only save current text if it's not already the first item in history
+          if (newHistory.length === 0 || newHistory[0] !== state.current) {
+            newHistory = [state.current, ...newHistory].slice(0, MAX_HISTORY);
+          }
+          newIndex = 0; // Start at the first item (either newly saved or existing)
+        } else {
+          // Navigate to next older item
+          newIndex = Math.min(newIndex + 1, newHistory.length - 1);
+        }
+
+        const historyMessage = newHistory[newIndex] || '';
+
+        // Focus and keep cursor at start for sequential navigation
+        setTimeout(() => {
+          if (state.inputRef) {
+            state.inputRef.focus();
+            state.inputRef.setSelectionRange(0, 0);
+          }
+        }, 0);
+
+        return {
+          ...state,
+          current: historyMessage,
+          history: newHistory,
+          historyIndex: newIndex,
+        };
+      });
+    },
+
+    // Handle arrow down for history (navigate to newer items)
+    handleArrowDown() {
+      update((state) => {
+        if (state.history.length === 0 || state.historyIndex <= 0) return state;
+
+        const newIndex = state.historyIndex - 1;
+        let newMessage = '';
+
+        if (newIndex >= 0) {
+          // Show newer history item
+          newMessage = state.history[newIndex];
+        }
+        // If newIndex becomes -1, we show empty message (newest state)
+
+        // Focus and keep cursor at end for sequential navigation
+        setTimeout(() => {
+          if (state.inputRef) {
+            state.inputRef.focus();
+            state.inputRef.setSelectionRange(
+              newMessage.length,
+              newMessage.length,
+            );
+          }
+        }, 0);
+
+        return {
+          ...state,
+          current: newMessage,
+          historyIndex: newIndex,
+        };
       });
     },
 
@@ -123,10 +218,25 @@ function createMessageStore() {
 
         // Update state: add to history, clear current message
         update((state) => {
-          const newHistory = [
-            trimmedMessage,
-            ...state.history.slice(0, MAX_HISTORY - 1),
-          ];
+          // Only add to history if it's not already the first item
+          let newHistory = [...state.history];
+          if (newHistory.length === 0 || newHistory[0] !== trimmedMessage) {
+            newHistory = [
+              trimmedMessage,
+              ...newHistory.slice(0, MAX_HISTORY - 1),
+            ];
+          }
+
+          // Save history to localStorage
+          try {
+            window.localStorage.setItem(
+              HISTORY_STORAGE_KEY,
+              JSON.stringify(newHistory),
+            );
+          } catch {
+            // Ignore if localStorage is not available
+          }
+
           return {
             ...state,
             current: '',
@@ -189,6 +299,7 @@ export const messageActions = {
   setMessage: messageStore.setMessage,
   setInputRef: messageStore.setInputRef,
   handleArrowUp: messageStore.handleArrowUp,
+  handleArrowDown: messageStore.handleArrowDown,
   sendMessage: messageStore.sendMessage,
   clearMessage: messageStore.clearMessage,
 };

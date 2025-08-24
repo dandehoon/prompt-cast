@@ -13,6 +13,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['div#prompt-textarea'],
     submitSelectors: ['button#composer-submit-button'],
+    chatUriPatterns: ['/', '/c/*'],
   },
 
   claude: {
@@ -26,6 +27,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['div[contenteditable]'],
     submitSelectors: ['button[aria-label="Send message"]'],
+    chatUriPatterns: ['/', '/new', '/chat/*'],
   },
 
   gemini: {
@@ -39,6 +41,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['div.ql-editor[contenteditable]'],
     submitSelectors: ['button.send-button'],
+    chatUriPatterns: ['/', '/app', '/app/*'],
   },
 
   grok: {
@@ -52,6 +55,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['textarea[dir="auto"]'],
     submitSelectors: ['form button[type="submit"]'],
+    chatUriPatterns: ['/', '/chat/*'],
   },
 
   perplexity: {
@@ -66,6 +70,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     inputSelectors: ['div#ask-input'],
     submitSelectors: ['button[data-testid="submit-button"]'],
     injectionMethod: 'execCommand',
+    chatUriPatterns: ['/', '/search/*'],
   },
 
   copilot: {
@@ -79,6 +84,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['textarea#userInput'],
     submitSelectors: ['button[data-testid="submit-button"]'],
+    chatUriPatterns: ['/', '/chats/*'],
   },
 };
 

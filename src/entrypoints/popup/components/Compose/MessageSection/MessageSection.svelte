@@ -33,10 +33,14 @@
   onMount(() => {
     messageActions.initialize();
 
-    // Auto-focus the input when popup opens
+    // Auto-focus and auto-select text when popup opens
     setTimeout(() => {
       if (messageInputRef) {
         messageInputRef.focus();
+        // Auto-select all text if there's existing content from previous session
+        if (messageInputRef.value.trim()) {
+          messageInputRef.select();
+        }
       }
     }, 100);
   });
@@ -50,6 +54,7 @@
         onChange={messageActions.setMessage}
         onSend={messageActions.sendMessage}
         onArrowUp={messageActions.handleArrowUp}
+        onArrowDown={messageActions.handleArrowDown}
         disabled={messageState.sendLoading}
         bind:messageInputRef
       />

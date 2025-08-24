@@ -6,6 +6,7 @@ import {
   type BatchInjectionResult,
   type InjectionResult,
 } from './injections';
+import { logger } from '@/shared';
 
 /**
  * ExecuteScriptInjector using message injection approach with DOM waiting and retry logic
@@ -26,11 +27,10 @@ export class ExecuteScriptInjector {
   async batchInject(
     message: string,
     injections: BatchInjectionConfig[],
-    maxRetries = 5,
   ): Promise<BatchInjectionResult[]> {
     // Execute injections for each tab with retry logic
     const promises = injections.map(async (injection) => {
-      return this.executeWithRetry(message, injection, maxRetries);
+      return this.executeWithRetry(message, injection);
     });
 
     return Promise.all(promises);
@@ -42,9 +42,10 @@ export class ExecuteScriptInjector {
   private async executeWithRetry(
     message: string,
     injection: BatchInjectionConfig,
-    maxRetries: number,
   ): Promise<BatchInjectionResult> {
     let lastError: Error | null = null;
+    const maxRetries = 30;
+    const checkInterval = 1000; // Check every 1000ms
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -65,20 +66,15 @@ export class ExecuteScriptInjector {
 
         // If not successful, we'll retry
         lastError = new Error(result.error || 'Injection failed');
-
-        // Wait before retrying (simple linear backoff)
-        if (attempt < maxRetries) {
-          const delay = 1000 * attempt; // 1s, 2s, 3s, 4s
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-
-        // Wait before retrying
-        if (attempt < maxRetries) {
-          const delay = 1000 * attempt;
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
+      }
+      // Wait before retrying
+      if (attempt < maxRetries) {
+        logger.debug(
+          `Retrying injection for tab ${injection.tabId} (attempt ${attempt})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, checkInterval));
       }
     }
 

@@ -227,9 +227,10 @@ describe('MessageHandler', () => {
 
       await messageHandler.sendMessageToSitesRobust(payload);
 
-      expect(mockTabManager.openAllTabsWithInstantFocus).toHaveBeenCalledWith([
-        'chatgpt',
-        'claude',
+      // Verify that launchAllTabs is called with the enabled sites
+      expect(mockTabManager.launchAllTabs).toHaveBeenCalledWith([
+        mockSites.chatgpt,
+        mockSites.claude,
       ]);
     });
 
@@ -302,11 +303,9 @@ describe('MessageHandler', () => {
 
       // Should only call batchInject once (for chatgpt only, disabled-site filtered out)
       expect(mockInjector.batchInject).toHaveBeenCalledTimes(1);
-      expect(mockInjector.batchInject).toHaveBeenCalledWith(
-        'Hello world',
-        [{ tabId: 1, siteConfig: mockSites.chatgpt }],
-        5,
-      );
+      expect(mockInjector.batchInject).toHaveBeenCalledWith('Hello world', [
+        { tabId: 1, siteConfig: mockSites.chatgpt },
+      ]);
     });
 
     it('should handle empty enabled sites list', async () => {

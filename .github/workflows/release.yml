@@ -67,20 +67,19 @@ jobs:
         pnpm run build
         pnpm run zip
 
-    - name: Generate changelog
+    - name: Extract Changelog Entry
       id: changelog
+      uses: mindsers/changelog-reader-action@v2
+      with:
+        validation_level: error
+        version: ${{ steps.extract-version.outputs.version }}
+        path: ./CHANGELOG.md
+
+    - name: Generate Commit Log
+      id: commit_log
       run: |
-        DELIM=__CHANGELOG_EOF_$(uuidgen)__
-        {
-          echo "changelog<<$DELIM"
-          if git tag | grep -q .; then
-            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
-            git log --pretty=format:'- %s (@%an)' $PREV_TAG..HEAD || echo "- Initial release"
-          else
-            git log --pretty=format:'- %s (@%an)' || echo "- Initial release"
-          fi
-          printf '\n%s\n' "$DELIM"
-        } >> "$GITHUB_OUTPUT"
+        chmod +x ./scripts/generate-commit-log.sh
+        ./scripts/generate-commit-log.sh
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
@@ -90,17 +89,31 @@ jobs:
         target_commitish: ${{ github.sha }}
         name: v${{ steps.extract-version.outputs.version }}
         body: |
-          Automated release created from version bump commit.
+          ## 🚀 Release v${{ steps.extract-version.outputs.version }}
 
-          **Recent changes:**
-          ${{ steps.changelog.outputs.changelog }}
+          ### 📋 Changelog
 
-          **Installation:**
-          - Download the `.zip` file from the assets below
-          - Open Chrome and navigate to `chrome://extensions/`
-          - Enable "Developer mode" in the top right
-          - Click "Load unpacked" and select the extracted folder
-          - Or install from Chrome Web Store (if published)
+          ${{ steps.changelog.outputs.changes }}
+
+          ### 💾 Commits
+
+          ${{ steps.commit_log.outputs.commits }}
+
+          ## 📦 Installation
+
+          ### Chrome Extension
+          1. Download the `${{ env.EXT_NAME }}-v${{ steps.extract-version.outputs.version }}.zip` file from the assets below
+          2. Extract the zip file to a folder
+          3. Open Chrome and navigate to `chrome://extensions/`
+          4. Enable "Developer mode" in the top right corner
+          5. Click "Load unpacked" and select the extracted folder
+
+          ### From Chrome Web Store
+          - *Coming soon - direct installation from Chrome Web Store*
+
+          ## 🔗 Links
+          - [Full Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
+          - [Documentation](https://github.com/${{ github.repository }}/blob/main/README.md)
         files: |
           .output/*.zip
         draft: false

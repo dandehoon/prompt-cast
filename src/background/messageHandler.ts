@@ -25,10 +25,7 @@ export class MessageHandler {
 
   async sendMessageToSitesRobust(payload: SendMessagePayload): Promise<void> {
     try {
-      // First, ensure all tabs are open and ready
-      await this.tabManager.openAllTabsWithInstantFocus(payload.sites);
-
-      // Then send messages to all sites with better error handling
+      // Send messages to all sites with built-in tab launching and error handling
       await this.sendMessageToSites(payload);
     } catch (error) {
       logger.error('Message delivery failed:', error);
@@ -107,11 +104,9 @@ export class MessageHandler {
 
       // Step 2: Inject message into this tab (independent of other tabs)
       const injectionConfig = { tabId, siteConfig: site };
-      const results = await this.injector.batchInject(
-        message,
-        [injectionConfig],
-        5, // maxRetries
-      );
+      const results = await this.injector.batchInject(message, [
+        injectionConfig,
+      ]);
 
       // Return the result for this tab
       return (

@@ -2,7 +2,6 @@ import type { SiteConfig } from '@/types';
 import type { InjectionResult } from './messageInjector';
 import { browser } from '#imports';
 import { logger } from '@/shared';
-import { CONFIG } from '@/shared';
 
 export interface BatchInjectionConfig {
   tabId: number;
@@ -56,7 +55,7 @@ export class BatchInjectionController {
     ) => Promise<InjectionResult>,
     maxRetries: number,
   ): Promise<BatchInjectionResult> {
-    const { baseDelay } = CONFIG.background.messageRetry;
+    const baseDelay = 1000;
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
