@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.2.0] - 2025-08-24
+
 ### New Features
 
 - **Keyboard Shortcuts**:
