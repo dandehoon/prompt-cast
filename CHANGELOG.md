@@ -13,8 +13,6 @@
 
 - Better tab management and message delivery reliability
 
----
-
 ## [2.1.0] - 2025-08-15
 
 ### Added
@@ -28,8 +26,6 @@
 - Faster tab launching and focusing
 - More robust message injection system
 
----
-
 ## [2.0.0] - 2025-08-11
 
 ### Changed
@@ -40,16 +36,12 @@
 - **Theme Support**: Light, dark, and auto themes
 - **Centralized State Management**: Improved store structure
 
----
-
 ## [1.1.1] - 2025-08-06
 
 ### Fixed
 
 - Enhanced message handling with health checks and retries
 - Better reliability for background processes
-
----
 
 ## [1.1.0] - 2025-08-06
 
@@ -63,8 +55,6 @@
 
 - Better logging system replacing console output
 - Enhanced site configuration structure
-
----
 
 ## [1.0.1] - 2025-08-05
 
