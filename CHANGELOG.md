@@ -44,7 +44,7 @@
 
 ## [1.1.1] - 2025-08-06
 
-### Changed
+### Fixed
 
 - Enhanced message handling with health checks and retries
 - Better reliability for background processes
