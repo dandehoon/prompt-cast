@@ -99,17 +99,17 @@ jobs:
 
           ${{ steps.commit_log.outputs.commits }}
 
-          ## 📦 Installation
+          ### 📦 Installation
 
-          ### Chrome Extension
-          1. Download the `${{ env.EXT_NAME }}-v${{ steps.extract-version.outputs.version }}.zip` file from the assets below
+          #### Chrome Web Store
+          - **[Install from Chrome Web Store](https://chromewebstore.google.com/detail/prompt-cast/gmcamplpmgncjmhjlpoenpdlkobgdhfp)**
+
+          #### Locally
+          1. Download the zip file from the assets below
           2. Extract the zip file to a folder
           3. Open Chrome and navigate to `chrome://extensions/`
           4. Enable "Developer mode" in the top right corner
           5. Click "Load unpacked" and select the extracted folder
-
-          ### From Chrome Web Store
-          - *Coming soon - direct installation from Chrome Web Store*
 
           ## 🔗 Links
           - [Full Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
