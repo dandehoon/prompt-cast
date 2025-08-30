@@ -6,20 +6,19 @@ import { Page, expect } from '@playwright/test';
 
 export class TestUtils {
   /**
-   * Navigate to a specific tab in the popup
+   * Navigate to a specific tab in the side panel (DEPRECATED - single page now)
    */
   static async switchToTab(page: Page, tabId: 'tab-home' | 'tab-settings') {
-    const tabButton = page.locator(`#${tabId}`);
-    await tabButton.click();
-    await expect(tabButton).toHaveClass(/active/);
+    // No-op since we now have a single page layout
+    // Settings are inline, no tab switching needed
+    console.warn('switchToTab is deprecated - single page layout now');
   }
 
   /**
    * Enable or disable a site toggle in settings
    */
   static async toggleSite(page: Page, siteIndex: number, enabled: boolean) {
-    // Ensure we're on settings tab
-    await this.switchToTab(page, 'tab-settings');
+    // Settings are now inline, no need to switch tabs
 
     const siteLabel = page.locator('label[id^="site-toggle-"]').nth(siteIndex);
     const siteCheckbox = page
@@ -39,7 +38,7 @@ export class TestUtils {
    * Enable at least one site for testing
    */
   static async ensureAtLeastOneSiteEnabled(page: Page) {
-    await this.switchToTab(page, 'tab-settings');
+    // Settings are now inline, no need to switch tabs
 
     const siteLabels = page.locator('label[id^="site-toggle-"]');
     const labelCount = await siteLabels.count();
@@ -53,7 +52,7 @@ export class TestUtils {
   }
 
   /**
-   * Send a message through the popup interface
+   * Send a message through the side panel interface
    */
   static async sendMessage(page: Page, message: string) {
     // Ensure we're on compose tab
@@ -68,18 +67,18 @@ export class TestUtils {
   }
 
   /**
-   * Wait for popup to be fully loaded and ready
+   * Wait for side panel to be fully loaded and ready
    */
   static async waitForPopupReady(page: Page) {
     await page.waitForSelector('body', { state: 'visible' });
     await page.waitForTimeout(1000); // Allow Svelte to initialize
   }
 
-  /**
-   * Get count of enabled sites from the compose tab
+    /**
+   * Get the count of enabled sites from site cards
    */
   static async getEnabledSiteCount(page: Page): Promise<number> {
-    await this.switchToTab(page, 'tab-home');
+    // Single page layout, no need to switch tabs
 
     const sitesSection = page.locator('#sites-section');
     const siteCards = sitesSection.locator('.pc-card');
@@ -90,16 +89,16 @@ export class TestUtils {
    * Select a theme option in settings
    */
   static async selectTheme(page: Page, themeIndex: number) {
-    await this.switchToTab(page, 'tab-settings');
+    // Settings are now inline, no need to switch tabs
 
-    const themeSection = page.locator('#theme-settings');
-    const themeButtons = themeSection.locator('button[id^="theme-option-"]');
+    // Look for theme buttons in the new compact settings
+    const themeButtons = page.locator('button').filter({ hasText: /Auto|Light|Dark/ });
 
     await themeButtons.nth(themeIndex).click();
   }
 
   /**
-   * Clean up any opened tabs (excluding the original popup)
+   * Clean up any opened tabs (excluding the original side panel)
    */
   static async cleanupTabs(context: any, originalPageCount: number) {
     const allPages = context.pages();
@@ -114,9 +113,9 @@ export class TestUtils {
    * Verify that basic UI components are visible
    */
   static async verifyBasicUIComponents(page: Page) {
-    // Header with tabs
-    const tabButtons = page.locator('header button[id^="tab-"]');
-    await expect(tabButtons).toHaveCount(2);
+    // Sites section (now always visible)
+    const sitesSection = page.locator('#sites-section');
+    await expect(sitesSection).toBeVisible();
 
     // Message input components
     const messageLabel = page.locator('label[for=message-input]');
@@ -127,6 +126,16 @@ export class TestUtils {
 
     const sendButton = page.locator('#send-message-button');
     await expect(sendButton).toBeVisible();
+
+    // Theme section (now inline)
+    const themeSectionHeader = page.getByText('Theme');
+    await expect(themeSectionHeader).toBeVisible();
+
+    // Site toggles (now inline)
+    const siteToggles = page.locator('label[id^="site-toggle-"]');
+    const toggleCount = await siteToggles.count();
+    expect(toggleCount).toBeGreaterThan(0);
+  }
 
     // Status indicator
     const statusSection = page.locator(

@@ -8,7 +8,7 @@
   import { sitesWithStatus } from '../../../stores/siteStore';
   import { resolvedTheme } from '../../../stores/themeStore';
 
-  // Get sites from store instead of props
+  // Get all sites from store instead of props (not just enabled ones)
   const sites = $derived.by(() => {
     const sitesWithStatusFn = $sitesWithStatus as (
       isDark?: boolean,
@@ -20,13 +20,11 @@
   // Get loading state from store
   const tabOpsState = $derived($tabOperationsStore);
 
-  // Filter enabled sites
-  const enabledSites = $derived(
-    Object.values(sites).filter((site) => site.enabled),
-  );
+  // Get all sites as array for display
+  const allSites = $derived(Object.values(sites));
 </script>
 
-<section class="space-y-2" id="sites-section">
+<section class="space-y-3" id="sites-section">
   <header class="flex items-center justify-between">
     <h2 class="text-sm font-medium" style="color: var(--pc-text-primary);">
       Sites
@@ -55,8 +53,8 @@
       {/if}
     </button>
   </header>
-  <div class="grid grid-cols-2 gap-2">
-    {#each enabledSites as site (site.id)}
+  <div class="grid grid-cols-1 gap-2">
+    {#each allSites as site (site.id)}
       <SiteCard {site} />
     {/each}
   </div>

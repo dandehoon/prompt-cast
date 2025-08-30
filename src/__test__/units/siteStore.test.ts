@@ -6,7 +6,7 @@ import {
   enabledCount,
   connectedCount,
   sitesWithStatus,
-} from '../../entrypoints/popup/stores/siteStore';
+} from '../../entrypoints/sidepanel/stores/siteStore';
 import type { SiteConfig } from '../../types';
 import { SITE_STATUS } from '../../shared/constants';
 

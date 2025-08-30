@@ -2,9 +2,7 @@ import { test, expect } from './fixtures';
 import { TestUtils } from './test-utils';
 
 test.describe('Side Panel UI Component Tests', () => {
-  test('should render basic UI components correctly', async ({
-    sidePanelPage,
-  }) => {
+  test('should render basic UI components correctly', async ({ sidePanelPage }) => {
     // Test basic UI components render correctly
     await TestUtils.verifyBasicUIComponents(sidePanelPage);
 
@@ -62,9 +60,7 @@ test.describe('Side Panel UI Component Tests', () => {
     await expect(sidePanelPage.locator('#message-input')).toBeVisible();
   });
 
-  test('should handle message input interactions', async ({
-    sidePanelPage,
-  }) => {
+  test('should handle message input interactions', async ({ sidePanelPage }) => {
     const messageTextarea = sidePanelPage.locator('#message-input');
     const sendButton = sidePanelPage.locator('#send-message-button');
 
@@ -110,9 +106,7 @@ test.describe('Side Panel UI Component Tests', () => {
     }
   });
 
-  test('should handle theme selector interactions', async ({
-    sidePanelPage,
-  }) => {
+  test('should handle theme selector interactions', async ({ sidePanelPage }) => {
     await TestUtils.switchToTab(sidePanelPage, 'tab-settings');
 
     // Find theme selector section
@@ -139,9 +133,7 @@ test.describe('Side Panel UI Component Tests', () => {
   }) => {
     // Open popup page
     let sidePanelPage = await context.newPage();
-    await sidePanelPage.goto(
-      `chrome-extension://${extensionId}/sidepanel.html`,
-    );
+    await sidePanelPage.goto(`chrome-extension://${extensionId}/sidepanel.html`);
     await TestUtils.waitForPopupReady(sidePanelPage);
 
     // Find and change a site setting if available
@@ -177,9 +169,7 @@ test.describe('Side Panel UI Component Tests', () => {
 
     // Reopen popup
     sidePanelPage = await context.newPage();
-    await sidePanelPage.goto(
-      `chrome-extension://${extensionId}/sidepanel.html`,
-    );
+    await sidePanelPage.goto(`chrome-extension://${extensionId}/sidepanel.html`);
     await TestUtils.waitForPopupReady(sidePanelPage);
 
     // Verify settings persisted

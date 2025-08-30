@@ -15,6 +15,7 @@ export class BackgroundSite {
     this.messageHandler = new MessageHandler(this.siteManager, this.tabManager);
     this.initializeListeners();
     this.initializeCommands();
+    this.initializeSidePanel();
   }
 
   private initializeListeners(): void {
@@ -87,6 +88,9 @@ export class BackgroundSite {
     browser.commands.onCommand.addListener(
       withErrorHandling(async (command) => {
         switch (command) {
+          case 'open-side-panel':
+            await this.openSidePanel();
+            break;
           case 'close-all-tabs':
             await this.tabManager.closeAllTabs();
             break;
@@ -95,5 +99,26 @@ export class BackgroundSite {
         }
       }, 'Handle command'),
     );
+  }
+
+  private initializeSidePanel(): void {
+    // Set side panel to open when action icon is clicked
+    browser.sidePanel
+      .setPanelBehavior({ openPanelOnActionClick: true })
+      .catch((error) => console.error('Failed to set panel behavior:', error));
+  }
+
+  private async openSidePanel(): Promise<void> {
+    try {
+      const [tab] = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tab?.windowId) {
+        await browser.sidePanel.open({ windowId: tab.windowId });
+      }
+    } catch (error) {
+      console.error('Failed to open side panel:', error);
+    }
   }
 }

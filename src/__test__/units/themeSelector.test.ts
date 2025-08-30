@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 // ThemeSelector component tests are skipped due to Svelte 5 $props() syntax compatibility issues
 // These tests should be re-enabled once Vitest provides better Svelte 5 support
-// import ThemeSelector from '../../entrypoints/popup/components/Settings/ThemeSelector.svelte';
+// import ThemeSelector from '../../entrypoints/sidepanel/components/Settings/ThemeSelector.svelte';
 import { writable } from 'svelte/store';
 
 // Mock the theme store
-vi.mock('../../entrypoints/popup/stores/themeStore', () => ({
+vi.mock('../../entrypoints/sidepanel/stores/themeStore', () => ({
   theme: writable('auto'),
   setTheme: vi.fn(),
 }));

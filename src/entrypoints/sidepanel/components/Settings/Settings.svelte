@@ -38,15 +38,15 @@
   }
 </script>
 
-<div class="space-y-4">
+<div class="space-y-6">
   <!-- Site Settings -->
-  <section class="space-y-2">
+  <section class="space-y-4">
     <header class="flex items-center justify-between">
-      <h3 class="text-sm font-medium pc-text-primary">Sites</h3>
+      <h3 class="text-base font-medium pc-text-primary">Sites</h3>
       <div class="w-6 h-6"></div>
     </header>
 
-    <div class="space-y-2">
+    <div class="space-y-3">
       {#if $isLoadingSites}
         <div class="flex items-center justify-center p-4">
           <div class="text-sm pc-text-secondary">Loading sites...</div>
@@ -54,14 +54,14 @@
       {:else}
         {#each siteValues as site (site.id)}
           <article
-            class="flex items-center justify-between p-3 h-12 rounded-lg pc-card"
+            class="flex items-center justify-between p-4 h-16 rounded-lg pc-card"
           >
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-3">
               <div
-                class="w-4 h-4 rounded-full"
+                class="w-6 h-6 rounded-full"
                 style="background-color: {site.color};"
               ></div>
-              <span class="text-sm font-medium pc-text-primary"
+              <span class="text-base font-medium pc-text-primary"
                 >{site.name}</span
               >
             </div>
