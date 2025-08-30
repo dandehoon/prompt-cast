@@ -11,7 +11,7 @@
 <div class="flex items-center gap-2">
   <button
     onclick={() => selectTheme('auto')}
-    class="w-6 h-6 rounded-full transition-all cursor-pointer flex items-center justify-center {currentTheme === 'auto'
+    class="w-5 h-5 rounded-full transition-all cursor-pointer flex items-center justify-center {currentTheme === 'auto'
       ? 'ring-2 ring-blue-500 ring-offset-1'
       : 'hover:ring-2 hover:ring-gray-300 hover:ring-offset-1'}"
     style="background: linear-gradient(45deg, #fbbf24 50%, #1f2937 50%);"
@@ -22,7 +22,7 @@
 
   <button
     onclick={() => selectTheme('light')}
-    class="w-6 h-6 rounded-full transition-all cursor-pointer flex items-center justify-center {currentTheme === 'light'
+    class="w-5 h-5 rounded-full transition-all cursor-pointer flex items-center justify-center {currentTheme === 'light'
       ? 'ring-2 ring-yellow-400 ring-offset-1'
       : 'hover:ring-2 hover:ring-gray-300 hover:ring-offset-1'}"
     style="background-color: #fbbf24;"
@@ -33,7 +33,7 @@
 
   <button
     onclick={() => selectTheme('dark')}
-    class="w-6 h-6 rounded-full transition-all cursor-pointer flex items-center justify-center {currentTheme === 'dark'
+    class="w-5 h-5 rounded-full transition-all cursor-pointer flex items-center justify-center {currentTheme === 'dark'
       ? 'ring-2 ring-gray-800 ring-offset-1'
       : 'hover:ring-2 hover:ring-gray-300 hover:ring-offset-1'}"
     style="background-color: #1f2937;"
