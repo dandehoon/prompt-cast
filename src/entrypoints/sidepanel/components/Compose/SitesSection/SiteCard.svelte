@@ -61,29 +61,28 @@
         class="w-4 h-4 rounded-full site-logo flex-shrink-0"
         style="background-color: {site.color};"
       ></div>
-      <span class="text-sm font-medium pc-text-primary truncate">{site.name}</span>
-      <div class="w-2 h-2 rounded-full flex-shrink-0 {statusColor}"></div>
+      <span class="text-sm font-medium pc-text-primary truncate flex-1">{site.name}</span>
+      <div class="w-2 h-2 rounded-full flex-shrink-0 {statusColor} self-center"></div>
     </div>
 
-    <label
-      class="relative inline-flex items-center cursor-pointer flex-shrink-0 ml-3"
-      id="site-toggle-{site.id}"
-      onclick={(e) => e.stopPropagation()}
-    >
+    <div class="relative inline-flex items-center flex-shrink-0 ml-3">
       <input
         type="checkbox"
         class="sr-only peer"
         checked={site.enabled}
         id="site-checkbox-{site.id}"
         onchange={handleToggle}
+        aria-label="Toggle {site.name}"
       />
-      <div
-        class="w-11 h-6 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:rounded-full after:h-5 after:w-5 after:transition-all"
+      <label
+        for="site-checkbox-{site.id}"
+        class="cursor-pointer block w-11 h-6 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:rounded-full after:h-5 after:w-5 after:transition-all"
         style="background-color: {site.enabled
           ? 'var(--pc-success)'
           : 'var(--pc-border)'};"
-      ></div>
-    </label>
+        onclick={(e) => e.stopPropagation()}
+      ></label>
+    </div>
   </div>
 </div>
 
@@ -96,11 +95,11 @@
     transform: scale(1.05);
   }
 
-  .peer:checked + div::after {
+  .peer:checked + label::after {
     background-color: var(--pc-text-inverted);
   }
 
-  .peer + div::after {
-    background-color: var(--pc-text-primary);
+  .peer:not(:checked) + label::after {
+    background-color: var(--pc-text-inverted);
   }
 </style>

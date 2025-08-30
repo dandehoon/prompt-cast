@@ -4,7 +4,7 @@
   import { messageStore, messageActions } from '../../../stores/messageStore';
   import { toasts } from '../../../stores/toastStore';
   import { enabledCount, connectedCount } from '../../../stores/siteStore';
-  import { tabOperationsStore } from '../../../stores/tabOperationsStore';
+  import { tabOperationsStore, tabOperationsActions } from '../../../stores/tabOperationsStore';
   import { onMount } from 'svelte';
 
   // All data comes from stores - no props needed!
@@ -56,6 +56,8 @@
         onArrowUp={messageActions.handleArrowUp}
         onArrowDown={messageActions.handleArrowDown}
         disabled={messageState.sendLoading}
+        onCloseAll={tabOperationsActions.closeAllTabs}
+        closeAllLoading={tabOpsState.closeAllLoading}
         bind:messageInputRef
       />
     </div>
@@ -65,7 +67,7 @@
     id="send-message-button"
     onclick={messageActions.sendMessage}
     disabled={!hasMessage || messageState.sendLoading}
-    class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
+    class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed {!hasMessage || messageState.sendLoading ? '' : 'cursor-pointer'}"
     style="background-color: {!hasMessage || messageState.sendLoading
       ? 'var(--pc-text-disabled)'
       : 'var(--pc-accent)'}; color: var(--pc-text-inverted);"
