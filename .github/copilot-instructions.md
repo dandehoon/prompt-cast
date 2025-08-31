@@ -2,20 +2,27 @@
 
 ## Project Overview
 
-Chrome extension (Manifest V3) with Svelte 5 popup UI (via WXT), multi-site AI messaging, robust tab management, and state synchronization across background/popup contexts. All build, test, and quality workflows are unified under pnpm scripts.
+Chrome extension (Manifest V3) with Svelte 5 side panel UI (via WXT), multi-s### Development Workflow
+
+1. **Setup**: `pnpm install`
+2. **Development**: `pnpm dev`
+3. **Load extension**: Chrome → Extensions → "Load unpacked" → select `dist` folder
+4. **Testing**: `pnpm test`
+5. **Quality check**: `pnpm check` (before commits)
+6. **Production build**: `pnpm build`essaging, robust tab management, and state synchronization across background/sidepanel contexts. All build, test, and quality workflows are unified under pnpm scripts.
 
 ## Architecture & Data Flow
 
 **Communication Pattern:**
 
 - **Background Service Worker**: Tab/site management, message routing, persistent state, dynamic injection
-- **Popup Svelte App**: User interface, site toggles, message composition (Svelte 5, WXT)
+- **Side Panel Svelte App**: User interface, site toggles, message composition (Svelte 5, WXT)
 
 **Message Flow:**
 
-1. User types in popup → Background script → executeScript injection (broadcast to enabled sites)
-2. Site configuration changes → Background storage → Popup state sync
-3. Tab events → Background tab manager → Popup status updates
+1. User types in side panel → Background script → executeScript injection (broadcast to enabled sites)
+2. Site configuration changes → Background storage → Side panel state sync
+3. Tab events → Background tab manager → Side panel status updates
 
 ## Repository Structure
 
@@ -23,7 +30,7 @@ Chrome extension (Manifest V3) with Svelte 5 popup UI (via WXT), multi-site AI m
 src/
 ├── entrypoints/
 │   ├── background.ts         # Background entry (service worker)
-│   └── popup/                # Svelte popup UI, stores, main.ts
+│   └── sidepanel/            # Svelte side panel UI, stores, main.ts
 ├── background/
 │   ├── background.ts         # Main background logic
 │   ├── tabManager.ts         # Tab focus, readiness, retry logic
@@ -37,16 +44,19 @@ src/
 │   ├── siteUrls.ts           # Auto-generated host/match patterns
 │   ├── constants.ts          # Message types, enums
 │   ├── logger.ts             # Logging utilities
+│   ├── focusUtils.ts         # Enhanced focus management
 │   └── utils.ts              # Shared helpers
 ├── types/
 │   ├── messages.ts           # Discriminated unions for messaging
 │   ├── siteConfig.ts         # Site config types
 │   ├── core.ts               # Core extension types
 │   └── ui.ts                 # UI types
-├── entrypoints/popup/stores/
+├── entrypoints/sidepanel/stores/
 │   ├── siteStore.ts          # Site state (enabled, config)
 │   ├── messageStore.ts       # Message state
-│   └── themeStore.ts         # Theme state
+│   ├── themeStore.ts         # Theme state
+│   ├── tabOperationsStore.ts # Tab operations state
+│   └── toastStore.ts         # Toast notifications
 tests/
 │   ├── e2e/                  # E2E infra, server utility, Playwright
 │   └── pages/                # Static test pages for E2E
@@ -92,9 +102,11 @@ pnpm test:coverage        # Run tests with coverage
 ### State Management
 
 - **Background**: Chrome storage API for persistent user/site state
-- **Popup**: Svelte stores in `src/entrypoints/popup/stores/` with derived stores and localStorage
-- **Synchronization**: Popup and background sync via message passing; stores auto-refresh
+- **Side Panel**: Svelte stores in `src/entrypoints/sidepanel/stores/` with derived stores and localStorage
+- **Synchronization**: Side panel and background sync via message passing; stores auto-refresh
 - **Theme Management**: Svelte store (`themeStore.ts`) with system/auto detection
+- **Focus Management**: Enhanced focus utilities (`focusUtils.ts`) for keyboard navigation
+- **Tab Operations**: Dedicated store (`tabOperationsStore.ts`) for tab management actions
 
 ## Testing Architecture
 
@@ -108,13 +120,14 @@ pnpm test:coverage        # Run tests with coverage
 
 - **Unit Tests**: `src/**/*.test.ts` - Vitest with WXT's `fakeBrowser` APIs
 - **E2E Infrastructure**: `tests/e2e/setup-integration.test.ts` - Extension build validation
+- **E2E Side Panel**: `tests/e2e/sidepanel.spec.ts` - Side panel UI and functionality testing
 - **E2E Server**: `tests/e2e/server.ts` for static test pages
 
 ## Build Process
 
 **WXT Framework** handles bundling:
 
-- **Entry Points**: Background, popup builds
+- **Entry Points**: Background, sidepanel builds
 - **Asset Processing**: Tailwind CSS compilation + static asset copying
 - **Watch Mode**: Real-time rebuild with hot reload
 - **Output**: `dist/` folder ready for Chrome extension loading
@@ -170,8 +183,8 @@ This runs: TypeScript compilation, ESLint, full test suite, production build.
 - **Injection**: Always via executeScript - see `src/background/injections/`
 - **Site configs**: Single source in `src/background/siteConfigs.ts`
 - **Tab management**: `src/background/tabManager.ts` handles focus, readiness, retry
-- **Popup state**: Svelte stores in `src/entrypoints/popup/stores/`
-- **Messaging**: All background/popup comms via `src/shared/messaging.ts`
+- **Side Panel state**: Svelte stores in `src/entrypoints/sidepanel/stores/`
+- **Messaging**: All background/sidepanel comms via `src/shared/messaging.ts`
 - **Testing**: Unified under Vitest (`pnpm test`)
 - **Build/quality**: Always use `pnpm check` before commit
 - **No content scripts**: All references are legacy and should be removed
@@ -180,5 +193,5 @@ This runs: TypeScript compilation, ESLint, full test suite, production build.
 
 - `src/background/siteConfigs.ts`: Site config single source
 - `src/shared/messaging.ts`: Messaging protocol
-- `src/entrypoints/popup/stores/`: Svelte stores for UI state
+- `src/entrypoints/sidepanel/stores/`: Svelte stores for UI state
 - `tests/e2e/server.ts`: E2E server utility

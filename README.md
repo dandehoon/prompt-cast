@@ -9,11 +9,13 @@ Useful Chrome extension for broadcasting prompts to multiple AI chat sites at on
 ## Features
 
 - **Multi-Site**: Send to ChatGPT, Claude, Gemini, Grok... at once
+- **Side Panel UI**: Persistent Chrome side panel interface for better workflow
 - **Smart Tabs**: Prevents duplicates, manages focus
-- **Keyboard**: Enter sends, Shift+Enter new line
+- **Keyboard Shortcuts**: Alt+P opens side panel, Alt+Shift+P closes all tabs
 - **Toggles**: Enable/disable individual sites
 - **Persistent**: Remembers settings
 - **Status**: Real-time connection indicators
+- **Enhanced Themes**: Light/dark/auto with comprehensive CSS variable system
 
 ## Quick Start
 
@@ -25,14 +27,15 @@ pnpm install && pnpm build
 
 Load in Chrome: `chrome://extensions/` → "Load unpacked" → select the `dist` folder
 
-The extension will appear in your toolbar with the Prompt Cast icon.
+The extension will appear in your toolbar with the Prompt Cast icon. Click to open the side panel interface.
 
 ## Usage
 
-1. Click extension icon
-2. Type message
+1. Click extension icon or press **Alt+P** to open side panel
+2. Type message in the bottom input area
 3. Press **Enter** to send (Shift+Enter for new line)
 4. Toggle sites on/off as needed
+5. Use **Alt+Shift+P** to quickly close all AI site tabs
 
 ## Sites
 
@@ -62,10 +65,8 @@ The extension will appear in your toolbar with the Prompt Cast icon.
 src/
 ├── entrypoints/         # WXT entry points
 │   ├── background.ts    # Service worker
-│   ├── content.ts       # Content script
-│   └── popup/           # Svelte popup UI with stores
-├── shared/              # Types, utilities, messaging
-├── content/             # Content script modules
+│   └── sidepanel/       # Svelte side panel UI with stores
+├── shared/              # Types, utilities, messaging, focus management
 ├── background/          # Background script modules
 └── types/               # TypeScript definitions
 ```

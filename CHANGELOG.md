@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Centralized site management interface
+- Auto-focus functionality for improved keyboard navigation
+
+### Changed
+
+- Migrated from popup to side panel interface for better workflow
+
 ## [2.2.0] - 2025-08-24
 
 ### Added
