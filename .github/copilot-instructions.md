@@ -4,15 +4,6 @@
 
 Chrome extension (Manifest V3) with Svelte 5 side panel UI (via WXT), multi-site messaging, robust tab management, and state synchronization across background/sidepanel contexts. All build, test, and quality workflows are unified under pnpm scripts.
 
-### Development Workflow
-
-1. **Setup**: `pnpm install`
-2. **Development**: `pnpm dev`
-3. **Load extension**: Chrome → Extensions → "Load unpacked" → select `dist` folder
-4. **Testing**: `pnpm test`
-5. **Quality check**: `pnpm check` (before commits)
-6. **Production build**: `pnpm build`
-
 ## Architecture & Data Flow
 
 **Communication Pattern:**
