@@ -2,14 +2,16 @@
 
 ## Project Overview
 
-Chrome extension (Manifest V3) with Svelte 5 side panel UI (via WXT), multi-s### Development Workflow
+Chrome extension (Manifest V3) with Svelte 5 side panel UI (via WXT), multi-site messaging, robust tab management, and state synchronization across background/sidepanel contexts. All build, test, and quality workflows are unified under pnpm scripts.
+
+### Development Workflow
 
 1. **Setup**: `pnpm install`
 2. **Development**: `pnpm dev`
 3. **Load extension**: Chrome → Extensions → "Load unpacked" → select `dist` folder
 4. **Testing**: `pnpm test`
 5. **Quality check**: `pnpm check` (before commits)
-6. **Production build**: `pnpm build`essaging, robust tab management, and state synchronization across background/sidepanel contexts. All build, test, and quality workflows are unified under pnpm scripts.
+6. **Production build**: `pnpm build`
 
 ## Architecture & Data Flow
 
@@ -38,6 +40,10 @@ src/
 │   ├── siteManager.ts        # Site enable/disable, state
 │   ├── scriptInjector.ts     # Injection engine
 │   ├── injections/           # Modular per-site injection logic
+│   ├── batchController.ts    # Batch injection coordination
+│   ├── index.ts              # Injection exports
+│   ├── messageInjector.ts    # Core message injection logic
+│   └── readinessChecker.ts   # DOM readiness validation
 │   └── utils/                # Background utilities
 ├── shared/
 │   ├── messaging.ts          # Type-safe protocol wrapper
@@ -72,8 +78,12 @@ pnpm install              # Install dependencies
 pnpm dev                  # Dev mode with hot reload
 pnpm build                # Production build
 pnpm check                # Complete pipeline: type-check + lint + test + build
-pnpm test                 # Run all tests (Vitest, unified)
+pnpm test                 # Run all tests (unit + e2e)
+pnpm test:unit            # Run unit tests only (Vitest)
+pnpm e2e                  # Run e2e tests (Playwright)
 pnpm test:coverage        # Run tests with coverage
+pnpm type-check           # TypeScript compilation check
+pnpm lint                 # ESLint with auto-fix
 ```
 
 ## Critical Architecture Patterns
@@ -119,7 +129,7 @@ pnpm test:coverage        # Run tests with coverage
 **Test Types**
 
 - **Unit Tests**: `src/**/*.test.ts` - Vitest with WXT's `fakeBrowser` APIs
-- **E2E Infrastructure**: `tests/e2e/setup-integration.test.ts` - Extension build validation
+- **E2E Tests**: `tests/e2e/extension.spec.ts` - Full extension functionality testing
 - **E2E Side Panel**: `tests/e2e/sidepanel.spec.ts` - Side panel UI and functionality testing
 - **E2E Server**: `tests/e2e/server.ts` for static test pages
 
@@ -170,12 +180,12 @@ This runs: TypeScript compilation, ESLint, full test suite, production build.
 5. **Quality check**: `pnpm check` (before commits)
 6. **Production build**: `pnpm build`
 
-## File Naming Conventions
+### File Naming Conventions
 
-- Components: PascalCase (`PopupApp.svelte`)
+- Components: PascalCase (`App.svelte`)
 - Stores: camelCase (`siteStore.ts`)
 - Types: PascalCase (`SiteConfig.ts`)
-- Tests: Same as source + `.test.` (`PopupApp.test.ts`)
+- Tests: Same as source + `.test.` (`App.test.ts`)
 - Configs: kebab-case (`site-config.ts`)
 
 ## AI Agent Quick Reference
