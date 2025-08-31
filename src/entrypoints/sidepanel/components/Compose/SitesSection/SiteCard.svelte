@@ -11,10 +11,10 @@
 
   let { site }: Props = $props();
 
-  function handleCardClick(event: MouseEvent) {
+  function handleCardClick(event: MouseEvent | KeyboardEvent) {
     // Don't trigger if clicking on the toggle
     const target = event.target as HTMLElement;
-    if (target.type === 'checkbox' || target.closest('label')) {
+    if ((target as HTMLInputElement).type === 'checkbox' || target.closest('label')) {
       return;
     }
 
@@ -80,7 +80,6 @@
         style="background-color: {site.enabled
           ? 'var(--pc-success)'
           : 'var(--pc-border)'};"
-        onclick={(e) => e.stopPropagation()}
       ></label>
     </div>
   </div>

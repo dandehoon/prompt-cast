@@ -19,7 +19,7 @@
     onArrowUp,
     onArrowDown,
     disabled = false,
-    placeholder = 'Ask anything',
+    placeholder = 'Enter your prompt...',
     messageInputRef = $bindable(),
     onCloseAll,
     closeAllLoading = false,
@@ -54,7 +54,10 @@
     if (event.key === 'ArrowDown' && onArrowDown) {
       const target = event.target as HTMLTextAreaElement;
       // Only trigger if cursor is at the very end of the text
-      if (target.selectionStart === value.length && target.selectionEnd === value.length) {
+      if (
+        target.selectionStart === value.length &&
+        target.selectionEnd === value.length
+      ) {
         event.preventDefault();
         onArrowDown();
       }

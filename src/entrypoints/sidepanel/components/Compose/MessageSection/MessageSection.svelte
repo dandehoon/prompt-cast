@@ -4,8 +4,16 @@
   import { messageStore, messageActions } from '../../../stores/messageStore';
   import { toasts } from '../../../stores/toastStore';
   import { enabledCount, connectedCount } from '../../../stores/siteStore';
-  import { tabOperationsStore, tabOperationsActions } from '../../../stores/tabOperationsStore';
+  import {
+    tabOperationsStore,
+    tabOperationsActions,
+  } from '../../../stores/tabOperationsStore';
   import { onMount } from 'svelte';
+  import {
+    createAutoFocusHandler,
+    safeFocus,
+    autoSelectText,
+  } from '@/shared/focusUtils';
 
   // All data comes from stores - no props needed!
   const messageState = $derived($messageStore);
@@ -22,6 +30,10 @@
   // Local ref for message input - handle it here since parent doesn't care
   let messageInputRef = $state<HTMLTextAreaElement>();
 
+  // Auto-focus management - derived from loading state
+  const autoFocusEnabled = $derived(!messageState.sendLoading);
+  let autoFocusHandler: ReturnType<typeof createAutoFocusHandler> | undefined;
+
   // Update the input ref in the store when it changes
   $effect(() => {
     if (messageInputRef) {
@@ -29,20 +41,27 @@
     }
   });
 
-  // Initialize and auto-focus on mount
+  // Initialize and setup auto-focus on mount
   onMount(() => {
     messageActions.initialize();
 
-    // Auto-focus and auto-select text when popup opens
-    setTimeout(() => {
-      if (messageInputRef) {
-        messageInputRef.focus();
-        // Auto-select all text if there's existing content from previous session
-        if (messageInputRef.value.trim()) {
-          messageInputRef.select();
-        }
-      }
-    }, 100);
+    // Initial auto-focus and auto-select text when popup opens
+    if (messageInputRef) {
+      safeFocus(messageInputRef);
+      autoSelectText(messageInputRef);
+    }
+
+    // Setup auto-focus handler for clicks
+    autoFocusHandler = createAutoFocusHandler(
+      () => messageInputRef,
+      () => autoFocusEnabled,
+    );
+    autoFocusHandler.attach();
+
+    // Cleanup function
+    return () => {
+      autoFocusHandler?.detach();
+    };
   });
 </script>
 
@@ -67,7 +86,10 @@
     id="send-message-button"
     onclick={messageActions.sendMessage}
     disabled={!hasMessage || messageState.sendLoading}
-    class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed {!hasMessage || messageState.sendLoading ? '' : 'cursor-pointer'}"
+    class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed {!hasMessage ||
+    messageState.sendLoading
+      ? ''
+      : 'cursor-pointer'}"
     style="background-color: {!hasMessage || messageState.sendLoading
       ? 'var(--pc-text-disabled)'
       : 'var(--pc-accent)'}; color: var(--pc-text-inverted);"

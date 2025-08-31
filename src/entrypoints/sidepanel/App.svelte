@@ -25,7 +25,7 @@
   <div class="flex flex-col h-full">
     <!-- Header with theme toggle -->
     <header class="p-4 pb-0 flex justify-between items-center">
-      <h1 class="text-lg font-semibold pc-text-primary">Prompt Cast</h1>
+      <h2 class="text-sm font-medium pc-text-primary">Theme</h2>
       <ThemeToggle />
     </header>
 
