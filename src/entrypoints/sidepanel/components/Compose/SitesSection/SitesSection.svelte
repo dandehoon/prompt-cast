@@ -113,8 +113,8 @@
   }
 </script>
 
-<section class="space-y-3" id="sites-section">
-  <header class="flex items-center justify-between">
+<section class="sites-section" id="sites-section">
+  <header class="sites-header">
     <h2 class="text-sm font-medium" style="color: var(--pc-text-primary);">
       Sites
     </h2>
@@ -124,38 +124,71 @@
       onThemeChange={handleThemeChange}
     />
   </header>
-  <div class="grid grid-cols-1 gap-2" role="list">
-    {#each sites as site, index (site.id)}
-      <div
-        class="drag-container"
-        class:drag-over={dragOverIndex === index}
-        draggable="true"
-        role="listitem"
-        aria-label="Draggable site card for {site.name}"
-        ondragstart={(e) => handleDragStart(e, index)}
-        ondragend={handleDragEnd}
-        ondragover={(e) => handleDragOver(e, index)}
-        ondragleave={handleDragLeave}
-        ondrop={(e) => handleDrop(e, index)}
-      >
-        <SiteCard {site} />
-      </div>
-    {/each}
+  <div class="sites-scrollable">
+    <div class="grid grid-cols-1 gap-2" role="list">
+      {#each sites as site, index (site.id)}
+        <div
+          class="drag-container"
+          class:drag-over={dragOverIndex === index}
+          draggable="true"
+          role="listitem"
+          aria-label="Draggable site card for {site.name}"
+          ondragstart={(e) => handleDragStart(e, index)}
+          ondragend={handleDragEnd}
+          ondragover={(e) => handleDragOver(e, index)}
+          ondragleave={handleDragLeave}
+          ondrop={(e) => handleDrop(e, index)}
+        >
+          <SiteCard {site} />
+        </div>
+      {/each}
 
-    <!-- Drop zone for the end of the list -->
-    <div
-      class="drop-zone"
-      class:drag-over={dragOverIndex === sites.length}
-      role="application"
-      aria-label="Drop zone to place item at the end"
-      ondragover={(e) => handleDragOver(e, sites.length)}
-      ondragleave={handleDragLeave}
-      ondrop={(e) => handleDrop(e, sites.length)}
-    ></div>
+      <!-- Drop zone for the end of the list -->
+      <div
+        class="drop-zone"
+        class:drag-over={dragOverIndex === sites.length}
+        role="application"
+        aria-label="Drop zone to place item at the end"
+        ondragover={(e) => handleDragOver(e, sites.length)}
+        ondragleave={handleDragLeave}
+        ondrop={(e) => handleDrop(e, sites.length)}
+      ></div>
+    </div>
   </div>
 </section>
 
 <style>
+  .sites-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .sites-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    margin-bottom: 0.75rem; /* space-y-3 equivalent */
+  }
+
+  .sites-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Hide scrollbar for Firefox */
+    scrollbar-width: none;
+    /* Hide scrollbar for IE and Edge */
+    -ms-overflow-style: none;
+  }
+
+  /* Ensure webkit scrollbar is completely hidden */
+  .sites-scrollable::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    background: transparent;
+  }
+
   .drag-container::before {
     content: '';
     position: absolute;
