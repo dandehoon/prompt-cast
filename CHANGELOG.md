@@ -6,10 +6,12 @@
 
 - Centralized site management interface
 - Auto-focus functionality for improved keyboard navigation
+- **Drag-and-drop site reordering**: Users can now hold and drag site cards to reorder them
+- **Ordered batch operations**: Message sending and tab operations now respect custom site ordering
 
 ### Changed
 
-- Migrated from popup to side panel interface for better workflow
+- Migrated from **Popup** to **Side Panel** interface for better workflow
 
 ## [2.2.0] - 2025-08-24
 

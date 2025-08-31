@@ -5,6 +5,7 @@ import { getAllSiteConfigs } from './siteConfigs';
 
 export class SiteManager {
   private sites: Record<string, SiteConfig> = {};
+  private siteOrder: string[] = [];
   private isInitialized = false;
   private initializationPromise: Promise<void>;
 
@@ -60,6 +61,39 @@ export class SiteManager {
     return Object.values(this.sites);
   }
 
+  /**
+   * Get enabled sites in the specified order
+   */
+  async getOrderedEnabledSites(): Promise<SiteConfig[]> {
+    await this.ensureInitialized();
+
+    const allEnabledSites = Object.values(this.sites).filter(
+      (site) => site.enabled,
+    );
+
+    if (this.siteOrder.length === 0) {
+      return allEnabledSites;
+    }
+
+    // Create a map for quick lookup
+    const enabledSiteMap = new Map(
+      allEnabledSites.map((site) => [site.id, site]),
+    );
+
+    // Get ordered enabled sites and add any missing ones
+    const orderedSites = this.siteOrder
+      .map((id) => enabledSiteMap.get(id))
+      .filter((site): site is SiteConfig => site !== undefined);
+
+    // Add any enabled sites not in the order
+    const orderedIds = new Set(orderedSites.map((site) => site.id));
+    const missingSites = allEnabledSites.filter(
+      (site) => !orderedIds.has(site.id),
+    );
+
+    return [...orderedSites, ...missingSites];
+  }
+
   async getSiteByUrl(href: string): Promise<SiteConfig | null> {
     await this.ensureInitialized();
     for (const config of Object.values(this.sites)) {
@@ -80,10 +114,36 @@ export class SiteManager {
     }
   }
 
+  /**
+   * Get the current site order
+   */
+  async getSiteOrder(): Promise<string[]> {
+    await this.ensureInitialized();
+    return [...this.siteOrder]; // Return a copy
+  }
+
+  /**
+   * Set a new site order
+   */
+  async setSiteOrder(order: string[]): Promise<void> {
+    await this.ensureInitialized();
+
+    // Validate that all provided site IDs exist
+    const validOrder = order.filter((id) => this.sites[id]);
+
+    // Add any missing sites to the end
+    const allSiteIds = Object.keys(this.sites);
+    const missingIds = allSiteIds.filter((id) => !validOrder.includes(id));
+
+    this.siteOrder = [...validOrder, ...missingIds];
+    await this.saveUserPreferences();
+  }
+
   private async saveUserPreferences(): Promise<void> {
     try {
       const preferences: UserPreferences = {
         sites: {},
+        siteOrder: this.siteOrder,
       };
 
       // Build sites preferences from current state
@@ -105,6 +165,7 @@ export class SiteManager {
       const result = await browser.storage.sync.get(['userPreferences']);
       if (result.userPreferences) {
         const prefs: UserPreferences = result.userPreferences;
+
         // Update site enabled states from saved preferences
         Object.keys(this.sites).forEach((siteId) => {
           const typedSiteId = siteId;
@@ -113,10 +174,28 @@ export class SiteManager {
               !!prefs.sites[typedSiteId].enabled;
           }
         });
+
+        // Load site order, default to natural order if not saved
+        if (prefs.siteOrder && Array.isArray(prefs.siteOrder)) {
+          // Filter to only include valid site IDs and add any missing ones
+          const validOrder = prefs.siteOrder.filter((id) => this.sites[id]);
+          const allSiteIds = Object.keys(this.sites);
+          const missingIds = allSiteIds.filter(
+            (id) => !validOrder.includes(id),
+          );
+          this.siteOrder = [...validOrder, ...missingIds];
+        } else {
+          this.siteOrder = Object.keys(this.sites);
+        }
+      } else {
+        // No preferences saved, use natural order
+        this.siteOrder = Object.keys(this.sites);
       }
       logger.info('User preferences loaded successfully', result);
     } catch (error) {
       logger.error('Failed to load user preferences:', error);
+      // Fallback to natural order on error
+      this.siteOrder = Object.keys(this.sites);
     }
   }
 }

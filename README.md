@@ -11,9 +11,10 @@ Useful Chrome extension for broadcasting prompts to multiple AI chat sites at on
 - **Multi-Site**: Send to ChatGPT, Claude, Gemini, Grok... at once
 - **Side Panel UI**: Persistent Chrome side panel interface for better workflow
 - **Smart Tabs**: Prevents duplicates, manages focus
+- **Drag & Drop Reordering**: Reorder sites by dragging them to customize your workflow
 - **Keyboard Shortcuts**: Alt+P opens side panel, Alt+Shift+P closes all tabs
 - **Toggles**: Enable/disable individual sites
-- **Persistent**: Remembers settings
+- **Persistent**: Remembers settings and site order
 - **Status**: Real-time connection indicators
 - **Enhanced Themes**: Light/dark/auto with comprehensive CSS variable system
 
@@ -35,7 +36,8 @@ The extension will appear in your toolbar with the Prompt Cast icon. Click to op
 2. Type message in the bottom input area
 3. Press **Enter** to send (Shift+Enter for new line)
 4. Toggle sites on/off as needed
-5. Use **Alt+Shift+P** to quickly close all AI site tabs
+5. **Drag sites** to reorder them for your preferred workflow
+6. Use **Alt+Shift+P** to quickly close all AI site tabs
 
 ## Sites
 

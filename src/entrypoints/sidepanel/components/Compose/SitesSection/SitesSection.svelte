@@ -2,24 +2,26 @@
   import SiteCard from './SiteCard.svelte';
   import ThemeSelector from '../Theme/ThemeSelector.svelte';
   import type { EnhancedSite } from '@/types';
-  import { sitesWithStatus } from '../../../stores/siteStore';
+  import { orderedSites } from '../../../stores/siteStore';
+  import { siteActions } from '../../../stores/siteStore';
   import {
     resolvedTheme,
     theme,
     themeActions,
   } from '../../../stores/themeStore';
 
-  // Get all sites from store instead of props (not just enabled ones)
+  // Get ordered sites from store
   const sites = $derived.by(() => {
-    const sitesWithStatusFn = $sitesWithStatus as (
+    const orderedSitesFn = $orderedSites as (
       isDark?: boolean,
-    ) => Record<string, EnhancedSite>;
+    ) => EnhancedSite[];
     const isDark = $resolvedTheme === 'dark';
-    return sitesWithStatusFn(isDark);
+    return orderedSitesFn(isDark);
   });
 
-  // Get all sites as array for display
-  const allSites = $derived(Object.values(sites));
+  // Drag and drop state
+  let draggedIndex = $state<number | null>(null);
+  let dragOverIndex = $state<number | null>(null);
 
   // Theme options for the selector
   const themeOptions = [
@@ -30,6 +32,84 @@
 
   function handleThemeChange(selectedTheme: 'auto' | 'light' | 'dark') {
     themeActions.setTheme(selectedTheme);
+  }
+
+  // Utility function for resetting drag state
+  function resetDragState() {
+    draggedIndex = null;
+    dragOverIndex = null;
+  }
+
+  function handleDragStart(event: DragEvent, index: number) {
+    if (!event.dataTransfer) return;
+
+    draggedIndex = index;
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', index.toString());
+
+    // Add visual feedback with slight delay
+    setTimeout(() => {
+      const target = event.target as HTMLElement;
+      target.style.opacity = '0.5';
+    }, 0);
+  }
+
+  function handleDragEnd(event: DragEvent) {
+    const target = event.target as HTMLElement;
+    target.style.opacity = '1';
+    resetDragState();
+  }
+
+  function handleDragOver(event: DragEvent, index: number) {
+    event.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      dragOverIndex = index;
+    }
+  }
+
+  function handleDragLeave() {
+    dragOverIndex = null;
+  } // Utility function for calculating drop position
+  function calculateInsertIndex(
+    dragIndex: number,
+    dropIndex: number,
+    arrayLength: number,
+  ): number {
+    if (dropIndex >= arrayLength) {
+      return arrayLength - 1; // Insert at the very end (after removal)
+    }
+
+    return dropIndex > dragIndex ? dropIndex - 1 : dropIndex;
+  }
+
+  async function handleDrop(event: DragEvent, dropIndex: number) {
+    event.preventDefault();
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      draggedIndex = null;
+      dragOverIndex = null;
+      return;
+    }
+
+    // Create new order array and get the dragged item
+    const newOrder = [...sites];
+    const draggedItem = newOrder[draggedIndex];
+
+    // Remove the dragged item and calculate insert position
+    newOrder.splice(draggedIndex, 1);
+    const insertIndex = calculateInsertIndex(
+      draggedIndex,
+      dropIndex,
+      sites.length,
+    );
+
+    // Insert at the calculated position and save
+    newOrder.splice(insertIndex, 0, draggedItem);
+    const siteIds = newOrder.map((site) => site.id);
+    await siteActions.reorderSites(siteIds);
+
+    // Reset drag state
+    resetDragState();
   }
 </script>
 
@@ -44,9 +124,84 @@
       onThemeChange={handleThemeChange}
     />
   </header>
-  <div class="grid grid-cols-1 gap-2">
-    {#each allSites as site (site.id)}
-      <SiteCard {site} />
+  <div class="grid grid-cols-1 gap-2" role="list">
+    {#each sites as site, index (site.id)}
+      <div
+        class="drag-container"
+        class:drag-over={dragOverIndex === index}
+        draggable="true"
+        role="listitem"
+        aria-label="Draggable site card for {site.name}"
+        ondragstart={(e) => handleDragStart(e, index)}
+        ondragend={handleDragEnd}
+        ondragover={(e) => handleDragOver(e, index)}
+        ondragleave={handleDragLeave}
+        ondrop={(e) => handleDrop(e, index)}
+      >
+        <SiteCard {site} />
+      </div>
     {/each}
+
+    <!-- Drop zone for the end of the list -->
+    <div
+      class="drop-zone"
+      class:drag-over={dragOverIndex === sites.length}
+      role="application"
+      aria-label="Drop zone to place item at the end"
+      ondragover={(e) => handleDragOver(e, sites.length)}
+      ondragleave={handleDragLeave}
+      ondrop={(e) => handleDrop(e, sites.length)}
+    ></div>
   </div>
 </section>
+
+<style>
+  .drag-container::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--pc-success);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+  }
+
+  .drag-container.drag-over::before {
+    opacity: 1;
+  }
+
+  .drag-container {
+    cursor: grab;
+    position: relative;
+  }
+
+  .drag-container:active {
+    cursor: grabbing;
+  }
+
+  .drop-zone {
+    height: 8px;
+    position: relative;
+    margin-top: -4px;
+  }
+
+  .drop-zone::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--pc-success);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+  }
+
+  .drop-zone.drag-over::before {
+    opacity: 1;
+  }
+</style>

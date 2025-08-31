@@ -81,6 +81,23 @@ export class BackgroundSite {
         return { status };
       }, 'Get site status'),
     );
+
+    // Handle get site order
+    onMessage(
+      'GET_SITE_ORDER',
+      withErrorHandling(async () => {
+        const order = await this.siteManager.getSiteOrder();
+        return { order };
+      }, 'Get site order'),
+    );
+
+    // Handle save site order
+    onMessage(
+      'SAVE_SITE_ORDER',
+      withErrorHandling(async (message) => {
+        await this.siteManager.setSiteOrder(message.data.order);
+      }, 'Save site order'),
+    );
   }
 
   private initializeCommands(): void {

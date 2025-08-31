@@ -9,6 +9,7 @@ import { logger } from '@/shared';
 const siteConfigs = writable<Record<string, SiteConfig>>({});
 const siteStatuses = writable<Record<string, SiteStatusType>>({});
 const siteStates = writable<Record<string, { enabled: boolean }>>({});
+const siteOrder = writable<string[]>([]);
 const isLoading = writable<boolean>(true);
 
 // Fetch configurations from background script
@@ -19,6 +20,17 @@ const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
   } catch (error) {
     logger.error('Failed to fetch site configs from background:', error);
     return {};
+  }
+};
+
+// Fetch site order from background script
+const fetchSiteOrder = async (): Promise<string[]> => {
+  try {
+    const response = await sendMessage('GET_SITE_ORDER');
+    return response.order;
+  } catch (error) {
+    logger.error('Failed to fetch site order from background:', error);
+    return [];
   }
 };
 
@@ -36,14 +48,57 @@ const getInitialStates = (
   return initialStates;
 };
 
+// Utility functions for site ordering and filtering
+const getOrderedSiteIds = (
+  siteConfigs: Record<string, SiteConfig>,
+  siteOrder: string[],
+): string[] => {
+  if (!siteOrder || siteOrder.length === 0) {
+    return Object.keys(siteConfigs);
+  }
+
+  const orderedIds = siteOrder.filter((id) => siteConfigs[id]);
+  const allIds = Object.keys(siteConfigs);
+  const missingIds = allIds.filter((id) => !orderedIds.includes(id));
+
+  return [...orderedIds, ...missingIds];
+};
+
+const isEnabledSite = (
+  siteId: string,
+  siteConfigs: Record<string, SiteConfig>,
+  siteStates: Record<string, { enabled: boolean }>,
+): boolean => {
+  const siteState = siteStates[siteId];
+  return siteState?.enabled ?? siteConfigs[siteId]?.enabled ?? false;
+};
+
+const createEnhancedSite = (
+  siteId: string,
+  config: SiteConfig,
+  status: SiteStatusType,
+  enabled: boolean,
+  isDark: boolean,
+): EnhancedSite => ({
+  ...config,
+  status,
+  enabled,
+  color: isDark ? config.colors.dark : config.colors.light,
+});
+
 // Initialize site states from configs
 const initializeSites = async () => {
   try {
     isLoading.set(true);
 
-    // Fetch configs from background (includes user preferences already applied)
-    const configs = await fetchSiteConfigs();
+    // Fetch configs and order from background (includes user preferences already applied)
+    const [configs, order] = await Promise.all([
+      fetchSiteConfigs(),
+      fetchSiteOrder(),
+    ]);
+
     siteConfigs.set(configs);
+    siteOrder.set(order);
 
     // Initialize states from the configs (which already have user preferences applied)
     const states = getInitialStates(configs);
@@ -63,12 +118,12 @@ const initializeSites = async () => {
 export const isLoadingSites = isLoading;
 
 export const enabledSites = derived(
-  [siteConfigs, siteStates],
-  ([$siteConfigs, $siteStates]) => {
-    return Object.keys($siteConfigs).filter((siteId) => {
-      const siteState = $siteStates[siteId];
-      return siteState?.enabled ?? $siteConfigs[siteId].enabled;
-    });
+  [siteConfigs, siteStates, siteOrder],
+  ([$siteConfigs, $siteStates, $siteOrder]) => {
+    const orderedSiteIds = getOrderedSiteIds($siteConfigs, $siteOrder);
+    return orderedSiteIds.filter((siteId) =>
+      isEnabledSite(siteId, $siteConfigs, $siteStates),
+    );
   },
 );
 
@@ -87,25 +142,49 @@ export const connectedCount = derived(
 );
 
 export const sitesWithStatus = derived(
-  [siteConfigs, siteStatuses, siteStates],
-  ([$siteConfigs, $siteStatuses, $siteStates]) => {
+  [siteConfigs, siteStatuses, siteStates, siteOrder],
+  ([$siteConfigs, $siteStatuses, $siteStates, $siteOrder]) => {
     return (isDark = false): Record<string, EnhancedSite> => {
+      const orderedSiteIds = getOrderedSiteIds($siteConfigs, $siteOrder);
       const result: Record<string, EnhancedSite> = {};
 
-      Object.keys($siteConfigs).forEach((siteId) => {
+      orderedSiteIds.forEach((siteId) => {
         const config = $siteConfigs[siteId];
         if (config) {
-          const color = isDark ? config.colors.dark : config.colors.light;
-          result[siteId] = {
-            ...config,
-            status: $siteStatuses[siteId] || SITE_STATUS.DISCONNECTED,
-            enabled: $siteStates[siteId]?.enabled ?? config.enabled,
-            color,
-          };
+          const status = $siteStatuses[siteId] || SITE_STATUS.DISCONNECTED;
+          const enabled = isEnabledSite(siteId, $siteConfigs, $siteStates);
+          result[siteId] = createEnhancedSite(
+            siteId,
+            config,
+            status,
+            enabled,
+            isDark,
+          );
         }
       });
 
       return result;
+    };
+  },
+);
+
+// New derived store for ordered sites as array
+export const orderedSites = derived(
+  [siteConfigs, siteStatuses, siteStates, siteOrder],
+  ([$siteConfigs, $siteStatuses, $siteStates, $siteOrder]) => {
+    return (isDark = false): EnhancedSite[] => {
+      const orderedSiteIds = getOrderedSiteIds($siteConfigs, $siteOrder);
+
+      return orderedSiteIds
+        .map((siteId) => {
+          const config = $siteConfigs[siteId];
+          if (!config) return null;
+
+          const status = $siteStatuses[siteId] || SITE_STATUS.DISCONNECTED;
+          const enabled = isEnabledSite(siteId, $siteConfigs, $siteStates);
+          return createEnhancedSite(siteId, config, status, enabled, isDark);
+        })
+        .filter((site): site is EnhancedSite => site !== null);
     };
   },
 );
@@ -117,6 +196,19 @@ export const siteActions = {
       ...current,
       [siteId]: status,
     }));
+  },
+
+  reorderSites: async (newOrder: string[]) => {
+    // Update local state immediately for UI responsiveness
+    siteOrder.set(newOrder);
+
+    try {
+      // Send message to background to persist the order
+      await sendMessage('SAVE_SITE_ORDER', { order: newOrder });
+    } catch (error) {
+      logger.error('Failed to save site order:', error);
+      // Could revert to previous order here if needed
+    }
   },
 
   toggleSite: async (siteId: string, enabled: boolean) => {

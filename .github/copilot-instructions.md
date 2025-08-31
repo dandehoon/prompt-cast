@@ -22,9 +22,10 @@ Chrome extension (Manifest V3) with Svelte 5 side panel UI (via WXT), multi-site
 
 **Message Flow:**
 
-1. User types in side panel → Background script → executeScript injection (broadcast to enabled sites)
+1. User types in side panel → Background script → executeScript injection (broadcast to enabled sites in custom order)
 2. Site configuration changes → Background storage → Side panel state sync
 3. Tab events → Background tab manager → Side panel status updates
+4. Drag-and-drop reordering → Site order storage → Batch operations respect new order
 
 ## Repository Structure
 
@@ -94,6 +95,10 @@ pnpm lint                 # ESLint with auto-fix
 - **Auto-generation**: Host permissions auto-generated from site URLs via `src/shared/siteUrls.ts`
 - **Site-Specific Selectors**: Each site has `inputSelectors`/`submitSelectors` arrays
 - **Injection Methods**: Each site specifies injection method (form, execCommand, etc.)
+- **Site Ordering**: Drag-and-drop reordering system with persistent storage via Chrome storage API
+  - Visual feedback with placeholder and drop zones
+  - Utilities: `calculateInsertIndex()`, `resetDragState()`, `getOrderedSiteIds()`
+  - Batch operations respect custom order through `getOrderedEnabledSites()`
 
 ### Chrome Extension Communication
 
@@ -117,6 +122,10 @@ pnpm lint                 # ESLint with auto-fix
 - **Theme Management**: Svelte store (`themeStore.ts`) with system/auto detection
 - **Focus Management**: Enhanced focus utilities (`focusUtils.ts`) for keyboard navigation
 - **Tab Operations**: Dedicated store (`tabOperationsStore.ts`) for tab management actions
+- **Site Ordering**: Drag-and-drop state managed via `siteStore.ts` with utilities:
+  - `getOrderedSiteIds()`: Retrieves custom site order
+  - `isEnabledSite()`: Site filtering helper
+  - `createEnhancedSite()`: Site data enrichment
 
 ## Testing Architecture
 
@@ -195,6 +204,7 @@ This runs: TypeScript compilation, ESLint, full test suite, production build.
 - **Tab management**: `src/background/tabManager.ts` handles focus, readiness, retry
 - **Side Panel state**: Svelte stores in `src/entrypoints/sidepanel/stores/`
 - **Messaging**: All background/sidepanel comms via `src/shared/messaging.ts`
+- **Site ordering**: Drag-and-drop UI with persistent storage via `siteStore.ts`
 - **Testing**: Unified under Vitest (`pnpm test`)
 - **Build/quality**: Always use `pnpm check` before commit
 - **No content scripts**: All references are legacy and should be removed
@@ -205,3 +215,4 @@ This runs: TypeScript compilation, ESLint, full test suite, production build.
 - `src/shared/messaging.ts`: Messaging protocol
 - `src/entrypoints/sidepanel/stores/`: Svelte stores for UI state
 - `tests/e2e/server.ts`: E2E server utility
+- `src/entrypoints/sidepanel/components/Compose/SitesSection/`: Drag-and-drop UI components

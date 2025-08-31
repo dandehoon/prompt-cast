@@ -38,16 +38,23 @@ export class MessageHandler {
   }
 
   private async sendMessageToSites(payload: SendMessagePayload): Promise<void> {
-    const sites = await Promise.all(
-      payload.sites.map(async (siteId) => this.siteManager.getSite(siteId)),
-    );
-    const enabledSites = sites.filter(
-      (site): site is SiteConfig => site?.enabled || false,
+    // Get ordered enabled sites from SiteManager instead of using payload.sites order
+    const orderedEnabledSites = await this.siteManager.getOrderedEnabledSites();
+
+    // Filter to only include sites that were actually requested
+    const requestedSiteIds = new Set(payload.sites);
+    const enabledSites = orderedEnabledSites.filter(
+      (site) => requestedSiteIds.has(site.id) && site.enabled,
     );
 
     if (enabledSites.length === 0) {
       throw new Error('No enabled sites to send message to');
     }
+
+    logger.debug(
+      'Using ordered enabled sites:',
+      enabledSites.map((s) => s.name),
+    );
 
     // Step 1: Launch ALL tabs concurrently (no waiting for readiness)
     logger.debug('Launching tabs for all enabled sites concurrently...');

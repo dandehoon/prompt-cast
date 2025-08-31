@@ -59,6 +59,27 @@
   style="opacity: {site.enabled ? '1' : '0.6'};"
 >
   <div class="flex items-center justify-between h-full">
+    <!-- Drag Handle -->
+    <div
+      class="drag-handle flex-shrink-0 mr-2 p-1"
+      aria-label="Drag to reorder"
+    >
+      <svg
+        width="8"
+        height="16"
+        viewBox="0 0 8 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle cx="2" cy="3" r="1" fill="currentColor" opacity="0.4" />
+        <circle cx="6" cy="3" r="1" fill="currentColor" opacity="0.4" />
+        <circle cx="2" cy="8" r="1" fill="currentColor" opacity="0.4" />
+        <circle cx="6" cy="8" r="1" fill="currentColor" opacity="0.4" />
+        <circle cx="2" cy="13" r="1" fill="currentColor" opacity="0.4" />
+        <circle cx="6" cy="13" r="1" fill="currentColor" opacity="0.4" />
+      </svg>
+    </div>
+
     <div class="flex items-center space-x-3 min-w-0 flex-1">
       <div
         class="w-4 h-4 rounded-full site-logo flex-shrink-0"
@@ -96,6 +117,21 @@
 <style>
   .pc-card:hover {
     background-color: var(--pc-bg-hover);
+  }
+
+  .drag-handle {
+    color: var(--pc-text-secondary);
+    cursor: grab;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .drag-handle:hover {
+    opacity: 1;
+  }
+
+  .pc-card:hover .drag-handle {
+    opacity: 0.8;
   }
 
   label:hover {
