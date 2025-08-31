@@ -86,6 +86,34 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     submitSelectors: ['button[data-testid="submit-button"]'],
     chatUriPatterns: ['/', '/chats/*'],
   },
+
+  deepseek: {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    url: 'https://chat.deepseek.com/',
+    enabled: false,
+    colors: {
+      light: '#5c6bc0',
+      dark: '#3f51b5',
+    },
+    inputSelectors: ['textarea#chat-input'],
+    submitSelectors: ['._7436101 ._6f28693'],
+    chatUriPatterns: ['/', '/a/chat/s/*'],
+  },
+
+  qwen: {
+    id: 'qwen',
+    name: 'Qwen',
+    url: 'https://chat.qwen.ai/',
+    enabled: false,
+    colors: {
+      light: '#4C68F6',
+      dark: '#4C68F6',
+    },
+    inputSelectors: ['textarea#chat-input'],
+    submitSelectors: ['button#send-message-button'],
+    chatUriPatterns: ['/', '/c/*'],
+  },
 };
 
 // Public API - get all site configurations with auto-generated hostPatterns
