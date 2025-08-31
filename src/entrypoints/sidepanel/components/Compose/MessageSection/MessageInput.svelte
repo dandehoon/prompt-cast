@@ -107,15 +107,15 @@
     {placeholder}
     {disabled}
     class="w-full h-20 p-3 rounded-lg resize-none focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
-    style="background-color: var(--pc-bg-card); border: 1px solid var(--pc-border); color: var(--pc-text-primary); --tw-ring-color: var(--pc-accent);"
+    style="background-color: var(--pc-bg-card); border: 1px solid var(--pc-border); color: var(--pc-text-primary);"
     style:border-color={disabled ? 'var(--pc-border)' : 'var(--pc-border)'}
   ></textarea>
 </div>
 
 <style>
   textarea:focus {
-    border-color: var(--pc-accent);
-    box-shadow: 0 0 0 2px var(--pc-focus);
+    border-color: var(--pc-border-hover);
+    box-shadow: 0 0 0 2px var(--pc-border-focus);
   }
 
   textarea::placeholder {

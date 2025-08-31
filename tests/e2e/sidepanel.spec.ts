@@ -38,7 +38,9 @@ test.describe('Side Panel UI Component Tests', () => {
     await expect(sidePanelPage.locator('#sites-section')).toBeVisible();
 
     // Check theme buttons are visible in sites header
-    await expect(sidePanelPage.locator('.theme-selector .theme-btn')).toHaveCount(3);
+    await expect(
+      sidePanelPage.locator('.theme-selector .theme-btn'),
+    ).toHaveCount(3);
 
     // Check Message section is visible
     await expect(sidePanelPage.locator('#message-input')).toBeVisible();
@@ -115,7 +117,7 @@ test.describe('Side Panel UI Component Tests', () => {
     await lightButton.click();
     await expect(lightButton).toHaveClass(/active/);
 
-    // Click dark theme button  
+    // Click dark theme button
     await darkButton.click();
     await expect(darkButton).toHaveClass(/active/);
 

@@ -3,7 +3,11 @@
   import ThemeSelector from '../Theme/ThemeSelector.svelte';
   import type { EnhancedSite } from '@/types';
   import { sitesWithStatus } from '../../../stores/siteStore';
-  import { resolvedTheme, theme, themeActions } from '../../../stores/themeStore';
+  import {
+    resolvedTheme,
+    theme,
+    themeActions,
+  } from '../../../stores/themeStore';
 
   // Get all sites from store instead of props (not just enabled ones)
   const sites = $derived.by(() => {
