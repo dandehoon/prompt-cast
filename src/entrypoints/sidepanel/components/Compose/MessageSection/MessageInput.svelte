@@ -28,7 +28,19 @@
   function handleInput(event: Event) {
     const target = event.target as HTMLTextAreaElement;
     onChange(target.value);
-    // Remove auto-resize functionality to keep height constant
+
+    // Auto-resize functionality
+    target.style.height = 'auto';
+    const scrollHeight = target.scrollHeight;
+    const lineHeight = 20; // Approximate line height in pixels
+    const maxLines = 15;
+    const maxHeight = lineHeight * maxLines;
+
+    if (scrollHeight <= maxHeight) {
+      target.style.height = `${scrollHeight}px`;
+    } else {
+      target.style.height = `${maxHeight}px`;
+    }
   }
 
   function handleKeyDown(event: KeyboardEvent) {
@@ -106,16 +118,14 @@
     onkeydown={handleKeyDown}
     {placeholder}
     {disabled}
-    class="w-full h-20 p-3 rounded-lg resize-none focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
-    style="background-color: var(--pc-bg-card); border: 1px solid var(--pc-border); color: var(--pc-text-primary);"
-    style:border-color={disabled ? 'var(--pc-border)' : 'var(--pc-border)'}
+    class="w-full min-h-20 p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed resize-none overflow-y-auto"
+    style="background-color: var(--pc-bg-card); border: 1px solid var(--pc-border); color: var(--pc-text-primary); line-height: 20px;"
   ></textarea>
 </div>
 
 <style>
   textarea:focus {
-    border-color: var(--pc-border-hover);
-    box-shadow: 0 0 0 2px var(--pc-border-focus);
+    outline: none;
   }
 
   textarea::placeholder {
