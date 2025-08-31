@@ -3,8 +3,10 @@ import { Page, expect } from '@playwright/test';
 /**
  * Common test utilities to reduce duplication across E2E tests
  */
-
 export class TestUtils {
+  /**
+   * Enable or disable a site toggle in settings
+   */
   /**
    * Navigate to a specific tab in the side panel (DEPRECATED - single page now)
    */
@@ -55,8 +57,7 @@ export class TestUtils {
    * Send a message through the side panel interface
    */
   static async sendMessage(page: Page, message: string) {
-    // Ensure we're on compose tab
-    await this.switchToTab(page, 'tab-home');
+    // No need to switch tabs in single page layout
 
     const messageTextarea = page.locator('#message-input');
     const sendButton = page.locator('#send-message-button');
@@ -74,7 +75,7 @@ export class TestUtils {
     await page.waitForTimeout(1000); // Allow Svelte to initialize
   }
 
-    /**
+  /**
    * Get the count of enabled sites from site cards
    */
   static async getEnabledSiteCount(page: Page): Promise<number> {
@@ -88,13 +89,11 @@ export class TestUtils {
   /**
    * Select a theme option in settings
    */
-  static async selectTheme(page: Page, themeIndex: number) {
-    // Settings are now inline, no need to switch tabs
+  static async selectTheme(page: Page, themeOption: string) {
+    // Settings are now inline with dropdown selector
 
-    // Look for theme buttons in the new compact settings
-    const themeButtons = page.locator('button').filter({ hasText: /Auto|Light|Dark/ });
-
-    await themeButtons.nth(themeIndex).click();
+    const themeSelect = page.locator('#theme-select');
+    await themeSelect.selectOption(themeOption);
   }
 
   /**
@@ -127,15 +126,16 @@ export class TestUtils {
     const sendButton = page.locator('#send-message-button');
     await expect(sendButton).toBeVisible();
 
-    // Theme section (now inline)
-    const themeSectionHeader = page.getByText('Theme');
-    await expect(themeSectionHeader).toBeVisible();
+    // Theme buttons (now in sites section header)
+    const themeButtons = page.locator('.theme-selector .theme-btn');
+    await expect(themeButtons.first()).toBeVisible();
+    const buttonCount = await themeButtons.count();
+    expect(buttonCount).toBe(3); // auto, light, dark
 
     // Site toggles (now inline)
     const siteToggles = page.locator('label[id^="site-toggle-"]');
     const toggleCount = await siteToggles.count();
     expect(toggleCount).toBeGreaterThan(0);
-  }
 
     // Status indicator
     const statusSection = page.locator(

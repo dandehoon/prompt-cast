@@ -14,7 +14,10 @@
   function handleCardClick(event: MouseEvent | KeyboardEvent) {
     // Don't trigger if clicking on the toggle
     const target = event.target as HTMLElement;
-    if ((target as HTMLInputElement).type === 'checkbox' || target.closest('label')) {
+    if (
+      (target as HTMLInputElement).type === 'checkbox' ||
+      target.closest('label')
+    ) {
       return;
     }
 
@@ -61,8 +64,12 @@
         class="w-4 h-4 rounded-full site-logo flex-shrink-0"
         style="background-color: {site.color};"
       ></div>
-      <span class="text-sm font-medium pc-text-primary truncate flex-1">{site.name}</span>
-      <div class="w-2 h-2 rounded-full flex-shrink-0 {statusColor} self-center"></div>
+      <span class="text-sm font-medium pc-text-primary truncate flex-1"
+        >{site.name}</span
+      >
+      <div
+        class="w-2 h-2 rounded-full flex-shrink-0 {statusColor} self-center"
+      ></div>
     </div>
 
     <div class="relative inline-flex items-center flex-shrink-0 ml-3">
@@ -75,6 +82,7 @@
         aria-label="Toggle {site.name}"
       />
       <label
+        id="site-toggle-{site.id}"
         for="site-checkbox-{site.id}"
         class="cursor-pointer block w-11 h-6 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:rounded-full after:h-5 after:w-5 after:transition-all"
         style="background-color: {site.enabled

@@ -2,21 +2,20 @@ import { test, expect } from './fixtures';
 import { TestUtils } from './test-utils';
 
 test.describe('Side Panel UI Component Tests', () => {
-  test('should render basic UI components correctly', async ({ sidePanelPage }) => {
+  test('should render basic UI components correctly', async ({
+    sidePanelPage,
+  }) => {
     // Test basic UI components render correctly
     await TestUtils.verifyBasicUIComponents(sidePanelPage);
 
-    // Check for core compose tab elements
-    const composeButton = sidePanelPage.locator('#tab-home');
-    await expect(composeButton).toHaveClass(/active/);
-
+    // Check for message input elements (single page layout)
     const messageLabel = sidePanelPage.locator('label[for=message-input]');
     await expect(messageLabel).toHaveText('Prompt');
 
     const messageTextarea = sidePanelPage.locator('#message-input');
     await expect(messageTextarea).toHaveAttribute(
       'placeholder',
-      'Ask anything',
+      'Enter your prompt...',
     );
 
     const sendButton = sidePanelPage.locator('#send-message-button');
@@ -30,37 +29,28 @@ test.describe('Side Panel UI Component Tests', () => {
     await expect(closeAllButton).toBeVisible();
   });
 
-  test('should toggle between tabs correctly', async ({ sidePanelPage }) => {
-    // Initially on Compose tab
-    const composeButton = sidePanelPage.locator('#tab-home');
-    const settingsButton = sidePanelPage.locator('#tab-settings');
+  test('should render all sections in single page layout', async ({
+    sidePanelPage,
+  }) => {
+    // In single page layout, all sections should be visible at once
 
-    await expect(composeButton).toHaveClass(/active/);
-
-    // Check Compose content is visible
+    // Check Sites section is visible (theme is now part of sites section)
     await expect(sidePanelPage.locator('#sites-section')).toBeVisible();
+
+    // Check theme buttons are visible in sites header
+    await expect(sidePanelPage.locator('.theme-selector .theme-btn')).toHaveCount(3);
+
+    // Check Message section is visible
     await expect(sidePanelPage.locator('#message-input')).toBeVisible();
 
-    // Switch to Settings tab
-    await TestUtils.switchToTab(sidePanelPage, 'tab-settings');
-
-    // Check Settings content is visible
-    await expect(
-      sidePanelPage.locator('section').filter({ hasText: 'Sites' }).first(),
-    ).toBeVisible();
-    await expect(sidePanelPage.locator('#theme-settings')).toBeVisible();
-
-    // Check Compose content is hidden
-    await expect(sidePanelPage.locator('#message-input')).not.toBeVisible();
-
-    // Switch back to Compose tab
-    await TestUtils.switchToTab(sidePanelPage, 'tab-home');
-
-    // Check Compose content is visible again
+    // All sections should be visible simultaneously
+    await expect(sidePanelPage.locator('#sites-section')).toBeVisible();
     await expect(sidePanelPage.locator('#message-input')).toBeVisible();
   });
 
-  test('should handle message input interactions', async ({ sidePanelPage }) => {
+  test('should handle message input interactions', async ({
+    sidePanelPage,
+  }) => {
     const messageTextarea = sidePanelPage.locator('#message-input');
     const sendButton = sidePanelPage.locator('#send-message-button');
 
@@ -85,7 +75,7 @@ test.describe('Side Panel UI Component Tests', () => {
   });
 
   test('should handle site toggles in settings', async ({ sidePanelPage }) => {
-    await TestUtils.switchToTab(sidePanelPage, 'tab-settings');
+    // Site toggles are now inline - no need to switch tabs
 
     // Find site toggle labels
     const siteLabels = sidePanelPage.locator('label[id^="site-toggle-"]');
@@ -106,25 +96,32 @@ test.describe('Side Panel UI Component Tests', () => {
     }
   });
 
-  test('should handle theme selector interactions', async ({ sidePanelPage }) => {
-    await TestUtils.switchToTab(sidePanelPage, 'tab-settings');
+  test('should handle theme selector interactions', async ({
+    sidePanelPage,
+  }) => {
+    // Theme selector is now buttons in the sites section header
 
-    // Find theme selector section
-    const themeSection = sidePanelPage.locator('#theme-settings');
-    await expect(themeSection).toBeVisible();
-
-    // Find theme option buttons
-    const themeButtons = themeSection.locator('button[id^="theme-option-"]');
-    const buttonCount = await themeButtons.count();
-
-    expect(buttonCount).toBeGreaterThan(0);
+    // Find theme selector buttons
+    const themeButtons = sidePanelPage.locator('.theme-selector .theme-btn');
+    await expect(themeButtons).toHaveCount(3);
 
     // Test clicking different theme buttons
-    for (let i = 0; i < Math.min(buttonCount, 3); i++) {
-      await TestUtils.selectTheme(sidePanelPage, i);
-      const themeButton = themeButtons.nth(i);
-      await expect(themeButton).toBeVisible();
-    }
+    // Get the buttons (should be auto, light, dark in that order based on themeOptions)
+    const autoButton = themeButtons.nth(0);
+    const lightButton = themeButtons.nth(1);
+    const darkButton = themeButtons.nth(2);
+
+    // Click light theme button
+    await lightButton.click();
+    await expect(lightButton).toHaveClass(/active/);
+
+    // Click dark theme button  
+    await darkButton.click();
+    await expect(darkButton).toHaveClass(/active/);
+
+    // Click auto theme button
+    await autoButton.click();
+    await expect(autoButton).toHaveClass(/active/);
   });
 
   test('should persist settings between sessions', async ({
@@ -133,11 +130,12 @@ test.describe('Side Panel UI Component Tests', () => {
   }) => {
     // Open popup page
     let sidePanelPage = await context.newPage();
-    await sidePanelPage.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+    await sidePanelPage.goto(
+      `chrome-extension://${extensionId}/sidepanel.html`,
+    );
     await TestUtils.waitForPopupReady(sidePanelPage);
 
-    // Find and change a site setting if available
-    await TestUtils.switchToTab(sidePanelPage, 'tab-settings');
+    // Find and change a site setting if available (inline now)
     const siteLabels = sidePanelPage.locator('label[id^="site-toggle-"]');
     const labelCount = await siteLabels.count();
 
@@ -155,10 +153,9 @@ test.describe('Side Panel UI Component Tests', () => {
     }
 
     // Change theme if available
-    const themeButtons = sidePanelPage.locator('button[id^="theme-option-"]');
-    const themeButtonCount = await themeButtons.count();
-    if (themeButtonCount > 1) {
-      await TestUtils.selectTheme(sidePanelPage, 1);
+    const themeSelect = sidePanelPage.locator('#theme-select');
+    if (await themeSelect.isVisible()) {
+      await themeSelect.selectOption('dark');
     }
 
     // Close popup
@@ -169,12 +166,13 @@ test.describe('Side Panel UI Component Tests', () => {
 
     // Reopen popup
     sidePanelPage = await context.newPage();
-    await sidePanelPage.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+    await sidePanelPage.goto(
+      `chrome-extension://${extensionId}/sidepanel.html`,
+    );
     await TestUtils.waitForPopupReady(sidePanelPage);
 
-    // Verify settings persisted
+    // Verify settings persisted (inline layout now)
     if (labelCount > 0 && changedState !== null) {
-      await TestUtils.switchToTab(sidePanelPage, 'tab-settings');
       const firstCheckboxNew = sidePanelPage
         .locator('input[id^="site-checkbox-"]')
         .first();

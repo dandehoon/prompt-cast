@@ -8,7 +8,9 @@ test.describe('Extension Functional Tests', () => {
   }) => {
     // Open popup
     const sidePanelPage = await context.newPage();
-    await sidePanelPage.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+    await sidePanelPage.goto(
+      `chrome-extension://${extensionId}/sidepanel.html`,
+    );
     await TestUtils.waitForPopupReady(sidePanelPage);
 
     // Ensure at least one site is enabled
@@ -97,11 +99,12 @@ test.describe('Extension Functional Tests', () => {
   }) => {
     // Open popup
     const sidePanelPage = await context.newPage();
-    await sidePanelPage.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+    await sidePanelPage.goto(
+      `chrome-extension://${extensionId}/sidepanel.html`,
+    );
     await TestUtils.waitForPopupReady(sidePanelPage);
 
-    // Enable multiple sites if available
-    await TestUtils.switchToTab(sidePanelPage, 'tab-settings');
+    // Enable multiple sites if available (inline layout now)
     const siteLabels = sidePanelPage.locator('label[id^="site-toggle-"]');
     const labelCount = await siteLabels.count();
 
@@ -136,12 +139,14 @@ test.describe('Extension Functional Tests', () => {
   }) => {
     // Open popup
     const sidePanelPage = await context.newPage();
-    await sidePanelPage.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+    await sidePanelPage.goto(
+      `chrome-extension://${extensionId}/sidepanel.html`,
+    );
     await TestUtils.waitForPopupReady(sidePanelPage);
 
     // Ensure we're on compose tab and have enabled sites
     await TestUtils.ensureAtLeastOneSiteEnabled(sidePanelPage);
-    await TestUtils.switchToTab(sidePanelPage, 'tab-home');
+    // No need to switch tabs in single page layout
 
     // Find site cards
     const sitesSection = sidePanelPage.locator('#sites-section');
@@ -177,7 +182,9 @@ test.describe('Extension Functional Tests', () => {
   }) => {
     // Open popup
     const sidePanelPage = await context.newPage();
-    await sidePanelPage.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+    await sidePanelPage.goto(
+      `chrome-extension://${extensionId}/sidepanel.html`,
+    );
     await TestUtils.waitForPopupReady(sidePanelPage);
 
     // Ensure sites are enabled and send a message to create tabs
