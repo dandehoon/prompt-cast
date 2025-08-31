@@ -47,28 +47,31 @@
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', index.toString());
 
-    // Add visual feedback with slight delay
-    setTimeout(() => {
-      const target = event.target as HTMLElement;
-      target.style.opacity = '0.5';
-    }, 0);
+    // No need for manual DOM manipulation - CSS class handles opacity
   }
 
   function handleDragEnd(event: DragEvent) {
-    const target = event.target as HTMLElement;
-    target.style.opacity = '1';
+    // No need for manual DOM manipulation - CSS class handles opacity
     resetDragState();
   }
 
   function handleDragOver(event: DragEvent, index: number) {
     event.preventDefault();
+    // Throttle drag over updates to reduce flickering
     if (draggedIndex !== null && draggedIndex !== index) {
-      dragOverIndex = index;
+      if (dragOverIndex !== index) {
+        dragOverIndex = index;
+      }
     }
   }
 
-  function handleDragLeave() {
-    dragOverIndex = null;
+  function handleDragLeave(event: DragEvent) {
+    // Only reset if actually leaving the container, not moving between children
+    const related = event.relatedTarget as HTMLElement;
+    const container = event.currentTarget as HTMLElement;
+    if (!container.contains(related)) {
+      dragOverIndex = null;
+    }
   } // Utility function for calculating drop position
   function calculateInsertIndex(
     dragIndex: number,
@@ -130,6 +133,7 @@
         <div
           class="drag-container"
           class:drag-over={dragOverIndex === index}
+          class:dragging={draggedIndex === index}
           draggable="true"
           role="listitem"
           aria-label="Draggable site card for {site.name}"
@@ -200,6 +204,7 @@
     opacity: 0;
     transition: opacity 0.15s ease;
     z-index: 10;
+    pointer-events: none; /* Prevent hover events on pseudo-element */
   }
 
   .drag-container.drag-over::before {
@@ -207,12 +212,19 @@
   }
 
   .drag-container {
-    cursor: grab;
     position: relative;
+    /* More stable cursor that doesn't change during drag operations */
+    cursor: grab;
+    transition: opacity 0.15s ease; /* Smooth opacity transition */
   }
 
   .drag-container:active {
     cursor: grabbing;
+  }
+
+  /* Handle dragging state with CSS class for smoother transitions */
+  .drag-container.dragging {
+    opacity: 0.5;
   }
 
   .drop-zone {
@@ -232,6 +244,7 @@
     opacity: 0;
     transition: opacity 0.15s ease;
     z-index: 10;
+    pointer-events: none; /* Prevent hover events on pseudo-element */
   }
 
   .drop-zone.drag-over::before {

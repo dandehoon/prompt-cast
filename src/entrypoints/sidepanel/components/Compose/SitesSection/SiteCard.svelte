@@ -51,7 +51,7 @@
 </script>
 
 <div
-  class="pc-card p-3 h-14 pc-transition {cursorStyle}"
+  class="pc-card p-3 h-14 pc-transition-fast {cursorStyle}"
   onclick={handleCardClick}
   onkeypress={(e) => e.key === 'Enter' && handleCardClick(e)}
   role="button"
@@ -115,27 +115,34 @@
 </div>
 
 <style>
-  .pc-card:hover {
-    background-color: var(--pc-bg-hover);
-  }
+  /* Remove redundant hover style that conflicts with common.css */
+  /* The .pc-card:hover style is already defined in common.css */
 
   .drag-handle {
     color: var(--pc-text-secondary);
     cursor: grab;
     opacity: 0.6;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.15s ease;
+    /* Ensure drag handle doesn't interfere with card hover */
+    pointer-events: auto;
   }
 
   .drag-handle:hover {
     opacity: 1;
   }
 
+  /* Only show drag handle hover when card is hovered, not when child elements are hovered */
   .pc-card:hover .drag-handle {
     opacity: 0.8;
   }
 
+  /* Reduce transform scale to prevent layout shifts that cause flickering */
+  label {
+    transition: transform 0.15s ease;
+  }
+
   label:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
   }
 
   .peer:checked + label::after {
