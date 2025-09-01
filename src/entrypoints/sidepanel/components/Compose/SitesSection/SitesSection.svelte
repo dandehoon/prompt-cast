@@ -129,7 +129,7 @@
   </header>
   <div class="sites-scrollable">
     <div
-      class="grid grid-cols-1 gap-2"
+      class="grid grid-cols-1 gap-2 mt-2"
       role="list"
       ondragleave={handleDragLeave}
     >
@@ -195,11 +195,6 @@
     background: transparent;
   }
 
-  /* When dragging, disable pointer events on children of drop targets to prevent flickering */
-  /* .is-dragging .drag-container > * {
-    pointer-events: none;
-  } */
-
   .drag-container::before {
     content: '';
     position: absolute;
@@ -209,9 +204,7 @@
     height: 2px;
     background-color: var(--pc-success);
     opacity: 0;
-    transition: opacity 0.15s ease;
     z-index: 10;
-    pointer-events: none; /* Prevent hover events on pseudo-element */
   }
 
   .drag-container.drag-over::before {
@@ -220,9 +213,6 @@
 
   .drag-container {
     position: relative;
-    /* More stable cursor that doesn't change during drag operations */
-    cursor: grab;
-    transition: opacity 0.15s ease; /* Smooth opacity transition */
   }
 
   .drag-container:active {
@@ -231,7 +221,7 @@
 
   /* Handle dragging state with CSS class for smoother transitions */
   .drag-container.dragging {
-    opacity: 0.5;
+    opacity: 0.2;
   }
 
   .drop-zone {
@@ -249,9 +239,7 @@
     height: 2px;
     background-color: var(--pc-success);
     opacity: 0;
-    transition: opacity 0.15s ease;
     z-index: 10;
-    pointer-events: none; /* Prevent hover events on pseudo-element */
   }
 
   .drop-zone.drag-over::before {
