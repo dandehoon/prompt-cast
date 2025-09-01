@@ -82,7 +82,7 @@
     <label
       for="message-input"
       class="block text-sm font-medium"
-      style="color: var(--pc-text-primary);"
+      style:color="var(--pc-text-primary)"
     >
       Prompt
     </label>
@@ -90,14 +90,14 @@
       id="close-all-tabs-button"
       onclick={onCloseAll}
       disabled={closeAllLoading}
-      class="p-2 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
-      style="color: var(--pc-error);"
+      class="p-2 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      style:color="var(--pc-error)"
       title="Close All Tabs"
     >
       {#if closeAllLoading}
         <div
           class="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full"
-          style="border-color: var(--pc-error);"
+          style:border-color="var(--pc-error)"
         ></div>
       {:else}
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -119,7 +119,10 @@
     {placeholder}
     {disabled}
     class="w-full min-h-20 p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed resize-none overflow-y-auto"
-    style="background-color: var(--pc-bg-card); border: 1px solid var(--pc-border); color: var(--pc-text-primary); line-height: 20px;"
+    style:background-color="var(--pc-bg-card)"
+    style:border="1px solid var(--pc-border)"
+    style:color="var(--pc-text-primary)"
+    style:line-height="20px"
   ></textarea>
 </div>
 

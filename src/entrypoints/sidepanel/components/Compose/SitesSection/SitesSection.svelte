@@ -50,23 +50,30 @@
     // No need for manual DOM manipulation - CSS class handles opacity
   }
 
-  function handleDragEnd(event: DragEvent) {
+  function handleDragEnd() {
     // No need for manual DOM manipulation - CSS class handles opacity
     resetDragState();
   }
 
   function handleDragOver(event: DragEvent, index: number) {
     event.preventDefault();
-    // Throttle drag over updates to reduce flickering
-    if (draggedIndex !== null && draggedIndex !== index) {
-      if (dragOverIndex !== index) {
-        dragOverIndex = index;
-      }
+    if (
+      draggedIndex !== null &&
+      draggedIndex !== index &&
+      dragOverIndex !== index
+    ) {
+      dragOverIndex = index;
     }
   }
 
-  function handleDragLeave() {
-    dragOverIndex = null;
+  function handleDragLeave(event: DragEvent) {
+    // Only reset drag over if we're leaving the container entirely
+    const relatedTarget = event.relatedTarget as Element;
+    const currentTarget = event.currentTarget as Element;
+
+    if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
+      dragOverIndex = null;
+    }
   }
   // Utility function for calculating drop position
   function calculateInsertIndex(
@@ -85,8 +92,7 @@
     event.preventDefault();
 
     if (draggedIndex === null || draggedIndex === dropIndex) {
-      draggedIndex = null;
-      dragOverIndex = null;
+      resetDragState();
       return;
     }
 
@@ -105,18 +111,20 @@
     // Insert at the calculated position and save
     newOrder.splice(insertIndex, 0, draggedItem);
     const siteIds = newOrder.map((site) => site.id);
-    await siteActions.reorderSites(siteIds);
+
+    try {
+      await siteActions.reorderSites(siteIds);
+    } catch (error) {
+      console.error('Failed to reorder sites:', error);
+      // Could potentially revert the UI state here
+    }
 
     // Reset drag state
     resetDragState();
   }
 </script>
 
-<section
-  class="sites-section"
-  id="sites-section"
-  class:is-dragging={draggedIndex !== null}
->
+<section class="sites-section" id="sites-section">
   <header class="sites-header">
     <h2 class="text-sm font-medium" style="color: var(--pc-text-primary);">
       Sites
@@ -131,7 +139,7 @@
     <div
       class="grid grid-cols-1 gap-2 mt-2"
       role="list"
-      ondragleave={handleDragLeave}
+      ondragleave={(e) => handleDragLeave(e)}
     >
       {#each sites as site, index (site.id)}
         <div
@@ -140,7 +148,7 @@
           class:dragging={draggedIndex === index}
           draggable="true"
           role="listitem"
-          aria-label="Draggable site card for {site.name}"
+          aria-label="Draggable site card for {site.name}. Use mouse to drag and reorder."
           ondragstart={(e) => handleDragStart(e, index)}
           ondragend={handleDragEnd}
           ondragover={(e) => handleDragOver(e, index)}

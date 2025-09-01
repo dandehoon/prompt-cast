@@ -123,20 +123,15 @@
     cursor: grab;
     opacity: 0.6;
     transition: opacity 0.15s ease;
-    /* Ensure drag handle doesn't interfere with card hover */
     pointer-events: auto;
   }
 
-  .drag-handle:hover {
-    opacity: 1;
-  }
-
-  /* Only show drag handle hover when card is hovered, not when child elements are hovered */
+  .drag-handle:hover,
   .pc-card:hover .drag-handle {
     opacity: 0.8;
   }
 
-  /* Reduce transform scale to prevent layout shifts that cause flickering */
+  /* Toggle switch styles */
   label {
     transition: transform 0.15s ease;
   }
@@ -145,10 +140,7 @@
     transform: scale(1.02);
   }
 
-  .peer:checked + label::after {
-    background-color: var(--pc-text-inverted);
-  }
-
+  .peer:checked + label::after,
   .peer:not(:checked) + label::after {
     background-color: var(--pc-text-inverted);
   }

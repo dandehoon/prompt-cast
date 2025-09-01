@@ -27,6 +27,10 @@
   );
   const hasMessage = $derived(messageState.current.trim().length > 0);
 
+  // Simplified state for button
+  const buttonDisabled = $derived(!hasMessage || messageState.sendLoading);
+  const buttonText = $derived(messageState.sendLoading ? 'Sending...' : 'Send');
+
   // Local ref for message input - handle it here since parent doesn't care
   let messageInputRef = $state<HTMLTextAreaElement>();
 
@@ -85,16 +89,15 @@
   <button
     id="send-message-button"
     onclick={messageActions.sendMessage}
-    disabled={!hasMessage || messageState.sendLoading}
-    class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed {!hasMessage ||
-    messageState.sendLoading
-      ? ''
-      : 'cursor-pointer'}"
-    style="background-color: {!hasMessage || messageState.sendLoading
+    disabled={buttonDisabled}
+    class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
+    class:cursor-pointer={!buttonDisabled}
+    style:background-color={buttonDisabled
       ? 'var(--pc-text-disabled)'
-      : 'var(--pc-accent)'}; color: var(--pc-text-inverted);"
+      : 'var(--pc-accent)'}
+    style:color="var(--pc-text-inverted)"
   >
-    {messageState.sendLoading ? 'Sending...' : 'Send'}
+    {buttonText}
   </button>
 
   <div class="flex items-center justify-center">
