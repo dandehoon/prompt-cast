@@ -196,14 +196,14 @@
   }
 
   /* When dragging, disable pointer events on children of drop targets to prevent flickering */
-  .is-dragging .drag-container > * {
+  /* .is-dragging .drag-container > * {
     pointer-events: none;
-  }
+  } */
 
   .drag-container::before {
     content: '';
     position: absolute;
-    top: -1px;
+    top: -5px;
     left: 0;
     right: 0;
     height: 2px;
