@@ -5,7 +5,7 @@ node_modules/
 
 # Production builds
 dist/
-.output/
+.output
 build/
 
 # Build artifacts and stats

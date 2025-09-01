@@ -65,14 +65,10 @@
     }
   }
 
-  function handleDragLeave(event: DragEvent) {
-    // Only reset if actually leaving the container, not moving between children
-    const related = event.relatedTarget as HTMLElement;
-    const container = event.currentTarget as HTMLElement;
-    if (!container.contains(related)) {
-      dragOverIndex = null;
-    }
-  } // Utility function for calculating drop position
+  function handleDragLeave() {
+    dragOverIndex = null;
+  }
+  // Utility function for calculating drop position
   function calculateInsertIndex(
     dragIndex: number,
     dropIndex: number,
@@ -116,7 +112,11 @@
   }
 </script>
 
-<section class="sites-section" id="sites-section">
+<section
+  class="sites-section"
+  id="sites-section"
+  class:is-dragging={draggedIndex !== null}
+>
   <header class="sites-header">
     <h2 class="text-sm font-medium" style="color: var(--pc-text-primary);">
       Sites
@@ -128,7 +128,11 @@
     />
   </header>
   <div class="sites-scrollable">
-    <div class="grid grid-cols-1 gap-2" role="list">
+    <div
+      class="grid grid-cols-1 gap-2"
+      role="list"
+      ondragleave={handleDragLeave}
+    >
       {#each sites as site, index (site.id)}
         <div
           class="drag-container"
@@ -140,7 +144,6 @@
           ondragstart={(e) => handleDragStart(e, index)}
           ondragend={handleDragEnd}
           ondragover={(e) => handleDragOver(e, index)}
-          ondragleave={handleDragLeave}
           ondrop={(e) => handleDrop(e, index)}
         >
           <SiteCard {site} />
@@ -154,7 +157,6 @@
         role="application"
         aria-label="Drop zone to place item at the end"
         ondragover={(e) => handleDragOver(e, sites.length)}
-        ondragleave={handleDragLeave}
         ondrop={(e) => handleDrop(e, sites.length)}
       ></div>
     </div>
@@ -191,6 +193,11 @@
     display: none;
     width: 0;
     background: transparent;
+  }
+
+  /* When dragging, disable pointer events on children of drop targets to prevent flickering */
+  .is-dragging .drag-container > * {
+    pointer-events: none;
   }
 
   .drag-container::before {
