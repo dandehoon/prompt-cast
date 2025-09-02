@@ -90,7 +90,7 @@
       id="close-all-tabs-button"
       onclick={onCloseAll}
       disabled={closeAllLoading}
-      class="p-2 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="p-2 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
       style:color="var(--pc-error)"
       title="Close All Tabs"
     >
@@ -118,7 +118,7 @@
     onkeydown={handleKeyDown}
     {placeholder}
     {disabled}
-    class="w-full min-h-20 p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed resize-none overflow-y-auto"
+    class="w-full min-h-20 p-3 rounded-lg disabled:opacity-50 resize-none overflow-y-auto"
     style:background-color="var(--pc-bg-card)"
     style:border="1px solid var(--pc-border)"
     style:color="var(--pc-text-primary)"
