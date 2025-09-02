@@ -35,28 +35,16 @@
       'info',
     );
   }
-
-  const cursorStyle = $derived(
-    site.enabled ? 'cursor-pointer' : 'cursor-default',
-  );
-  const statusColor = $derived(
-    site.status === SITE_STATUS.CONNECTED
-      ? 'pc-status-connected'
-      : site.status === SITE_STATUS.LOADING
-        ? 'pc-status-loading'
-        : site.status === SITE_STATUS.ERROR
-          ? 'pc-status-error'
-          : 'pc-status-disconnected',
-  );
 </script>
 
 <div
-  class="pc-card p-3 h-14 pc-transition-fast {cursorStyle}"
+  class="pc-card p-3 h-14 pc-transition-fast"
+  class:cursor-pointer={site.enabled}
   onclick={handleCardClick}
   onkeypress={(e) => e.key === 'Enter' && handleCardClick(e)}
   role="button"
   tabindex="0"
-  style="opacity: {site.enabled ? '1' : '0.6'};"
+  style="opacity: {site.enabled ? '1' : '0.3'};"
 >
   <div class="flex items-center justify-between h-full">
     <!-- Drag Handle -->
@@ -89,7 +77,11 @@
         >{site.name}</span
       >
       <div
-        class="w-2 h-2 rounded-full flex-shrink-0 {statusColor} self-center"
+        class="w-2 h-2 rounded-full flex-shrink-0 self-center"
+        class:pc-status-connected={site.status === SITE_STATUS.CONNECTED}
+        class:pc-status-loading={site.status === SITE_STATUS.LOADING}
+        class:pc-status-error={site.status === SITE_STATUS.ERROR}
+        class:pc-status-disconnected={site.status === SITE_STATUS.DISCONNECTED}
       ></div>
     </div>
 

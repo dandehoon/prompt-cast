@@ -183,7 +183,6 @@
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
-    margin-bottom: 0.75rem; /* space-y-3 equivalent */
   }
 
   .sites-scrollable {

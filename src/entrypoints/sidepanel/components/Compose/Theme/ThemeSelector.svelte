@@ -64,7 +64,7 @@
     height: 1.75rem;
     padding: 0.25rem;
     border: 1px solid var(--pc-border, #d1d5db);
-    border-radius: 0.25rem;
+    border-radius: 0.5rem;
     background: var(--pc-surface, #ffffff);
     color: var(--pc-text, #6b7280);
     cursor: pointer;
@@ -97,7 +97,7 @@
 
   /* Dark theme support */
   :global(.dark) .theme-btn {
-    background: var(--pc-surface, #374151);
+    background: var(--pc-surface, #333);
     color: var(--pc-text, #9ca3af);
     border-color: var(--pc-border, #4b5563);
   }
