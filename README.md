@@ -35,7 +35,7 @@ The extension will appear in your toolbar with the Prompt Cast icon. Click to op
 1. Click extension icon or press **Alt+P** to open side panel
 2. Type message in the bottom input area
 3. Press **Enter** to send (Shift+Enter for new line)
-4. Toggle sites on/off as needed
+4. Toggle sites on/off as needed (you have to configure enabled sites first)
 5. **Drag sites** to reorder them for your preferred workflow
 6. Use **Alt+Shift+P** to quickly close all AI site tabs
 
