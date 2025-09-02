@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.0.0] - 2025-09-02
+
 ### Added
 
 - Centralized site management interface
