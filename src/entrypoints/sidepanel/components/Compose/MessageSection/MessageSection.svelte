@@ -73,7 +73,7 @@
   class="p-4 pt-2 pb-2 space-y-2"
   style="border-top: 1px solid var(--pc-border);"
 >
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between mb-1">
     <div class="flex-1">
       <MessageInput
         value={messageState.current}

@@ -78,13 +78,13 @@
 </script>
 
 <div class="space-y-2">
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between mb-1">
     <label
       for="message-input"
       class="block text-sm font-medium"
       style:color="var(--pc-text-primary)"
     >
-      Prompt
+      Compose
     </label>
     <button
       id="close-all-tabs-button"
@@ -92,7 +92,7 @@
       disabled={closeAllLoading}
       class="p-2 rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
       style:color="var(--pc-error)"
-      title="Close All Tabs"
+      title="Close AI Tabs"
     >
       {#if closeAllLoading}
         <div
@@ -122,7 +122,6 @@
     style:background-color="var(--pc-bg-card)"
     style:border="1px solid var(--pc-border)"
     style:color="var(--pc-text-primary)"
-    style:line-height="20px"
   ></textarea>
 </div>
 
