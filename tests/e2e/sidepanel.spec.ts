@@ -10,7 +10,7 @@ test.describe('Side Panel UI Component Tests', () => {
 
     // Check for message input elements (single page layout)
     const messageLabel = sidePanelPage.locator('label[for=message-input]');
-    await expect(messageLabel).toHaveText('Prompt');
+    await expect(messageLabel).toHaveText('Compose');
 
     const messageTextarea = sidePanelPage.locator('#message-input');
     await expect(messageTextarea).toHaveAttribute(
