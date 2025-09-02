@@ -22,8 +22,8 @@ test.describe('Extension Functional Tests', () => {
 
     await TestUtils.sendMessage(sidePanelPage, testMessage);
 
-    // Wait for extension operations to complete
-    await sidePanelPage.waitForTimeout(5000);
+    // Wait longer for extension operations to complete since injection is now non-blocking
+    await sidePanelPage.waitForTimeout(3000);
 
     // Check that new tabs were opened
     const finalPages = context.pages();
