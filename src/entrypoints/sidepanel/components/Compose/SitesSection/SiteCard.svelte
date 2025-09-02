@@ -48,10 +48,7 @@
 >
   <div class="flex items-center justify-between h-full">
     <!-- Drag Handle -->
-    <div
-      class="drag-handle flex-shrink-0 mr-2 p-1"
-      aria-label="Drag to reorder"
-    >
+    <div class="drag-handle flex-shrink-0 mr-2 p-1">
       <svg
         width="8"
         height="16"
@@ -92,7 +89,6 @@
         checked={site.enabled}
         id="site-checkbox-{site.id}"
         onchange={handleToggle}
-        aria-label="Toggle {site.name}"
       />
       <label
         id="site-toggle-{site.id}"

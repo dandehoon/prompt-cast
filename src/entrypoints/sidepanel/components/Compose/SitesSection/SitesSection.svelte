@@ -46,12 +46,9 @@
     draggedIndex = index;
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', index.toString());
-
-    // No need for manual DOM manipulation - CSS class handles opacity
   }
 
   function handleDragEnd() {
-    // No need for manual DOM manipulation - CSS class handles opacity
     resetDragState();
   }
 
@@ -148,7 +145,6 @@
           class:dragging={draggedIndex === index}
           draggable="true"
           role="listitem"
-          aria-label="Draggable site card for {site.name}. Use mouse to drag and reorder."
           ondragstart={(e) => handleDragStart(e, index)}
           ondragend={handleDragEnd}
           ondragover={(e) => handleDragOver(e, index)}
@@ -163,7 +159,6 @@
         class="drop-zone"
         class:drag-over={dragOverIndex === sites.length}
         role="application"
-        aria-label="Drop zone to place item at the end"
         ondragover={(e) => handleDragOver(e, sites.length)}
         ondrop={(e) => handleDrop(e, sites.length)}
       ></div>
@@ -226,9 +221,8 @@
     cursor: grabbing;
   }
 
-  /* Handle dragging state with CSS class for smoother transitions */
   .drag-container.dragging {
-    opacity: 0.2;
+    opacity: 0.75;
   }
 
   .drop-zone {

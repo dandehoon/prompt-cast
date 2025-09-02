@@ -21,7 +21,6 @@
       title={option.label}
       class="theme-btn"
       class:active={currentTheme === option.value}
-      aria-label={option.label}
     >
       {#if option.value === 'light'}
         <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
