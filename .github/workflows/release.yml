@@ -75,11 +75,11 @@ jobs:
         version: ${{ steps.extract-version.outputs.version }}
         path: ./CHANGELOG.md
 
-    - name: Generate Commit Log
-      id: commit_log
+    - name: Generate PR Log
+      id: pr_log
       run: |
-        chmod +x ./scripts/generate-commit-log.sh
-        ./scripts/generate-commit-log.sh
+        chmod +x ./scripts/generate-pr-log.sh
+        ./scripts/generate-pr-log.sh
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
@@ -95,9 +95,9 @@ jobs:
 
           ${{ steps.changelog.outputs.changes }}
 
-          ### 💾 Commits
+          ### � Pull Requests
 
-          ${{ steps.commit_log.outputs.commits }}
+          ${{ steps.pr_log.outputs.commits }}
 
           ### 📦 Installation
 

@@ -7,7 +7,8 @@
 - Centralized site management interface
 - Auto-focus functionality for improved keyboard navigation
 - **Drag-and-drop site reordering**: Users can now hold and drag site cards to reorder them
-- **Ordered batch operations**: Message sending and tab operations now respect custom site ordering
+- **New AI Sites**: DeepSeek and Qwen AI support
+- **Auto-Stop**: Automatically stops ongoing generation before sending new messages
 
 ### Changed
 
