@@ -2,6 +2,7 @@ import { defineExtensionMessaging } from '@webext-core/messaging';
 import type {
   SendMessagePayload,
   SiteTogglePayload,
+  SiteOrderPayload,
   SiteConfig,
 } from '../types';
 import type { SiteStatusType } from '@/shared';
@@ -11,11 +12,13 @@ export interface ExtensionProtocolMap {
   // Message sending operations
   SEND_MESSAGE(data: SendMessagePayload): void;
   SITE_TOGGLE(data: SiteTogglePayload): void;
+  SAVE_SITE_ORDER(data: SiteOrderPayload): void;
   FOCUS_TAB(data: { siteId: string }): void;
   CLOSE_ALL_TABS(): void;
 
   // Query operations that return data
   GET_SITE_CONFIGS(): { data: { configs: Record<string, SiteConfig> } };
+  GET_SITE_ORDER(): { order: string[] };
   GET_SITE_BY_URL(data: { url: string }): {
     config: SiteConfig | null;
   };

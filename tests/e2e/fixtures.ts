@@ -14,7 +14,7 @@ const isCI = Boolean(process?.env?.CI);
 export const test = base.extend<{
   context: BrowserContext;
   extensionId: string;
-  popupPage: Page;
+  sidePanelPage: Page;
 }>({
   context: async ({}, use) => {
     // Use the test extension build path
@@ -137,11 +137,11 @@ export const test = base.extend<{
     await use(extensionId);
   },
 
-  popupPage: async ({ context, extensionId }, use) => {
+  sidePanelPage: async ({ context, extensionId }, use) => {
     const page = await context.newPage();
-    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await page.goto(`chrome-extension://${extensionId}/sidepanel.html`);
 
-    // Wait for popup to be ready
+    // Wait for side panel to be ready
     await page.waitForSelector('body', { state: 'visible' });
     await page.waitForTimeout(1000); // Allow Svelte to initialize
 

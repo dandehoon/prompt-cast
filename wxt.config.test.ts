@@ -25,14 +25,14 @@ export default defineConfig({
           default: 'Alt+P',
           mac: 'Alt+P',
         },
-        description: 'Open Prompt Cast popup',
+        description: 'Open side panel',
       },
       'close-all-tabs': {
         suggested_key: {
           default: 'Alt+Shift+P',
           mac: 'Alt+Shift+P',
         },
-        description: 'Close all AI site tabs',
+        description: 'Close AI tabs',
       },
     },
   },

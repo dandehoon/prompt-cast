@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Centralized site management interface
+- Auto-focus functionality for improved keyboard navigation
+- **Drag-and-drop site reordering**: Users can now hold and drag site cards to reorder them
+- **New AI Sites**: DeepSeek and Qwen AI support
+- **Auto-Stop**: Automatically stops ongoing generation before sending new messages
+
+### Changed
+
+- Migrated from **Popup** to **Side Panel** interface for better workflow
+
 ## [2.2.0] - 2025-08-24
 
 ### Added

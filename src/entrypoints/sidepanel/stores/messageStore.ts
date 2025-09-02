@@ -207,51 +207,78 @@ function createMessageStore() {
         return;
       }
 
-      try {
-        update((state) => ({ ...state, sendLoading: true }));
-        toastActions.showToast('Preparing to send message...', 'info');
+      // Check if already sending
+      if (currentState.sendLoading) {
+        toastActions.showToast(
+          'Message already being sent, please wait',
+          'info',
+        );
+        return;
+      }
 
+      // Store the message to send
+      const messageToSend = trimmedMessage;
+
+      // Set loading state to block button and immediately clear the current message
+      update((state) => {
+        // Only add to history if it's not already the first item
+        let newHistory = [...state.history];
+        if (newHistory.length === 0 || newHistory[0] !== messageToSend) {
+          newHistory = [messageToSend, ...newHistory.slice(0, MAX_HISTORY - 1)];
+        }
+
+        // Save history to localStorage
+        try {
+          window.localStorage.setItem(
+            HISTORY_STORAGE_KEY,
+            JSON.stringify(newHistory),
+          );
+        } catch {
+          // Ignore if localStorage is not available
+        }
+
+        return {
+          ...state,
+          current: '',
+          history: newHistory,
+          historyIndex: -1,
+          sendLoading: true, // Block the button during send
+        };
+      });
+
+      // Clear from localStorage immediately
+      try {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // Ignore
+      }
+
+      // Refocus input immediately so user can start typing
+      setTimeout(() => {
+        const state = get({ subscribe });
+        if (state.inputRef) {
+          state.inputRef.focus();
+        }
+      }, 0);
+
+      // Safety timeout to reset sendLoading if operation hangs (30 seconds)
+      const safetyTimeout = setTimeout(() => {
+        logger.warn('Send operation timed out, resetting sendLoading state');
+        update((state) => ({ ...state, sendLoading: false }));
+        toastActions.showToast(
+          'Send operation timed out, please try again',
+          'error',
+        );
+      }, 30000); // 30 seconds timeout
+
+      // Send the message in the background
+      toastActions.showToast('Sending message...', 'info');
+
+      try {
         await sendMessage('SEND_MESSAGE', {
-          message: trimmedMessage,
+          message: messageToSend,
           sites: currentEnabledSites,
         });
-
-        // Update state: add to history, clear current message
-        update((state) => {
-          // Only add to history if it's not already the first item
-          let newHistory = [...state.history];
-          if (newHistory.length === 0 || newHistory[0] !== trimmedMessage) {
-            newHistory = [
-              trimmedMessage,
-              ...newHistory.slice(0, MAX_HISTORY - 1),
-            ];
-          }
-
-          // Save history to localStorage
-          try {
-            window.localStorage.setItem(
-              HISTORY_STORAGE_KEY,
-              JSON.stringify(newHistory),
-            );
-          } catch {
-            // Ignore if localStorage is not available
-          }
-
-          return {
-            ...state,
-            current: '',
-            history: newHistory,
-            historyIndex: -1,
-            sendLoading: false,
-          };
-        });
-
-        // Clear from localStorage
-        try {
-          window.localStorage.removeItem(STORAGE_KEY);
-        } catch {
-          // Ignore
-        }
 
         toastActions.showToast(
           `Message sent to ${currentEnabledSites.length} sites`,
@@ -261,20 +288,16 @@ function createMessageStore() {
         // Refresh site statuses after sending with longer delay for slow networks
         setTimeout(() => {
           siteActions.refreshSiteStates();
-        }, 3000); // Increased from 1500ms to give more time for tabs to load
-
-        // Refocus input
-        setTimeout(() => {
-          const state = get({ subscribe });
-          if (state.inputRef) {
-            state.inputRef.focus();
-          }
-        }, 100);
+        }, 3000);
       } catch (error) {
         logger.error('Failed to send message:', error);
         const errorMessage =
           error instanceof Error ? error.message : 'Failed to send message';
-        toastActions.showToast(errorMessage, 'error', 8000); // Show longer for detailed errors
+        toastActions.showToast(errorMessage, 'error', 8000);
+      } finally {
+        // Clear the safety timeout since operation completed
+        clearTimeout(safetyTimeout);
+        // Always clear loading state when done
         update((state) => ({ ...state, sendLoading: false }));
       }
     },
@@ -287,6 +310,12 @@ function createMessageStore() {
       } catch {
         // Ignore
       }
+    },
+
+    // Cancel sending (reset loading state)
+    cancelSendMessage() {
+      update((state) => ({ ...state, sendLoading: false }));
+      toastActions.showToast('Message sending cancelled', 'info');
     },
   };
 }
@@ -302,4 +331,5 @@ export const messageActions = {
   handleArrowDown: messageStore.handleArrowDown,
   sendMessage: messageStore.sendMessage,
   clearMessage: messageStore.clearMessage,
+  cancelSendMessage: messageStore.cancelSendMessage,
 };

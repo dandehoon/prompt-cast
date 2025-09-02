@@ -7,7 +7,7 @@
   class="flex flex-col h-full"
   style="background-color: var(--pc-bg-primary);"
 >
-  <main class="p-4 space-y-4">
+  <main class="p-4 pt-2 pb-2 space-y-4 flex-1 overflow-y-auto">
     <SitesSection />
   </main>
 

@@ -12,23 +12,29 @@ export default defineConfig({
   manifest: {
     name: 'Prompt Cast',
     description: '📢 Broadcast your prompts to multiple AI sites at once',
-    version: '2.2.0',
-    permissions: ['tabs', 'scripting', 'storage'],
+    version: '2.3.0',
+    permissions: ['tabs', 'scripting', 'storage', 'sidePanel'],
     host_permissions: getHostPermissions(),
+    action: {
+      default_title: 'Open Prompt Cast',
+    },
+    side_panel: {
+      default_path: 'sidepanel.html',
+    },
     commands: {
       '_execute_action': {
         suggested_key: {
           default: 'Alt+P',
           mac: 'Alt+P',
         },
-        description: 'Open Prompt Cast popup',
+        description: 'Open side panel',
       },
       'close-all-tabs': {
         suggested_key: {
           default: 'Alt+Shift+P',
           mac: 'Alt+Shift+P',
         },
-        description: 'Close all AI site tabs',
+        description: 'Close AI tabs',
       },
     },
   },

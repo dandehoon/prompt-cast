@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   toasts,
   toastActions,
-} from '../../entrypoints/popup/stores/toastStore';
+} from '../../entrypoints/sidepanel/stores/toastStore';
 import { get } from 'svelte/store';
 
 describe('ToastStore', () => {

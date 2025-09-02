@@ -129,6 +129,9 @@ describe('MessageHandler', () => {
       getSite: vi.fn((siteId: string) => mockSites[siteId]),
       getSiteValues: vi.fn(() => Object.values(mockSites)),
       getAllSites: vi.fn(() => mockSites),
+      getOrderedEnabledSites: vi.fn(() =>
+        Object.values(mockSites).filter((site) => site.enabled),
+      ),
     } as any;
 
     messageHandler = new MessageHandler(mockSiteManager, mockTabManager);

@@ -30,6 +30,7 @@ export interface InjectionResult {
     };
     attempts?: number;
     submitted?: boolean;
+    stoppedGeneration?: boolean;
   };
 }
 
@@ -95,6 +96,61 @@ export function createMessageInjector() {
       return { element: null, debugInfo };
     }
 
+    async function clickStopIfPresent(): Promise<boolean> {
+      if (!config.stopSelectors || config.stopSelectors.length === 0) {
+        return false; // No stop selectors configured
+      }
+
+      // First, check if any stop button is present and click it
+      let stoppedSomething = false;
+      for (const selector of config.stopSelectors) {
+        const stopButton = document.querySelector(
+          selector,
+        ) as HTMLButtonElement;
+        if (stopButton && !stopButton.disabled && isVisible(stopButton)) {
+          stopButton.click();
+          stoppedSomething = true;
+          break; // Only click the first available stop button
+        }
+      }
+
+      if (!stoppedSomething) {
+        return false; // No stop button was found to click
+      }
+
+      // Wait and poll until stop button disappears or timeout is reached
+      const maxWaitTime = 3000; // 5 seconds maximum wait time
+      const pollInterval = 200; // Check every 200ms
+      const startTime = Date.now();
+
+      while (Date.now() - startTime < maxWaitTime) {
+        let stopButtonStillPresent = false;
+
+        // Check if any stop button is still visible
+        for (const selector of config.stopSelectors) {
+          const stopButton = document.querySelector(
+            selector,
+          ) as HTMLButtonElement;
+          if (stopButton && !stopButton.disabled && isVisible(stopButton)) {
+            stopButtonStillPresent = true;
+            break;
+          }
+        }
+
+        if (!stopButtonStillPresent) {
+          // Stop button has disappeared, we can proceed
+          return true;
+        }
+
+        // Wait before checking again
+        await sleep(pollInterval);
+      }
+
+      // Timeout reached but stop button might still be present
+      // We'll proceed anyway to avoid infinite waiting
+      return true;
+    }
+
     function injectToElement(element: Element, text: string): boolean {
       try {
         (element as HTMLElement).focus();
@@ -131,7 +187,7 @@ export function createMessageInjector() {
       }
     }
 
-    async function submitMessage(inputElement: Element): Promise<boolean> {
+    async function submitMessage(): Promise<boolean> {
       // Wait a moment for UI to update after injection
       await sleep(300);
 
@@ -150,26 +206,15 @@ export function createMessageInjector() {
           await sleep(200);
         }
       }
-
-      // If submit button is still not available/enabled, try Enter key
-      (inputElement as HTMLElement).focus();
-      inputElement.dispatchEvent(
-        new KeyboardEvent('keydown', {
-          key: 'Enter',
-          code: 'Enter',
-          keyCode: 13,
-          which: 13,
-          bubbles: true,
-          cancelable: true,
-        }),
-      );
-
-      return true;
+      return false;
     }
 
     // Main injection logic - wrap in async IIFE
     return (async (): Promise<InjectionResult> => {
       try {
+        // First, try to stop any ongoing generation if stop selectors are present
+        const stoppedGeneration = await clickStopIfPresent();
+
         const inputResult = findInputElement();
         const inputElement = inputResult.element;
 
@@ -219,7 +264,37 @@ export function createMessageInjector() {
         await sleep(200);
 
         // Submit the message
-        const submitted = await submitMessage(inputElement);
+        const submitted = await submitMessage();
+
+        if (!submitted) {
+          return {
+            success: false,
+            error: 'Message injected but could not find enabled submit button',
+            details: {
+              elementInfo: {
+                tagName: inputElement.tagName,
+                id: inputElement.id,
+                className: inputElement.className,
+                selector:
+                  config.inputSelectors.find((sel: string) =>
+                    inputElement.matches(sel),
+                  ) || 'unknown',
+              },
+              timing: {
+                timestamp: Date.now(),
+                method: config.injectionMethod || 'default',
+                waitTime: Date.now() - startTime,
+              },
+              pageInfo: {
+                title: document.title,
+                url: window.location.href,
+                readyState: document.readyState,
+              },
+              submitted: false,
+              stoppedGeneration,
+            },
+          };
+        }
 
         return {
           success: true,
@@ -244,6 +319,7 @@ export function createMessageInjector() {
               readyState: document.readyState,
             },
             submitted,
+            stoppedGeneration,
           },
         };
       } catch (error) {

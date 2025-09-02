@@ -82,25 +82,23 @@
     0 4px 6px -2px rgba(0, 0, 0, 0.4);
 }
 
-/* Reset styles for popup */
+/* Reset styles for side panel */
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 100%;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  overflow: hidden; /* Prevent body scroll in popup */
+  overflow: hidden; /* Prevent body scroll in side panel */
 }
 
-/* Custom popup styles */
+/* Custom side panel styles */
 .app {
   width: 100%;
-  height: 100%;
+  height: 100vh; /* Full viewport height for side panel */
   display: flex;
   flex-direction: column;
   margin: 0;
   padding: 0;
-  width: 320px;
-  min-height: 200px; /* Minimum height */
-  max-height: 600px; /* Maximum height */
-  height: auto; /* Dynamic height */
+  min-width: 100%; /* Use full side panel width */
+  min-height: 100vh; /* Use full viewport height */
   overflow: hidden;
 }

@@ -4,8 +4,16 @@
   import { messageStore, messageActions } from '../../../stores/messageStore';
   import { toasts } from '../../../stores/toastStore';
   import { enabledCount, connectedCount } from '../../../stores/siteStore';
-  import { tabOperationsStore } from '../../../stores/tabOperationsStore';
+  import {
+    tabOperationsStore,
+    tabOperationsActions,
+  } from '../../../stores/tabOperationsStore';
   import { onMount } from 'svelte';
+  import {
+    createAutoFocusHandler,
+    safeFocus,
+    autoSelectText,
+  } from '@/shared/focusUtils';
 
   // All data comes from stores - no props needed!
   const messageState = $derived($messageStore);
@@ -19,8 +27,21 @@
   );
   const hasMessage = $derived(messageState.current.trim().length > 0);
 
+  // Button disabled when no message OR currently sending
+  const buttonDisabled = $derived(!hasMessage || messageState.sendLoading);
+  const buttonText = $derived(messageState.sendLoading ? 'Sending...' : 'Send');
+
+  // Button click handler - always send (since disabled during loading)
+  const handleButtonClick = () => {
+    messageActions.sendMessage();
+  };
+
   // Local ref for message input - handle it here since parent doesn't care
   let messageInputRef = $state<HTMLTextAreaElement>();
+
+  // Auto-focus management - disabled during sending to prevent conflicts
+  const autoFocusEnabled = $derived(!messageState.sendLoading);
+  let autoFocusHandler: ReturnType<typeof createAutoFocusHandler> | undefined;
 
   // Update the input ref in the store when it changes
   $effect(() => {
@@ -29,25 +50,35 @@
     }
   });
 
-  // Initialize and auto-focus on mount
+  // Initialize and setup auto-focus on mount
   onMount(() => {
     messageActions.initialize();
 
-    // Auto-focus and auto-select text when popup opens
-    setTimeout(() => {
-      if (messageInputRef) {
-        messageInputRef.focus();
-        // Auto-select all text if there's existing content from previous session
-        if (messageInputRef.value.trim()) {
-          messageInputRef.select();
-        }
-      }
-    }, 100);
+    // Initial auto-focus and auto-select text when popup opens
+    if (messageInputRef) {
+      safeFocus(messageInputRef);
+      autoSelectText(messageInputRef);
+    }
+
+    // Setup auto-focus handler for clicks
+    autoFocusHandler = createAutoFocusHandler(
+      () => messageInputRef,
+      () => autoFocusEnabled,
+    );
+    autoFocusHandler.attach();
+
+    // Cleanup function
+    return () => {
+      autoFocusHandler?.detach();
+    };
   });
 </script>
 
-<footer class="p-4 space-y-3" style="border-top: 1px solid var(--pc-border);">
-  <div class="flex items-center justify-between">
+<footer
+  class="p-4 pt-2 pb-2 space-y-2"
+  style="border-top: 1px solid var(--pc-border);"
+>
+  <div class="flex items-center justify-between mb-1">
     <div class="flex-1">
       <MessageInput
         value={messageState.current}
@@ -55,7 +86,9 @@
         onSend={messageActions.sendMessage}
         onArrowUp={messageActions.handleArrowUp}
         onArrowDown={messageActions.handleArrowDown}
-        disabled={messageState.sendLoading}
+        disabled={false}
+        onCloseAll={tabOperationsActions.closeAllTabs}
+        closeAllLoading={tabOpsState.closeAllLoading}
         bind:messageInputRef
       />
     </div>
@@ -63,14 +96,18 @@
 
   <button
     id="send-message-button"
-    onclick={messageActions.sendMessage}
-    disabled={!hasMessage || messageState.sendLoading}
+    onclick={handleButtonClick}
+    disabled={buttonDisabled}
     class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
-    style="background-color: {!hasMessage || messageState.sendLoading
+    class:cursor-pointer={!buttonDisabled}
+    style:background-color={buttonDisabled
       ? 'var(--pc-text-disabled)'
-      : 'var(--pc-accent)'}; color: var(--pc-text-inverted);"
+      : messageState.sendLoading
+        ? 'var(--pc-text-muted)'
+        : 'var(--pc-accent)'}
+    style:color="var(--pc-text-inverted)"
   >
-    {messageState.sendLoading ? 'Sending...' : 'Send'}
+    {buttonText}
   </button>
 
   <div class="flex items-center justify-center">

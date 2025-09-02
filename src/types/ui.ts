@@ -11,12 +11,3 @@ export interface ToastMessage {
   duration?: number;
   timestamp?: number;
 }
-
-// Tab Types
-export type TabId = 'home' | 'settings';
-
-export interface Tab {
-  id: TabId;
-  label: string;
-  icon?: string;
-}

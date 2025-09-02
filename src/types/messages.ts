@@ -12,3 +12,7 @@ export interface SiteTogglePayload {
   siteId: string;
   enabled: boolean;
 }
+
+export interface SiteOrderPayload {
+  order: string[];
+}

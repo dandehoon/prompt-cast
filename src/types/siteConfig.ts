@@ -14,6 +14,7 @@ export interface SiteConfig {
   };
   inputSelectors: string[];
   submitSelectors: string[];
+  stopSelectors?: string[];
   injectionMethod?: 'execCommand';
   chatUriPatterns?: string[];
 }
