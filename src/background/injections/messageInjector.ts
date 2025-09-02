@@ -187,7 +187,7 @@ export function createMessageInjector() {
       }
     }
 
-    async function submitMessage(inputElement: Element): Promise<boolean> {
+    async function submitMessage(): Promise<boolean> {
       // Wait a moment for UI to update after injection
       await sleep(300);
 
@@ -206,22 +206,6 @@ export function createMessageInjector() {
           await sleep(200);
         }
       }
-
-      // If submit button is still not available/enabled, try Enter key
-      (inputElement as HTMLElement).focus();
-      inputElement.dispatchEvent(
-        new KeyboardEvent('keydown', {
-          key: 'Enter',
-          code: 'Enter',
-          keyCode: 13,
-          which: 13,
-          bubbles: true,
-          cancelable: true,
-        }),
-      );
-
-      // Return false since we couldn't find a working submit button
-      // Enter key dispatch is attempted but we can't verify it worked
       return false;
     }
 
@@ -280,7 +264,7 @@ export function createMessageInjector() {
         await sleep(200);
 
         // Submit the message
-        const submitted = await submitMessage(inputElement);
+        const submitted = await submitMessage();
 
         if (!submitted) {
           return {
