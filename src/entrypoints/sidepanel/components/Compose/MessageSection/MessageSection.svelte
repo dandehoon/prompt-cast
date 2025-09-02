@@ -27,14 +27,19 @@
   );
   const hasMessage = $derived(messageState.current.trim().length > 0);
 
-  // Simplified state for button
+  // Button disabled when no message OR currently sending
   const buttonDisabled = $derived(!hasMessage || messageState.sendLoading);
   const buttonText = $derived(messageState.sendLoading ? 'Sending...' : 'Send');
+
+  // Button click handler - always send (since disabled during loading)
+  const handleButtonClick = () => {
+    messageActions.sendMessage();
+  };
 
   // Local ref for message input - handle it here since parent doesn't care
   let messageInputRef = $state<HTMLTextAreaElement>();
 
-  // Auto-focus management - derived from loading state
+  // Auto-focus management - disabled during sending to prevent conflicts
   const autoFocusEnabled = $derived(!messageState.sendLoading);
   let autoFocusHandler: ReturnType<typeof createAutoFocusHandler> | undefined;
 
@@ -81,7 +86,7 @@
         onSend={messageActions.sendMessage}
         onArrowUp={messageActions.handleArrowUp}
         onArrowDown={messageActions.handleArrowDown}
-        disabled={messageState.sendLoading}
+        disabled={false}
         onCloseAll={tabOperationsActions.closeAllTabs}
         closeAllLoading={tabOpsState.closeAllLoading}
         bind:messageInputRef
@@ -91,13 +96,15 @@
 
   <button
     id="send-message-button"
-    onclick={messageActions.sendMessage}
+    onclick={handleButtonClick}
     disabled={buttonDisabled}
     class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
     class:cursor-pointer={!buttonDisabled}
     style:background-color={buttonDisabled
       ? 'var(--pc-text-disabled)'
-      : 'var(--pc-accent)'}
+      : messageState.sendLoading
+        ? 'var(--pc-text-muted)'
+        : 'var(--pc-accent)'}
     style:color="var(--pc-text-inverted)"
   >
     {buttonText}

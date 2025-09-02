@@ -82,7 +82,7 @@ export class MessageHandler {
     const failureCount = results.length - successCount;
 
     if (successCount === 0) {
-      throw new Error(`All ${results.length} injection attempts failed`);
+      throw new Error(`${results.length} injection attempts failed`);
     }
 
     logger.info(

@@ -13,6 +13,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['div#prompt-textarea'],
     submitSelectors: ['button#composer-submit-button'],
+    stopSelectors: ['button#composer-submit-button[data-testid="stop-button"]'],
     chatUriPatterns: ['/', '/c/*'],
   },
 
@@ -27,6 +28,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['div[contenteditable]'],
     submitSelectors: ['button[aria-label="Send message"]'],
+    stopSelectors: ['button[aria-label="Stop response"]'],
     chatUriPatterns: ['/', '/new', '/chat/*'],
   },
 
@@ -40,7 +42,8 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
       dark: '#4285f4',
     },
     inputSelectors: ['div.ql-editor[contenteditable]'],
-    submitSelectors: ['button.send-button'],
+    submitSelectors: ['button.send-button.submit'],
+    stopSelectors: ['button.send-button.stop'],
     chatUriPatterns: ['/', '/app', '/app/*'],
   },
 
@@ -54,7 +57,8 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
       dark: '#7d7d7d',
     },
     inputSelectors: ['textarea[dir="auto"]'],
-    submitSelectors: ['form button[type="submit"]'],
+    submitSelectors: ['form.text-base button[aria-label="Submit"]'],
+    stopSelectors: ['form.text-base button[aria-label="Stop model response"]'],
     chatUriPatterns: ['/', '/chat/*'],
   },
 
@@ -69,6 +73,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['div#ask-input'],
     submitSelectors: ['button[data-testid="submit-button"]'],
+    stopSelectors: ['button[data-testid="stop-generating-response-button"]'],
     injectionMethod: 'execCommand',
     chatUriPatterns: ['/', '/search/*'],
   },
@@ -84,6 +89,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['textarea#userInput'],
     submitSelectors: ['button[data-testid="submit-button"]'],
+    stopSelectors: ['button[data-testid="stop-button"]'],
     chatUriPatterns: ['/', '/chats/*'],
   },
 
@@ -98,6 +104,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['textarea#chat-input'],
     submitSelectors: ['._7436101 ._6f28693'],
+    stopSelectors: ['._7436101 ._6f28693 ._480132b'],
     chatUriPatterns: ['/', '/a/chat/s/*'],
   },
 
@@ -112,6 +119,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     },
     inputSelectors: ['textarea#chat-input'],
     submitSelectors: ['button#send-message-button'],
+    stopSelectors: ['div[aria-label="Stop"] button .icon-StopIcon'],
     chatUriPatterns: ['/', '/c/*'],
   },
 };
