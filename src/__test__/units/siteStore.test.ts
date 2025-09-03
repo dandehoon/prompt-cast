@@ -197,9 +197,9 @@ describe('siteStore', () => {
 
         expect(Array.isArray(enhanced)).toBe(true);
         expect(enhanced.length).toBeGreaterThan(0);
-        
+
         // Check if we have ChatGPT site
-        const chatgptSite = enhanced.find(site => site.id === 'chatgpt');
+        const chatgptSite = enhanced.find((site) => site.id === 'chatgpt');
         if (chatgptSite) {
           expect(chatgptSite).toMatchObject({
             id: 'chatgpt',
@@ -216,9 +216,9 @@ describe('siteStore', () => {
         const enhanced = getEnhancedSites(true);
 
         expect(Array.isArray(enhanced)).toBe(true);
-        
+
         // Check if we have ChatGPT site with proper dark color
-        const chatgptSite = enhanced.find(site => site.id === 'chatgpt');
+        const chatgptSite = enhanced.find((site) => site.id === 'chatgpt');
         if (chatgptSite) {
           expect(chatgptSite.color).toBe('#10a37f'); // Dark color
         }

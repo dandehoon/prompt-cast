@@ -187,20 +187,13 @@ export const orderedSites = derived(
           const status = $siteStatuses[siteId] || SITE_STATUS.DISCONNECTED;
           const enabled = isEnabledSite(siteId, $siteConfigs, $siteStates);
           const tabInfo = $tabStates[siteId];
-          
-          return createEnhancedSite(
-            siteId,
-            config,
-            status,
-            enabled,
-            isDark,
-            {
-              hasTab: tabInfo !== null,
-              isTabReady: tabInfo?.isReady ?? false,
-              isActiveTab: tabInfo?.isActive ?? false,
-              tabId: tabInfo?.tabId,
-            },
-          );
+
+          return createEnhancedSite(siteId, config, status, enabled, isDark, {
+            hasTab: tabInfo !== null,
+            isTabReady: tabInfo?.isReady ?? false,
+            isActiveTab: tabInfo?.isActive ?? false,
+            tabId: tabInfo?.tabId,
+          });
         })
         .filter((site): site is EnhancedSite => site !== null);
     };

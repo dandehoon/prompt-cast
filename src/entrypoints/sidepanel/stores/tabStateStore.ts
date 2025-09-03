@@ -97,7 +97,8 @@ export const tabStateActions = {
 
     // Listen for tab events from background script for instant updates
     onMessage('TAB_EVENT', (message) => {
-      const { eventType, affectedSiteId, currentActiveSiteId, tabInfo } = message.data;
+      const { eventType, affectedSiteId, currentActiveSiteId, tabInfo } =
+        message.data;
 
       // Update active site immediately
       if (currentActiveSiteId !== get(activeSiteId)) {
