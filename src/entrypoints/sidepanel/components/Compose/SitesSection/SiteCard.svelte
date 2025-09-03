@@ -4,12 +4,16 @@
   import { tabOperationsActions } from '../../../stores/tabOperationsStore';
   import { siteActions } from '../../../stores/siteStore';
   import { toastActions } from '../../../stores/toastStore';
+  import { activeTabStore } from '../../../stores/activeTabStore';
 
   interface Props {
     site: EnhancedSite;
   }
 
   let { site }: Props = $props();
+
+  // Check if this site is the currently active tab
+  const isActiveTab = $derived($activeTabStore === site.id);
 
   function handleCardClick(event: MouseEvent | KeyboardEvent) {
     // Don't trigger if clicking on the toggle
@@ -40,11 +44,12 @@
 <div
   class="pc-card p-3 h-14 pc-transition-fast"
   class:cursor-pointer={site.enabled}
+  class:active-tab={isActiveTab}
+  class:site-disabled={!site.enabled}
   onclick={handleCardClick}
   onkeypress={(e) => e.key === 'Enter' && handleCardClick(e)}
   role="button"
   tabindex="0"
-  style="opacity: {site.enabled ? '1' : '0.3'};"
 >
   <div class="flex items-center justify-between h-full">
     <!-- Drag Handle -->
@@ -131,5 +136,13 @@
   .peer:checked + label::after,
   .peer:not(:checked) + label::after {
     background-color: var(--pc-text-inverted);
+  }
+
+  .pc-card.site-disabled {
+    opacity: 0.3;
+  }
+
+  .pc-card.active-tab {
+    background-color: var(--pc-bg-active);
   }
 </style>

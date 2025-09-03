@@ -8,7 +8,7 @@
   --pc-bg-secondary: #edf2f7;
   --pc-bg-card: #ffffff;
   --pc-bg-hover: #e2e8f0;
-  --pc-bg-active: #cbd5e1;
+  --pc-bg-active: #e2e8f0;
 
   --pc-border: #d1d7db;
   --pc-border-hover: #b4bcc2;
@@ -49,7 +49,8 @@
   --pc-bg-secondary: #2f2f2f;
   --pc-bg-tertiary: #3a3a3a;
   --pc-bg-hover: #404040;
-  --pc-bg-card: #333;
+  --pc-bg-active: #444;
+  --pc-bg-card: #2f2f2f;
   --pc-bg-input: #444;
 
   /* Text colors */

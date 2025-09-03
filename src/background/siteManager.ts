@@ -94,16 +94,6 @@ export class SiteManager {
     return [...orderedSites, ...missingSites];
   }
 
-  async getSiteByUrl(href: string): Promise<SiteConfig | null> {
-    await this.ensureInitialized();
-    for (const config of Object.values(this.sites)) {
-      if (config.url.match(href)) {
-        return config;
-      }
-    }
-    return null;
-  }
-
   async toggleSite(payload: SiteTogglePayload): Promise<void> {
     await this.ensureInitialized();
     const site = this.sites[payload.siteId];

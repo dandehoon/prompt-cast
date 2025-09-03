@@ -24,4 +24,9 @@ export interface EnhancedSite extends SiteConfig {
   status: SiteStatusType;
   enabled: boolean;
   color: string;
+  // Tab state information
+  hasTab: boolean;
+  isTabReady: boolean;
+  isActiveTab: boolean;
+  tabId?: number;
 }

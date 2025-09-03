@@ -25,11 +25,8 @@
     closeAllLoading = false,
   }: Props = $props();
 
-  function handleInput(event: Event) {
-    const target = event.target as HTMLTextAreaElement;
-    onChange(target.value);
-
-    // Auto-resize functionality
+  // Auto-resize function for reuse
+  function autoResize(target: HTMLTextAreaElement) {
     target.style.height = 'auto';
     const scrollHeight = target.scrollHeight;
     const lineHeight = 20; // Approximate line height in pixels
@@ -42,6 +39,25 @@
       target.style.height = `${maxHeight}px`;
     }
   }
+
+  // Track the last processed value to avoid duplicate resize calls
+  let lastProcessedValue = value;
+
+  function handleInput(event: Event) {
+    const target = event.target as HTMLTextAreaElement;
+    const newValue = target.value;
+    onChange(newValue);
+    lastProcessedValue = newValue; // Update tracking before resize
+    autoResize(target);
+  }
+
+  // Reactive effect to resize when value changes programmatically (not from user input)
+  $effect(() => {
+    if (messageInputRef && value !== lastProcessedValue) {
+      autoResize(messageInputRef);
+      lastProcessedValue = value;
+    }
+  });
 
   function handleKeyDown(event: KeyboardEvent) {
     // Enter sends message, Shift+Enter creates new line
@@ -126,11 +142,15 @@
 </div>
 
 <style>
-  textarea:focus {
+  #message-input {
+    font-size: 1.05em;
+  }
+
+  #message-input:focus {
     outline: none;
   }
 
-  textarea::placeholder {
+  #message-input::placeholder {
     color: var(--pc-text-muted);
   }
 </style>

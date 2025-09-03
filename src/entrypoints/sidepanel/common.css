@@ -206,7 +206,7 @@
 }
 
 .pc-status-loading {
-  background-color: var(--pc-warning);
+  background-color: var(--pc-info-light);
 }
 
 .pc-status-error {

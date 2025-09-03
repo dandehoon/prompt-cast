@@ -1,5 +1,6 @@
 import { browser } from '#imports';
 import type { SiteConfig } from '../types/siteConfig';
+import type { TabInfo } from '@/types';
 import { logger } from '@/shared';
 import type { Browser } from 'wxt/browser';
 import type { SiteManager } from './siteManager';
@@ -10,7 +11,7 @@ export class TabManager {
   /**
    * Check if a tab URL matches the chat URI patterns for a site
    */
-  private isTabInChatContext(tabUrl: string, site: SiteConfig): boolean {
+  public isTabInChatContext(tabUrl: string, site: SiteConfig): boolean {
     // If no chat URI patterns are defined, fall back to basic URL matching
     if (!site.chatUriPatterns || site.chatUriPatterns.length === 0) {
       return tabUrl.startsWith(site.url);
@@ -92,7 +93,7 @@ export class TabManager {
   /**
    * Get all AI site tabs currently open that are in chat context
    */
-  private async getAllSiteTabs(): Promise<Browser.tabs.Tab[]> {
+  public async getAllSiteTabs(): Promise<Browser.tabs.Tab[]> {
     try {
       const allTabs = await browser.tabs.query({});
       const siteValues = await this.siteManager.getSiteValues();
@@ -107,6 +108,54 @@ export class TabManager {
     } catch (error) {
       logger.error('Failed to query all AI site tabs:', error);
       return [];
+    }
+  }
+
+  /**
+   * Get tab information for all AI sites efficiently in one operation
+   */
+  public async getAllSiteTabsInfo(): Promise<Record<string, TabInfo | null>> {
+    try {
+      const [allTabs, allSites, activeTab] = await Promise.all([
+        browser.tabs.query({}),
+        this.siteManager.getSiteValues(),
+        browser.tabs
+          .query({ active: true, currentWindow: true })
+          .then((tabs) => tabs[0]),
+      ]);
+
+      const siteTabsInfo: Record<string, TabInfo | null> = {};
+
+      // Initialize all sites with null
+      allSites.forEach((site) => {
+        siteTabsInfo[site.id] = null;
+      });
+
+      // Find matching tabs for each site
+      allTabs.forEach((tab) => {
+        if (!tab.url || !tab.id) return;
+
+        allSites.forEach((site) => {
+          if (tab.url && tab.id && this.isTabInChatContext(tab.url, site)) {
+            // Only keep the first matching tab per site (latest one)
+            if (!siteTabsInfo[site.id]) {
+              siteTabsInfo[site.id] = {
+                tabId: tab.id,
+                siteId: site.id,
+                url: tab.url,
+                title: tab.title,
+                isActive: activeTab?.id === tab.id,
+                isReady: tab.status === 'complete',
+              };
+            }
+          }
+        });
+      });
+
+      return siteTabsInfo;
+    } catch (error) {
+      logger.error('Failed to get all site tabs info:', error);
+      return {};
     }
   }
 
@@ -483,6 +532,44 @@ export class TabManager {
    */
   private async sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Get the site ID for the currently active tab
+   * Returns null if no active tab or tab doesn't match any AI site
+   */
+  async getActiveTabSiteId(): Promise<string | null> {
+    try {
+      const currentTab = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+
+      if (!currentTab[0]?.url) {
+        return null;
+      }
+
+      const tabUrl = currentTab[0].url;
+      const allSites = await this.siteManager.getSiteValues();
+
+      // Check if current tab matches any AI site
+      for (const site of allSites) {
+        // Support test environment
+        if (tabUrl.includes('localhost') && tabUrl.includes(`/${site.id}`)) {
+          return site.id;
+        }
+
+        // Check regular sites using chat context matching
+        if (this.isTabInChatContext(tabUrl, site)) {
+          return site.id;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      logger.warn('Failed to get active tab site ID:', error);
+      return null;
+    }
   }
 
   // Content script methods removed - using smart executeScript approach instead

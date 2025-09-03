@@ -96,6 +96,27 @@ export function createMessageInjector() {
       return { element: null, debugInfo };
     }
 
+    // Reusable function for checking if an element is disabled
+    function isElementDisabled(element: HTMLElement): boolean {
+      return 'disabled' in element && (element as HTMLButtonElement | HTMLInputElement).disabled;
+    }
+
+    // Reusable function for clicking elements with proper fallback handling
+    function clickElement(element: HTMLElement): boolean {
+      // Check if element is disabled
+      if (isElementDisabled(element)) {
+        return false;
+      }
+
+      // Use native click if available and is a function, otherwise use dispatchEvent
+      if (typeof element.click === 'function') {
+        element.click();
+      } else {
+        element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      }
+      return true;
+    }
+
     async function clickStopIfPresent(): Promise<boolean> {
       if (!config.stopSelectors || config.stopSelectors.length === 0) {
         return false; // No stop selectors configured
@@ -104,13 +125,12 @@ export function createMessageInjector() {
       // First, check if any stop button is present and click it
       let stoppedSomething = false;
       for (const selector of config.stopSelectors) {
-        const stopButton = document.querySelector(
-          selector,
-        ) as HTMLButtonElement;
-        if (stopButton && !stopButton.disabled && isVisible(stopButton)) {
-          stopButton.click();
-          stoppedSomething = true;
-          break; // Only click the first available stop button
+        const element = document.querySelector(selector) as HTMLElement;
+        if (element && isVisible(element)) {
+          if (clickElement(element)) {
+            stoppedSomething = true;
+            break; // Only click the first available stop element
+          }
         }
       }
 
@@ -128,10 +148,8 @@ export function createMessageInjector() {
 
         // Check if any stop button is still visible
         for (const selector of config.stopSelectors) {
-          const stopButton = document.querySelector(
-            selector,
-          ) as HTMLButtonElement;
-          if (stopButton && !stopButton.disabled && isVisible(stopButton)) {
+          const element = document.querySelector(selector) as HTMLElement;
+          if (element && isVisible(element) && !isElementDisabled(element)) {
             stopButtonStillPresent = true;
             break;
           }
@@ -194,10 +212,11 @@ export function createMessageInjector() {
       // Try submit buttons first - check multiple times as they may become enabled
       for (let attempt = 0; attempt < 3; attempt++) {
         for (const selector of config.submitSelectors) {
-          const button = document.querySelector(selector) as HTMLButtonElement;
-          if (button && !button.disabled && isVisible(button)) {
-            button.click();
-            return true;
+          const element = document.querySelector(selector) as HTMLElement;
+          if (element && isVisible(element)) {
+            if (clickElement(element)) {
+              return true;
+            }
           }
         }
 

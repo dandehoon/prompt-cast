@@ -22,6 +22,10 @@ const mockSites: EnhancedSite[] = [
     injectionMethod: 'execCommand',
     status: 'disconnected',
     color: '#10a37f',
+    hasTab: false,
+    isTabReady: false,
+    isActiveTab: false,
+    tabId: undefined,
   },
   {
     id: 'claude',
@@ -34,6 +38,10 @@ const mockSites: EnhancedSite[] = [
     injectionMethod: undefined,
     status: 'disconnected',
     color: '#cc785c',
+    hasTab: false,
+    isTabReady: false,
+    isActiveTab: false,
+    tabId: undefined,
   },
   {
     id: 'gemini',
@@ -46,10 +54,12 @@ const mockSites: EnhancedSite[] = [
     injectionMethod: undefined,
     status: 'disconnected',
     color: '#1a73e8',
+    hasTab: false,
+    isTabReady: false,
+    isActiveTab: false,
+    tabId: undefined,
   },
-];
-
-// Extract the calculateInsertIndex function logic for testing
+]; // Extract the calculateInsertIndex function logic for testing
 function calculateInsertIndex(
   dragIndex: number,
   dropIndex: number,

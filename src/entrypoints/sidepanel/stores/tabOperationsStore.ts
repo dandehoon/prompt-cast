@@ -1,7 +1,6 @@
 import { writable } from 'svelte/store';
 import { sendMessage } from '@/shared';
 import { toastActions } from './toastStore';
-import { siteActions } from './siteStore';
 
 export interface TabOperationsState {
   closeAllLoading: boolean;
@@ -33,8 +32,7 @@ function createTabOperationsStore() {
         await sendMessage('CLOSE_ALL_TABS');
         toastActions.showToast('Closed all AI site tabs', 'success');
 
-        // Refresh site states after a short delay
-        setTimeout(() => siteActions.refreshSiteStates(), 500);
+        // Site statuses will auto-update via derived store when tab states change
       } catch {
         toastActions.showToast('Failed to close tabs', 'error');
       } finally {
