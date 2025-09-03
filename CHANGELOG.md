@@ -10,6 +10,8 @@
 ### Changed
 
 - **Improved Responsiveness**: Replaced polling with event-driven architecture for better performance
+- **Enhanced Message Input**: Auto-resize now works when loading message history or clearing input
+- **Better Site Compatibility**: Improved interaction with non-standard submit button elements
 
 ## [3.0.0] - 2025-09-02
 
