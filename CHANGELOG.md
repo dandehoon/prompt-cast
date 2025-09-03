@@ -2,9 +2,9 @@
 
 ## [Unreleased]
 
-## [3.1.2] - 2025-09-03
+## [3.1.1] - 2025-09-03
 
-### Changed
+### Fixed
 
 - Update new chatUriPattern for Grok: `/c/*`
 
