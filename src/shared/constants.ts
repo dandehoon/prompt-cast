@@ -15,8 +15,6 @@ export const EXTENSION_MESSAGE_TYPES = {
 
   // Site configuration
   GET_SITE_CONFIGS: 'GET_SITE_CONFIGS',
-  GET_SITE_BY_URL: 'GET_SITE_BY_URL',
-  GET_SITE_STATUS: 'GET_SITE_STATUS',
 } as const;
 
 // Toast/Notification Types

@@ -1,7 +1,7 @@
 import { writable, get } from 'svelte/store';
 import { sendMessage } from '@/shared';
 import { logger } from '@/shared';
-import { enabledSites, siteActions } from './siteStore';
+import { enabledSites } from './siteStore';
 import { toastActions } from './toastStore';
 
 export interface MessageState {
@@ -286,9 +286,8 @@ function createMessageStore() {
         );
 
         // Refresh site statuses after sending with longer delay for slow networks
-        setTimeout(() => {
-          siteActions.refreshSiteStates();
-        }, 3000);
+        // Site statuses will auto-update via derived store when background creates tabs
+        // No manual refresh needed
       } catch (error) {
         logger.error('Failed to send message:', error);
         const errorMessage =

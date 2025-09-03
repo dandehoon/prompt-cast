@@ -4,13 +4,40 @@ import type { SiteStatusType } from '@/shared';
 import { SITE_STATUS } from '@/shared';
 import { sendMessage } from '@/shared';
 import { logger } from '@/shared';
+import { tabStateStore } from './tabStateStore';
 
 // Internal stores
 const siteConfigs = writable<Record<string, SiteConfig>>({});
-const siteStatuses = writable<Record<string, SiteStatusType>>({});
 const siteStates = writable<Record<string, { enabled: boolean }>>({});
 const siteOrder = writable<string[]>([]);
 const isLoading = writable<boolean>(true);
+
+// Derive site statuses from tab states for single source of truth
+const siteStatuses = derived(
+  [tabStateStore, siteConfigs],
+  ([$tabStates, $siteConfigs]) => {
+    const statuses: Record<string, SiteStatusType> = {};
+
+    // First, set all configured sites to disconnected by default
+    Object.keys($siteConfigs).forEach((siteId) => {
+      statuses[siteId] = SITE_STATUS.DISCONNECTED;
+    });
+
+    // Then update based on actual tab states
+    Object.keys($tabStates).forEach((siteId) => {
+      const tabInfo = $tabStates[siteId];
+      if (tabInfo) {
+        if (tabInfo.isReady) {
+          statuses[siteId] = SITE_STATUS.CONNECTED;
+        } else {
+          statuses[siteId] = SITE_STATUS.LOADING;
+        }
+      }
+    });
+
+    return statuses;
+  },
+);
 
 // Fetch configurations from background script
 const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
@@ -34,17 +61,14 @@ const fetchSiteOrder = async (): Promise<string[]> => {
   }
 };
 
-// Helper to get initial site states from configs only
+// Initialize site states from configs
 const getInitialStates = (
   configs: Record<string, SiteConfig>,
 ): Record<string, { enabled: boolean }> => {
   const initialStates: Record<string, { enabled: boolean }> = {};
-
-  // Initialize from configs (background will override with user preferences)
   Object.keys(configs).forEach((siteId) => {
     initialStates[siteId] = { enabled: configs[siteId].enabled };
   });
-
   return initialStates;
 };
 
@@ -79,11 +103,25 @@ const createEnhancedSite = (
   status: SiteStatusType,
   enabled: boolean,
   isDark: boolean,
+  tabInfo: {
+    hasTab: boolean;
+    isTabReady: boolean;
+    isActiveTab: boolean;
+    tabId?: number;
+  } = {
+    hasTab: false,
+    isTabReady: false,
+    isActiveTab: false,
+  },
 ): EnhancedSite => ({
   ...config,
   status,
   enabled,
   color: isDark ? config.colors.dark : config.colors.light,
+  hasTab: tabInfo.hasTab,
+  isTabReady: tabInfo.isTabReady,
+  isActiveTab: tabInfo.isActiveTab,
+  tabId: tabInfo.tabId,
 });
 
 // Initialize site states from configs
@@ -91,7 +129,6 @@ const initializeSites = async () => {
   try {
     isLoading.set(true);
 
-    // Fetch configs and order from background (includes user preferences already applied)
     const [configs, order] = await Promise.all([
       fetchSiteConfigs(),
       fetchSiteOrder(),
@@ -100,13 +137,8 @@ const initializeSites = async () => {
     siteConfigs.set(configs);
     siteOrder.set(order);
 
-    // Initialize states from the configs (which already have user preferences applied)
     const states = getInitialStates(configs);
     siteStates.set(states);
-    siteStatuses.set({});
-
-    // Refresh site statuses (with automatic retry if needed)
-    await siteActions.refreshSiteStates();
   } catch (error) {
     logger.error('Failed to initialize sites:', error);
   } finally {
@@ -141,37 +173,9 @@ export const connectedCount = derived(
   },
 );
 
-export const sitesWithStatus = derived(
-  [siteConfigs, siteStatuses, siteStates, siteOrder],
-  ([$siteConfigs, $siteStatuses, $siteStates, $siteOrder]) => {
-    return (isDark = false): Record<string, EnhancedSite> => {
-      const orderedSiteIds = getOrderedSiteIds($siteConfigs, $siteOrder);
-      const result: Record<string, EnhancedSite> = {};
-
-      orderedSiteIds.forEach((siteId) => {
-        const config = $siteConfigs[siteId];
-        if (config) {
-          const status = $siteStatuses[siteId] || SITE_STATUS.DISCONNECTED;
-          const enabled = isEnabledSite(siteId, $siteConfigs, $siteStates);
-          result[siteId] = createEnhancedSite(
-            siteId,
-            config,
-            status,
-            enabled,
-            isDark,
-          );
-        }
-      });
-
-      return result;
-    };
-  },
-);
-
-// New derived store for ordered sites as array
 export const orderedSites = derived(
-  [siteConfigs, siteStatuses, siteStates, siteOrder],
-  ([$siteConfigs, $siteStatuses, $siteStates, $siteOrder]) => {
+  [siteConfigs, siteStatuses, siteStates, siteOrder, tabStateStore],
+  ([$siteConfigs, $siteStatuses, $siteStates, $siteOrder, $tabStates]) => {
     return (isDark = false): EnhancedSite[] => {
       const orderedSiteIds = getOrderedSiteIds($siteConfigs, $siteOrder);
 
@@ -182,7 +186,21 @@ export const orderedSites = derived(
 
           const status = $siteStatuses[siteId] || SITE_STATUS.DISCONNECTED;
           const enabled = isEnabledSite(siteId, $siteConfigs, $siteStates);
-          return createEnhancedSite(siteId, config, status, enabled, isDark);
+          const tabInfo = $tabStates[siteId];
+          
+          return createEnhancedSite(
+            siteId,
+            config,
+            status,
+            enabled,
+            isDark,
+            {
+              hasTab: tabInfo !== null,
+              isTabReady: tabInfo?.isReady ?? false,
+              isActiveTab: tabInfo?.isActive ?? false,
+              tabId: tabInfo?.tabId,
+            },
+          );
         })
         .filter((site): site is EnhancedSite => site !== null);
     };
@@ -191,35 +209,23 @@ export const orderedSites = derived(
 
 // Actions
 export const siteActions = {
-  updateSiteStatus: (siteId: string, status: SiteStatusType) => {
-    siteStatuses.update((current) => ({
-      ...current,
-      [siteId]: status,
-    }));
-  },
-
   reorderSites: async (newOrder: string[]) => {
-    // Update local state immediately for UI responsiveness
     siteOrder.set(newOrder);
 
     try {
-      // Send message to background to persist the order
       await sendMessage('SAVE_SITE_ORDER', { order: newOrder });
     } catch (error) {
       logger.error('Failed to save site order:', error);
-      // Could revert to previous order here if needed
     }
   },
 
   toggleSite: async (siteId: string, enabled: boolean) => {
-    // Update local state immediately for UI responsiveness
     siteStates.update((current) => ({
       ...current,
       [siteId]: { enabled },
     }));
 
     try {
-      // Send message to background (background will persist to browser.storage.sync)
       await sendMessage('SITE_TOGGLE', { siteId, enabled });
     } catch (error) {
       logger.error('Failed to toggle site:', error);
@@ -229,82 +235,6 @@ export const siteActions = {
         ...current,
         [siteId]: { enabled: configs[siteId]?.enabled ?? false },
       }));
-    }
-  },
-
-  getSiteWithStatus: (siteId: string, isDark = false): EnhancedSite | null => {
-    const configs = get(siteConfigs);
-    const statuses = get(siteStatuses);
-    const states = get(siteStates);
-
-    const config = configs[siteId];
-    if (!config) return null;
-
-    const color = isDark ? config.colors.dark : config.colors.light;
-    return {
-      ...config,
-      status: statuses[siteId] || SITE_STATUS.DISCONNECTED,
-      enabled: states[siteId]?.enabled ?? config.enabled,
-      color,
-    };
-  },
-
-  getSiteColor: (siteId: string, isDark = false): string => {
-    const configs = get(siteConfigs);
-    const config = configs[siteId];
-    if (!config) {
-      return '#6b7280'; // Default gray color
-    }
-    return isDark ? config.colors.dark : config.colors.light;
-  },
-
-  refreshSiteStates: async (retryCount = 0) => {
-    try {
-      const configs = get(siteConfigs);
-      const updates: Record<string, SiteStatusType> = {};
-
-      // Check status for each site
-      await Promise.all(
-        Object.keys(configs).map(async (siteId) => {
-          try {
-            const response = await sendMessage('GET_SITE_STATUS', { siteId });
-            updates[siteId] = response.status;
-          } catch (error) {
-            logger.error(`Failed to get status for ${siteId}:`, error);
-            updates[siteId] = SITE_STATUS.DISCONNECTED;
-          }
-        }),
-      );
-
-      siteStatuses.update((current) => ({
-        ...current,
-        ...updates,
-      }));
-
-      logger.debug('Site states refreshed:', updates);
-
-      // If this is early attempt and we got mostly disconnected states, retry with increasing delays
-      const disconnectedCount = Object.values(updates).filter(
-        (status) => status === SITE_STATUS.DISCONNECTED,
-      ).length;
-      const totalSites = Object.keys(configs).length;
-      const disconnectedRatio =
-        totalSites > 0 ? disconnectedCount / totalSites : 0;
-
-      // Retry strategy for slow networks
-      if (retryCount < 3 && disconnectedRatio >= 0.8 && totalSites > 0) {
-        const delayMs = Math.min(2000 * Math.pow(2, retryCount), 8000); // 2s, 4s, 8s max
-        logger.debug(
-          `${disconnectedCount}/${totalSites} sites disconnected on attempt ${
-            retryCount + 1
-          }, retrying in ${delayMs}ms...`,
-        );
-        setTimeout(() => {
-          siteActions.refreshSiteStates(retryCount + 1);
-        }, delayMs);
-      }
-    } catch (error) {
-      logger.error('Failed to refresh site states:', error);
     }
   },
 

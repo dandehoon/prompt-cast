@@ -13,10 +13,7 @@ test.describe('Side Panel UI Component Tests', () => {
     await expect(messageLabel).toHaveText('Compose');
 
     const messageTextarea = sidePanelPage.locator('#message-input');
-    await expect(messageTextarea).toHaveAttribute(
-      'placeholder',
-      'Enter your prompt...',
-    );
+    await expect(messageTextarea).toHaveAttribute('placeholder', 'Enter your prompt...');
 
     const sendButton = sidePanelPage.locator('#send-message-button');
     await expect(sendButton).toBeDisabled(); // Should be disabled when no message

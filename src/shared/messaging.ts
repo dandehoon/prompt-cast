@@ -4,8 +4,9 @@ import type {
   SiteTogglePayload,
   SiteOrderPayload,
   SiteConfig,
+  TabEventPayload,
+  SiteTabsState,
 } from '../types';
-import type { SiteStatusType } from '@/shared';
 
 // Define the messaging protocol with webext-core for extension-wide communication
 export interface ExtensionProtocolMap {
@@ -19,12 +20,10 @@ export interface ExtensionProtocolMap {
   // Query operations that return data
   GET_SITE_CONFIGS(): { data: { configs: Record<string, SiteConfig> } };
   GET_SITE_ORDER(): { order: string[] };
-  GET_SITE_BY_URL(data: { url: string }): {
-    config: SiteConfig | null;
-  };
-  GET_SITE_STATUS(data: { siteId: string }): {
-    status: SiteStatusType;
-  };
+  GET_SITE_TABS(): SiteTabsState;
+
+  // Event notifications (background -> sidepanel)
+  TAB_EVENT(data: TabEventPayload): void;
 }
 
 // Export the messaging functions with full type safety for extension communication

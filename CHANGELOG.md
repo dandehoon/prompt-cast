@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Real-time Tab Status Updates**: Site status changes (green/yellow/inactive) are now instant without delays
+- **Active Tab Highlighting**: Site cards now highlight when their tab is currently active
+
+### Changed
+
+- **Improved Responsiveness**: Replaced polling with event-driven architecture for better performance
+
 ## [3.0.0] - 2025-09-02
 
 ### Added

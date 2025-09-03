@@ -8,7 +8,6 @@ export {
   enabledSites,
   enabledCount,
   connectedCount,
-  sitesWithStatus,
   siteActions,
 } from './siteStore';
 

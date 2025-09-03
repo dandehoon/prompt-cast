@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import Compose from './components/Compose/Compose.svelte';
-  import { siteActions } from './stores/siteStore';
   import { resolvedTheme } from './stores/themeStore';
   import './app.css';
 
@@ -12,11 +10,6 @@
     } else {
       document.documentElement.classList.remove('dark');
     }
-  });
-
-  // Initialize stores on mount
-  onMount(() => {
-    siteActions.refreshSiteStates();
   });
 </script>
 

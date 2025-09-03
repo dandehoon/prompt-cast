@@ -126,11 +126,15 @@
 </div>
 
 <style>
-  textarea:focus {
+  #message-input {
+    font-size: 1.05em;
+  }
+
+  #message-input:focus {
     outline: none;
   }
 
-  textarea::placeholder {
+  #message-input::placeholder {
     color: var(--pc-text-muted);
   }
 </style>
