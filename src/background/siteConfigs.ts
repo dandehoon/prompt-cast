@@ -59,7 +59,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     inputSelectors: ['textarea[dir="auto"]'],
     submitSelectors: ['form.text-base button[aria-label="Submit"]'],
     stopSelectors: ['form.text-base button[aria-label="Stop model response"]'],
-    chatUriPatterns: ['/', '/chat/*'],
+    chatUriPatterns: ['/', '/chat/*', '/c/*'],
   },
 
   perplexity: {
