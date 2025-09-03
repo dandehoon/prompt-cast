@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.1.0] - 2025-09-03
+
 ### Added
 
 - **Real-time Tab Status Updates**: Site status changes (green/yellow/inactive) are now instant without delays
