@@ -2,12 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Update default site configs due to availability: replace Claude by Perplexity
+
 ## [3.2.0] - 2025-09-09
 
 ### Added
 
 - **Tab navigation buttons**: Easily switch between AI site tabs
-- **Cancellation support**:
+- **Cancellation support**: Stop waiting for result
 
 ### Changed
 
