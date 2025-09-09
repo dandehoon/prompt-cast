@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.2.0] - 2025-09-09
+
 ### Added
 
 - **Tab navigation buttons**: Easily switch between AI site tabs
