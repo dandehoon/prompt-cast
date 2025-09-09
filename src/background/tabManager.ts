@@ -9,6 +9,22 @@ export class TabManager {
   constructor(private siteManager: SiteManager) {}
 
   /**
+   * Get the current window ID
+   */
+  private async getCurrentWindowId(): Promise<number | undefined> {
+    try {
+      const currentTab = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      return currentTab[0]?.windowId;
+    } catch (error) {
+      logger.warn('Failed to get current window ID:', error);
+      return undefined;
+    }
+  }
+
+  /**
    * Check if a tab URL matches the chat URI patterns for a site
    */
   public isTabInChatContext(tabUrl: string, site: SiteConfig): boolean {
@@ -76,7 +92,10 @@ export class TabManager {
     site: SiteConfig,
   ): Promise<Browser.tabs.Tab | null> {
     try {
-      const tabs = await browser.tabs.query({ url: site.url + '*' });
+      const tabs = await browser.tabs.query({
+        url: site.url + '*',
+        currentWindow: true,
+      });
 
       // Filter tabs to only those in chat context
       const chatTabs = tabs.filter(
@@ -95,7 +114,7 @@ export class TabManager {
    */
   public async getAllSiteTabs(): Promise<Browser.tabs.Tab[]> {
     try {
-      const allTabs = await browser.tabs.query({});
+      const allTabs = await browser.tabs.query({ currentWindow: true });
       const siteValues = await this.siteManager.getSiteValues();
 
       return allTabs.filter((tab) => {
@@ -117,7 +136,7 @@ export class TabManager {
   public async getAllSiteTabsInfo(): Promise<Record<string, TabInfo | null>> {
     try {
       const [allTabs, allSites, activeTab] = await Promise.all([
-        browser.tabs.query({}),
+        browser.tabs.query({ currentWindow: true }),
         this.siteManager.getSiteValues(),
         browser.tabs
           .query({ active: true, currentWindow: true })
@@ -167,7 +186,10 @@ export class TabManager {
     site: SiteConfig,
   ): Promise<'connected' | 'loading' | 'disconnected' | 'error'> {
     try {
-      const tabs = await browser.tabs.query({ url: site.url + '*' });
+      const tabs = await browser.tabs.query({
+        url: site.url + '*',
+        currentWindow: true,
+      });
 
       // Filter to only chat context tabs
       const chatTabs = tabs.filter(
@@ -254,7 +276,10 @@ export class TabManager {
     let firstNewTabSite: string | null = null;
 
     for (const site of sitesToOpen) {
-      const existingTabs = await browser.tabs.query({ url: site.url + '*' });
+      const existingTabs = await browser.tabs.query({
+        url: site.url + '*',
+        currentWindow: true,
+      });
       // Check if any existing tabs are in chat context
       const chatTabs = existingTabs.filter(
         (tab) => tab.url && this.isTabInChatContext(tab.url, site),
@@ -293,7 +318,10 @@ export class TabManager {
     const testTabsPromise = Promise.all(
       sites.map((site) =>
         browser.tabs
-          .query({ url: `*://localhost:*/${site.id}*` })
+          .query({
+            url: `*://localhost:*/${site.id}*`,
+            currentWindow: true,
+          })
           .then((tabs) => (tabs.length > 0 ? tabs[0] : null))
           .catch(() => null),
       ),
@@ -328,11 +356,13 @@ export class TabManager {
 
     // Step 4: Create ALL new tabs simultaneously (zero sequential delays)
     if (sitesNeedingNewTabs.length > 0) {
+      const windowId = await this.getCurrentWindowId();
       const newTabsPromises = sitesNeedingNewTabs.map((site) =>
         browser.tabs
           .create({
             url: site.url,
             active: false, // Don't focus yet
+            windowId: windowId,
           })
           .then((tab) => ({ site, tab }))
           .catch((error) => {
@@ -411,10 +441,11 @@ export class TabManager {
           }
         }
       } else {
-        // Create new tab
+        const windowId = await this.getCurrentWindowId();
         await browser.tabs.create({
           url: site.url,
           active: shouldFocus,
+          windowId: windowId,
         });
 
         // NOTE: No longer waiting for tab readiness here - that's handled elsewhere
