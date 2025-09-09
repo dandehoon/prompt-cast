@@ -137,6 +137,7 @@ export function getAllSiteConfigs(): Record<string, SiteConfig> {
       if (!['gemini', 'claude'].includes(id)) {
         continue;
       }
+      config.enabled = true;
       config.url = 'http://localhost:3000/' + config.id;
     }
     configs[id] = { ...config };
