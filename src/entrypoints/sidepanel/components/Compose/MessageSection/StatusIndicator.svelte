@@ -17,7 +17,7 @@
   const shouldHide = $derived(!isLoading && !latestToast && enabledCount === 0);
 
   const getDefaultMessage = () => {
-    if (isLoading) return 'Loading...';
+    if (isLoading) return 'Waiting...';
     if (enabledCount === 0) return 'No sites enabled';
     if (connectedCount === 0) return `${enabledCount} sites enabled`;
     return `${connectedCount}/${enabledCount} sites ready`;

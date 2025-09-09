@@ -10,6 +10,7 @@ export interface MessageState {
   historyIndex: number;
   sendLoading: boolean;
   inputRef: HTMLTextAreaElement | undefined;
+  abortController: AbortController | null;
 }
 
 const STORAGE_KEY = 'prompt-cast-temp-message';
@@ -24,6 +25,7 @@ function createMessageStore() {
     historyIndex: -1,
     sendLoading: false,
     inputRef: undefined,
+    abortController: null,
   });
 
   return {
@@ -219,6 +221,9 @@ function createMessageStore() {
       // Store the message to send
       const messageToSend = trimmedMessage;
 
+      // Create abort controller for this send operation
+      const abortController = new AbortController();
+
       // Set loading state to block button and immediately clear the current message
       update((state) => {
         // Only add to history if it's not already the first item
@@ -243,6 +248,7 @@ function createMessageStore() {
           history: newHistory,
           historyIndex: -1,
           sendLoading: true, // Block the button during send
+          abortController,
         };
       });
 
@@ -272,13 +278,23 @@ function createMessageStore() {
       }, 30000); // 30 seconds timeout
 
       // Send the message in the background
-      toastActions.showToast('Sending message...', 'info');
+      toastActions.showToast('Sending...', 'info');
 
       try {
+        // Check if already cancelled before starting
+        if (abortController.signal.aborted) {
+          throw new Error('Send operation was cancelled');
+        }
+
         await sendMessage('SEND_MESSAGE', {
           message: messageToSend,
           sites: currentEnabledSites,
         });
+
+        // Check if cancelled after sending
+        if (abortController.signal.aborted) {
+          throw new Error('Send operation was cancelled');
+        }
 
         toastActions.showToast(
           `Message sent to ${currentEnabledSites.length} sites`,
@@ -289,6 +305,12 @@ function createMessageStore() {
         // Site statuses will auto-update via derived store when background creates tabs
         // No manual refresh needed
       } catch (error) {
+        // Check if this was a cancellation
+        if (abortController.signal.aborted) {
+          toastActions.showToast('Message sending cancelled', 'info');
+          return; // Exit early for cancellation
+        }
+
         logger.error('Failed to send message:', error);
         const errorMessage =
           error instanceof Error ? error.message : 'Failed to send message';
@@ -297,7 +319,11 @@ function createMessageStore() {
         // Clear the safety timeout since operation completed
         clearTimeout(safetyTimeout);
         // Always clear loading state when done
-        update((state) => ({ ...state, sendLoading: false }));
+        update((state) => ({
+          ...state,
+          sendLoading: false,
+          abortController: null,
+        }));
       }
     },
 
@@ -311,10 +337,16 @@ function createMessageStore() {
       }
     },
 
-    // Cancel sending (reset loading state)
+    // Cancel sending (abort ongoing operation)
     cancelSendMessage() {
-      update((state) => ({ ...state, sendLoading: false }));
-      toastActions.showToast('Message sending cancelled', 'info');
+      update((state) => {
+        // Abort the current operation if it exists
+        if (state.abortController) {
+          state.abortController.abort();
+        }
+        return { ...state, sendLoading: false, abortController: null };
+      });
+      // Toast will be shown by the catch block in sendMessage
     },
   };
 }

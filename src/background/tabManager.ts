@@ -510,7 +510,7 @@ export class TabManager {
    * Wait for tab to be ready by actively checking tab status
    */
   async waitForTabReady(tabId: number): Promise<void> {
-    const maxRetries = 60; // 60 retries = up to 60 seconds total
+    const maxRetries = 15; // 60 retries = up to 60 seconds total
     const checkInterval = 1000; // Check every 1000ms
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -563,6 +563,25 @@ export class TabManager {
    */
   private async sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Check if a specific tab ID is still in chat context for the given site config
+   */
+  async isTabIdInChatContext(
+    tabId: number,
+    siteConfig: SiteConfig,
+  ): Promise<boolean> {
+    try {
+      const tab = await browser.tabs.get(tabId);
+      if (!tab.url) {
+        return false;
+      }
+      return this.isTabInChatContext(tab.url, siteConfig);
+    } catch (error) {
+      logger.debug(`Failed to check tab ${tabId} context:`, error);
+      return false;
+    }
   }
 
   /**
