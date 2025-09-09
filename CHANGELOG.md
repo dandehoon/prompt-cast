@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Tab navigation buttons**: Easily switch between AI site tabs
+- **Cancellation support**:
+
+### Changed
+
+- **Improved site management**: focus only tabs on current window.
+- **Improved retry logic**: cleaner focus flows.
+
+### Fixed
+
+- Update query selector for DeepSeek on text input.
+
 ## [3.1.1] - 2025-09-03
 
 ### Fixed
