@@ -193,6 +193,8 @@ This runs: TypeScript compilation, ESLint, full test suite, production build.
 - **Injection**: Always via executeScript - see `src/background/injections/`
 - **Site configs**: Single source in `src/background/siteConfigs.ts`
 - **Tab management**: `src/background/tabManager.ts` handles focus, readiness, retry
+- **Tab manager refactor**: `src/background/tabManager.ts` was recently refactored to add more robust focus, readiness, and retry behavior — consult it when changing tab logic.
+- **Message routing & injection**: `src/background/messageHandler.ts` and `src/background/scriptInjector.ts` contain the updated message delivery and injection/readiness checks.
 - **Side Panel state**: Svelte stores in `src/entrypoints/sidepanel/stores/`
 - **Messaging**: All background/sidepanel comms via `src/shared/messaging.ts`
 - **Site ordering**: Drag-and-drop UI with persistent storage via `siteStore.ts`
@@ -207,3 +209,4 @@ This runs: TypeScript compilation, ESLint, full test suite, production build.
 - `src/entrypoints/sidepanel/stores/`: Svelte stores for UI state
 - `tests/e2e/server.ts`: E2E server utility
 - `src/entrypoints/sidepanel/components/Compose/SitesSection/`: Drag-and-drop UI components
+- `src/__test__/units/tabManager.test.ts`: Unit test covering tab manager behavior (use as example when modifying tab logic).

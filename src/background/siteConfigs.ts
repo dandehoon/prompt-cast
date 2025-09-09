@@ -102,7 +102,7 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
       light: '#5c6bc0',
       dark: '#3f51b5',
     },
-    inputSelectors: ['textarea#chat-input'],
+    inputSelectors: ['textarea[placeholder="Message DeepSeek"]'],
     submitSelectors: [
       'path[d="M8.3125 0.981648C8.66767 1.05456 8.97902 1.20565 9.2627 1.4338C9.48724 1.61444 9.73029 1.85939 9.97949 2.1086L14.707 6.83614L13.293 8.2502L9 3.95723V15.0432H7V3.95723L2.70703 8.2502L1.29297 6.83614L6.02051 2.1086C6.26971 1.85939 6.51277 1.61444 6.7373 1.4338C6.97662 1.24132 7.28445 1.04548 7.6875 0.981648C7.8973 0.948471 8.1031 0.956625 8.3125 0.981648Z"]',
     ],

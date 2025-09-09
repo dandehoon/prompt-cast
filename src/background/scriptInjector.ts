@@ -7,6 +7,7 @@ import {
   type InjectionResult,
 } from './injections';
 import { logger } from '@/shared';
+import type { TabManager } from './tabManager';
 
 /**
  * ExecuteScriptInjector using message injection approach with DOM waiting and retry logic
@@ -17,7 +18,7 @@ export class ExecuteScriptInjector {
     config: SiteConfig,
   ) => Promise<InjectionResult>;
 
-  constructor() {
+  constructor(private tabManager: TabManager) {
     this.messageInjector = createMessageInjector();
   }
 
@@ -44,11 +45,26 @@ export class ExecuteScriptInjector {
     injection: BatchInjectionConfig,
   ): Promise<BatchInjectionResult> {
     let lastError: Error | null = null;
-    const maxRetries = 30;
+    const maxRetries = 5;
     const checkInterval = 1000; // Check every 1000ms
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
+        // Check if tab URL still matches site config before attempting injection
+        const isTabInContext = await this.tabManager.isTabIdInChatContext(
+          injection.tabId,
+          injection.siteConfig,
+        );
+        if (!isTabInContext) {
+          return {
+            tabId: injection.tabId,
+            result: {
+              success: false,
+              error: `Tab has navigated away from expected site (${injection.siteConfig.name}) or is no longer accessible`,
+            } as InjectionResult,
+          };
+        }
+
         const results = await browser.scripting.executeScript({
           target: { tabId: injection.tabId },
           func: this.messageInjector,

@@ -10,13 +10,9 @@ Useful Chrome extension for broadcasting prompts to multiple AI chat sites at on
 
 - **Multi-Site**: Send to ChatGPT, Claude, Gemini, Grok... at once
 - **Side Panel UI**: Persistent Chrome side panel interface for better workflow
-- **Smart Tabs**: Prevents duplicates, manages focus
-- **Drag & Drop Reordering**: Reorder sites by dragging them to customize your workflow
+- **Smart Sites Management**: Toggles on/off, prevents duplicate tabs, manages focus, drag & drop to reorder
 - **Keyboard Shortcuts**: Alt+P opens side panel, Alt+Shift+P closes all tabs
-- **Toggles**: Enable/disable individual sites
-- **Persistent**: Remembers settings and site order
-- **Status**: Real-time connection indicators
-- **Enhanced Themes**: Light/dark/auto with comprehensive CSS variable system
+- **Themes**: Light/dark/auto with comprehensive CSS variable system
 
 ## Quick Start
 

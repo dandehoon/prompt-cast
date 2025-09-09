@@ -27,13 +27,17 @@
   );
   const hasMessage = $derived(messageState.current.trim().length > 0);
 
-  // Button disabled when no message OR currently sending
-  const buttonDisabled = $derived(!hasMessage || messageState.sendLoading);
-  const buttonText = $derived(messageState.sendLoading ? 'Sending...' : 'Send');
+  // Button disabled when no message AND not sending
+  const buttonDisabled = $derived(!hasMessage && !messageState.sendLoading);
+  const buttonText = $derived(messageState.sendLoading ? 'Cancel' : 'Send');
 
-  // Button click handler - always send (since disabled during loading)
+  // Button click handler - send or cancel based on state
   const handleButtonClick = () => {
-    messageActions.sendMessage();
+    if (messageState.sendLoading) {
+      messageActions.cancelSendMessage();
+    } else {
+      messageActions.sendMessage();
+    }
   };
 
   // Local ref for message input - handle it here since parent doesn't care
@@ -98,14 +102,11 @@
     id="send-message-button"
     onclick={handleButtonClick}
     disabled={buttonDisabled}
-    class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
+    class="w-full px-4 py-2 rounded-lg text-sm font-medium disabled:cursor-not-allowed"
     class:cursor-pointer={!buttonDisabled}
-    style:background-color={buttonDisabled
-      ? 'var(--pc-text-disabled)'
-      : messageState.sendLoading
-        ? 'var(--pc-text-muted)'
-        : 'var(--pc-accent)'}
-    style:color="var(--pc-text-inverted)"
+    class:btn-disabled={buttonDisabled}
+    class:btn-cancel={messageState.sendLoading}
+    class:btn-normal={!messageState.sendLoading && !buttonDisabled}
   >
     {buttonText}
   </button>
@@ -121,7 +122,27 @@
 </footer>
 
 <style>
-  button:not(:disabled):hover {
+  /* Button states mapped to CSS variables (no inline styles) */
+  .btn-disabled {
+    background-color: var(--pc-text-disabled);
+    color: var(--pc-text-inverted);
+  }
+  .btn-cancel {
+    background: var(--pc-text-muted);
+    border-color: var(--pc-text-inverted);
+    cursor: pointer;
+  }
+  .btn-cancel:hover {
+    opacity: 0.9;
+  }
+
+  .btn-normal {
+    background-color: var(--pc-accent);
+    color: var(--pc-text-inverted);
+  }
+
+  /* Preserve hover behavior only for non-disabled buttons */
+  button.btn-normal:hover {
     background-color: var(--pc-accent-hover);
   }
 </style>

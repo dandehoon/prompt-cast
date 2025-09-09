@@ -129,6 +129,7 @@ describe('TabManager', () => {
 
       expect(mockBrowser.tabs.query).toHaveBeenCalledWith({
         url: 'https://chat.openai.com*',
+        currentWindow: true,
       });
       expect(mockBrowser.tabs.update).toHaveBeenCalledWith(1, { active: true });
       expect(mockBrowser.windows.update).toHaveBeenCalledWith(100, {
@@ -148,7 +149,11 @@ describe('TabManager', () => {
     });
 
     it('should create new tab when none exists', async () => {
-      mockBrowser.tabs.query.mockResolvedValue([]);
+      // Mock the query for existing tabs
+      mockBrowser.tabs.query
+        .mockResolvedValueOnce([]) // First call: query for existing tabs
+        .mockResolvedValueOnce([createMockTab({ windowId: 100 })]); // Second call: getCurrentWindowId
+
       const newTab = createMockTab({ id: 2 });
       mockBrowser.tabs.create.mockResolvedValue(newTab);
 
@@ -157,6 +162,7 @@ describe('TabManager', () => {
       expect(mockBrowser.tabs.create).toHaveBeenCalledWith({
         url: 'https://chat.openai.com',
         active: true,
+        windowId: 100,
       });
     });
   });

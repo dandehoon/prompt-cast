@@ -12,7 +12,7 @@ export class MessageHandler {
     private siteManager: SiteManager,
     private tabManager: TabManager,
   ) {
-    this.injector = new ExecuteScriptInjector();
+    this.injector = new ExecuteScriptInjector(this.tabManager);
   }
 
   /**
@@ -29,11 +29,7 @@ export class MessageHandler {
       await this.sendMessageToSites(payload);
     } catch (error) {
       logger.error('Message delivery failed:', error);
-      throw new Error(
-        `Failed to deliver message: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
-      );
+      throw new Error(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 
@@ -77,16 +73,38 @@ export class MessageHandler {
     // Step 4: Wait for all independent processes to complete
     const results = await Promise.all(injectionPromises);
 
-    // Check if any injections succeeded
-    const successCount = results.filter((r) => r.result.success).length;
-    const failureCount = results.length - successCount;
+    // Map results back to sites to get site names for failures
+    const siteResultMap = new Map();
+    validTabs.forEach(({ site, tabId }) => {
+      const result = results.find((r) => r.tabId === tabId);
+      siteResultMap.set(site.id, { site, result: result?.result });
+    });
 
-    if (successCount === 0) {
-      throw new Error(`${results.length} injection attempts failed`);
+    // Collect success and failure information
+    const successfulSites: string[] = [];
+    const failedSites: Array<{ name: string; error: string }> = [];
+
+    for (const [, { site, result }] of siteResultMap.entries()) {
+      if (result?.success) {
+        successfulSites.push(site.name);
+      } else {
+        failedSites.push({
+          name: site.name,
+          error: result?.error || 'Unknown error',
+        });
+      }
+    }
+
+    // If some failed, throw with partial success info
+    if (failedSites.length > 0) {
+      const failedSiteNames = failedSites.map((f) => f.name).join(', ');
+      throw new Error(`Failed to send message to ${failedSiteNames}`);
     }
 
     logger.info(
-      `Message injection completed: ${successCount} succeeded, ${failureCount} failed`,
+      `Message injection completed: ${
+        successfulSites.length
+      } succeeded (${successfulSites.join(', ')})`,
     );
   }
 

@@ -25,9 +25,9 @@
 
   // Theme options for the selector
   const themeOptions = [
-    { value: 'auto' as const, label: 'Auto' },
     { value: 'light' as const, label: 'Light' },
     { value: 'dark' as const, label: 'Dark' },
+    { value: 'auto' as const, label: 'Auto' },
   ];
 
   function handleThemeChange(selectedTheme: 'auto' | 'light' | 'dark') {

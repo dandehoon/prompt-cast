@@ -200,6 +200,66 @@ export const orderedSites = derived(
   },
 );
 
+// Utility functions for tab navigation
+export const getNextTab = (
+  currentSiteId?: string,
+  isDark: boolean = false,
+): EnhancedSite | null => {
+  const orderedSitesFunction = get(orderedSites) as (
+    isDark?: boolean,
+  ) => EnhancedSite[];
+  const allSites = orderedSitesFunction(isDark);
+  const enabledTabSites = allSites.filter(
+    (site: EnhancedSite) => site.enabled && site.hasTab,
+  );
+
+  if (enabledTabSites.length === 0) return null;
+
+  if (!currentSiteId) {
+    return enabledTabSites[0];
+  }
+
+  const currentIndex = enabledTabSites.findIndex(
+    (site: EnhancedSite) => site.id === currentSiteId,
+  );
+  if (currentIndex === -1) {
+    return enabledTabSites[0];
+  }
+
+  const nextIndex = (currentIndex + 1) % enabledTabSites.length;
+  return enabledTabSites[nextIndex];
+};
+
+export const getPreviousTab = (
+  currentSiteId?: string,
+  isDark: boolean = false,
+): EnhancedSite | null => {
+  const orderedSitesFunction = get(orderedSites) as (
+    isDark?: boolean,
+  ) => EnhancedSite[];
+  const allSites = orderedSitesFunction(isDark);
+  const enabledTabSites = allSites.filter(
+    (site: EnhancedSite) => site.enabled && site.hasTab,
+  );
+
+  if (enabledTabSites.length === 0) return null;
+
+  if (!currentSiteId) {
+    return enabledTabSites[enabledTabSites.length - 1];
+  }
+
+  const currentIndex = enabledTabSites.findIndex(
+    (site: EnhancedSite) => site.id === currentSiteId,
+  );
+  if (currentIndex === -1) {
+    return enabledTabSites[enabledTabSites.length - 1];
+  }
+
+  const previousIndex =
+    currentIndex === 0 ? enabledTabSites.length - 1 : currentIndex - 1;
+  return enabledTabSites[previousIndex];
+};
+
 // Actions
 export const siteActions = {
   reorderSites: async (newOrder: string[]) => {
