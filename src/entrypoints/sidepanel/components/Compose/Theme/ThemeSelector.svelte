@@ -63,13 +63,15 @@
     height: 1.75rem;
     padding: 0.25rem;
     border-radius: 0.5rem;
-    color: var(--pc-text, #6b7280);
+    color: var(--pc-text);
+    border: 1px solid transparent;
     cursor: pointer;
     opacity: 0.6;
   }
 
   .theme-btn:hover {
-    background: var(--pc-bg-hover, #f9fafb);
+    background: var(--pc-bg-hover);
+    border-color: var(--pc-border);
     opacity: 0.8;
   }
 
@@ -79,16 +81,6 @@
   }
 
   .theme-btn:active {
-    transform: translateY(1px);
-  }
-
-  /* Dark theme support */
-  :global(.dark) .theme-btn {
-    color: var(--pc-text, #9ca3af);
-  }
-
-  :global(.dark) .theme-btn.active {
-    border-color: var(--pc-border-hover);
-    color: var(--pc-text-primary);
+    transform: scale(0.9);
   }
 </style>

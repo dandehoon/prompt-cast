@@ -117,22 +117,24 @@
     width: 1.75rem;
     height: 1.75rem;
     padding: 0.25rem;
+    border: 1px solid transparent;
     border-radius: 0.5rem;
-    color: var(--pc-text-secondary, #6b7280);
+    background: transparent;
+    color: var(--pc-text-secondary);
     cursor: pointer;
     opacity: 0.6;
   }
 
   .action-btn:hover {
-    background: var(--pc-surface-hover, #f9fafb);
-    border-color: var(--pc-border-hover, #9ca3af);
+    background: var(--pc-bg-hover);
+    border-color: var(--pc-border);
     opacity: 0.8;
   }
 
-  .action-btn:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  .action-btn:active:not(:disabled) {
+    transform: scale(0.9) !important;
+    background: var(--pc-bg-active);
+    border-color: var(--pc-border-hover);
   }
 
   .action-btn:disabled {
@@ -141,11 +143,12 @@
   }
 
   .action-btn:disabled:hover {
-    background: var(--pc-surface, #ffffff);
-    border-color: var(--pc-border, #d1d5db);
+    background: transparent;
+    border-color: transparent;
+    opacity: 0.3;
   }
 
-  :global(.dark) .action-btn:hover {
-    background: var(--pc-bg-hover, #4b5563);
+  .action-btn:disabled:active {
+    transform: none;
   }
 </style>

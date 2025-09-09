@@ -98,7 +98,7 @@
       <label
         id="site-toggle-{site.id}"
         for="site-checkbox-{site.id}"
-        class="cursor-pointer block w-11 h-6 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:rounded-full after:h-5 after:w-5 after:transition-all"
+        class="cursor-pointer block w-11 h-6 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:rounded-full after:h-5 after:w-5 after:transition-all"
         style="background-color: {site.enabled
           ? 'var(--pc-success)'
           : 'var(--pc-border)'};"
@@ -123,13 +123,17 @@
     opacity: 0.8;
   }
 
-  /* Toggle switch styles */
-  label {
-    transition: transform 0.15s ease;
+  .drag-handle:active {
+    opacity: 1;
   }
 
+  /* Toggle switch styles */
   label:hover {
-    transform: scale(1.02);
+    transform: scale(1.01);
+  }
+
+  label:active {
+    transform: scale(0.99);
   }
 
   .peer:checked + label::after,
@@ -144,5 +148,9 @@
   .pc-card.active-tab {
     background-color: var(--pc-bg-active);
     border-color: var(--pc-text-disabled);
+  }
+
+  .pc-card:active:not(.site-disabled) {
+    transform: scale(0.99);
   }
 </style>
