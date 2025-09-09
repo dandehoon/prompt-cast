@@ -17,21 +17,6 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     chatUriPatterns: ['/', '/c/*'],
   },
 
-  claude: {
-    id: 'claude',
-    name: 'Claude',
-    url: 'https://claude.ai/',
-    enabled: true,
-    colors: {
-      light: '#cc785c',
-      dark: '#cc785c',
-    },
-    inputSelectors: ['div[contenteditable]'],
-    submitSelectors: ['button[aria-label="Send message"]'],
-    stopSelectors: ['button[aria-label="Stop response"]'],
-    chatUriPatterns: ['/', '/new', '/chat/*'],
-  },
-
   gemini: {
     id: 'gemini',
     name: 'Gemini',
@@ -76,6 +61,21 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     stopSelectors: ['button[data-testid="stop-generating-response-button"]'],
     injectionMethod: 'execCommand',
     chatUriPatterns: ['/', '/search/*'],
+  },
+
+  claude: {
+    id: 'claude',
+    name: 'Claude',
+    url: 'https://claude.ai/',
+    enabled: false,
+    colors: {
+      light: '#cc785c',
+      dark: '#cc785c',
+    },
+    inputSelectors: ['div[contenteditable]'],
+    submitSelectors: ['button[aria-label="Send message"]'],
+    stopSelectors: ['button[aria-label="Stop response"]'],
+    chatUriPatterns: ['/', '/new', '/chat/*'],
   },
 
   copilot: {

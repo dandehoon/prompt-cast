@@ -7,7 +7,7 @@
 ### Added
 
 - **Tab navigation buttons**: Easily switch between AI site tabs
-- **Cancellation support**:
+- **Cancellation support**: Stop waiting for result
 
 ### Changed
 
