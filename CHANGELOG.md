@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.2.1] - 2025-09-09
+
 ### Fixed
 
 - Update default site configs due to availability: replace Claude by Perplexity
