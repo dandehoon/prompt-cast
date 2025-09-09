@@ -16,10 +16,9 @@ function createTabOperationsStore() {
     subscribe,
 
     // Focus a specific tab
-    async focusTab(siteId: string, siteName: string) {
+    async focusTab(siteId: string, _: string) {
       try {
         await sendMessage('FOCUS_TAB', { siteId });
-        toastActions.showToast(`Focused ${siteName} tab`, 'success');
       } catch {
         toastActions.showToast('Failed to focus tab', 'error');
       }
