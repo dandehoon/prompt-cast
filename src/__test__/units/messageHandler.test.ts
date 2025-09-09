@@ -223,10 +223,29 @@ describe('MessageHandler', () => {
         sites: ['chatgpt', 'claude'],
       };
 
-      // Mock successful injection
-      mockBrowser.scripting.executeScript.mockResolvedValue([
-        { result: { success: true } },
+      // Mock launchAllTabs to return tabs
+      mockTabManager.launchAllTabs.mockResolvedValue([
+        { site: mockSites.chatgpt, tabId: 1 },
+        { site: mockSites.claude, tabId: 2 },
       ]);
+
+      // Mock waitForTabReady to succeed
+      mockTabManager.waitForTabReady.mockResolvedValue(true);
+
+      // Mock successful injection for both sites
+      mockInjector.batchInject
+        .mockResolvedValueOnce([
+          {
+            tabId: 1,
+            result: { success: true, injected: true },
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            tabId: 2,
+            result: { success: true, injected: true },
+          },
+        ]);
 
       await messageHandler.sendMessageToSitesRobust(payload);
 
@@ -243,15 +262,34 @@ describe('MessageHandler', () => {
         sites: ['chatgpt', 'claude'],
       };
 
-      // Mock partial failure in the injection process
-      mockBrowser.scripting.executeScript
-        .mockResolvedValueOnce([{ result: { success: true, injected: true } }])
-        .mockRejectedValueOnce(new Error('Claude injection failed'));
+      // Mock launchAllTabs to return tabs
+      mockTabManager.launchAllTabs.mockResolvedValue([
+        { site: mockSites.chatgpt, tabId: 1 },
+        { site: mockSites.claude, tabId: 2 },
+      ]);
 
-      // Should not throw for partial failure
+      // Mock waitForTabReady to succeed
+      mockTabManager.waitForTabReady.mockResolvedValue(true);
+
+      // Mock partial failure - one succeeds, one fails
+      mockInjector.batchInject
+        .mockResolvedValueOnce([
+          {
+            tabId: 1,
+            result: { success: true, injected: true },
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            tabId: 2,
+            result: { success: false, error: 'Claude injection failed' },
+          },
+        ]);
+
+      // Should throw for partial failure (current implementation behavior)
       await expect(
         messageHandler.sendMessageToSitesRobust(payload),
-      ).resolves.toBeUndefined();
+      ).rejects.toThrow('Failed to send message to Claude');
     });
 
     it('should throw when all sites fail', async () => {
@@ -262,25 +300,31 @@ describe('MessageHandler', () => {
 
       // Mock launchAllTabs to return tabs
       mockTabManager.launchAllTabs.mockResolvedValue([
-        { site: { id: 'chatgpt' } as SiteConfig, tabId: 1 },
-        { site: { id: 'claude' } as SiteConfig, tabId: 2 },
+        { site: mockSites.chatgpt, tabId: 1 },
+        { site: mockSites.claude, tabId: 2 },
       ]);
 
-      // Mock all injections failing
-      mockInjector.batchInject.mockResolvedValue([
-        {
-          tabId: 1,
-          result: { success: false, error: 'ChatGPT failed' },
-        },
-        {
-          tabId: 2,
-          result: { success: false, error: 'Claude failed' },
-        },
-      ]);
+      // Mock waitForTabReady to succeed
+      mockTabManager.waitForTabReady.mockResolvedValue(true);
+
+      // Mock all injections failing - each tab is processed independently
+      mockInjector.batchInject
+        .mockResolvedValueOnce([
+          {
+            tabId: 1,
+            result: { success: false, error: 'ChatGPT failed' },
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            tabId: 2,
+            result: { success: false, error: 'Claude failed' },
+          },
+        ]);
 
       await expect(
         messageHandler.sendMessageToSitesRobust(payload),
-      ).rejects.toThrow('Failed to deliver message');
+      ).rejects.toThrow('Failed to send message to ChatGPT, Claude');
     });
 
     it('should filter out disabled sites', async () => {
@@ -319,7 +363,7 @@ describe('MessageHandler', () => {
 
       await expect(
         messageHandler.sendMessageToSitesRobust(payload),
-      ).rejects.toThrow('Failed to deliver message');
+      ).rejects.toThrow('No enabled sites to send message to');
     });
   });
 });
