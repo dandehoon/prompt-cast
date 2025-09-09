@@ -62,30 +62,18 @@
     width: 1.75rem;
     height: 1.75rem;
     padding: 0.25rem;
-    border: 1px solid var(--pc-border, #d1d5db);
     border-radius: 0.5rem;
-    background: var(--pc-surface, #ffffff);
     color: var(--pc-text, #6b7280);
     cursor: pointer;
-    transition: all 0.15s ease-in-out;
     opacity: 0.6;
   }
 
   .theme-btn:hover {
-    background: var(--pc-surface-hover, #f9fafb);
-    border-color: var(--pc-border-hover, #9ca3af);
+    background: var(--pc-bg-hover, #f9fafb);
     opacity: 0.8;
   }
 
-  .theme-btn:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-  }
-
   .theme-btn.active {
-    background: var(--pc-bg-hover);
-    border-color: var(--pc-border-hover);
     color: var(--pc-text-primary);
     opacity: 1;
   }
@@ -96,18 +84,10 @@
 
   /* Dark theme support */
   :global(.dark) .theme-btn {
-    background: var(--pc-surface, #333);
     color: var(--pc-text, #9ca3af);
-    border-color: var(--pc-border, #4b5563);
-  }
-
-  :global(.dark) .theme-btn:hover {
-    background: var(--pc-surface-hover, #4b5563);
-    border-color: var(--pc-border-hover, #6b7280);
   }
 
   :global(.dark) .theme-btn.active {
-    background: var(--pc-bg-hover);
     border-color: var(--pc-border-hover);
     color: var(--pc-text-primary);
   }

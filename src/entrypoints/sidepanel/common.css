@@ -216,16 +216,3 @@
 .pc-status-disconnected {
   background-color: var(--pc-text-disabled);
 }
-
-/* Transitions */
-.pc-transition {
-  transition: all 0.2s ease;
-}
-
-.pc-transition-fast {
-  transition: all 0.15s ease;
-}
-
-.pc-transition-slow {
-  transition: all 0.3s ease;
-}

@@ -42,7 +42,7 @@
 </script>
 
 <div
-  class="pc-card p-3 h-14 pc-transition-fast"
+  class="pc-card p-3 h-14"
   class:cursor-pointer={site.enabled}
   class:active-tab={isActiveTab}
   class:site-disabled={!site.enabled}
@@ -115,7 +115,6 @@
     color: var(--pc-text-secondary);
     cursor: grab;
     opacity: 0.6;
-    transition: opacity 0.15s ease;
     pointer-events: auto;
   }
 
@@ -144,5 +143,6 @@
 
   .pc-card.active-tab {
     background-color: var(--pc-bg-active);
+    border-color: var(--pc-text-disabled);
   }
 </style>

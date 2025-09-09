@@ -98,7 +98,7 @@
     id="send-message-button"
     onclick={handleButtonClick}
     disabled={buttonDisabled}
-    class="w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
+    class="w-full px-4 py-2 rounded-lg text-sm font-medium disabled:cursor-not-allowed"
     class:cursor-pointer={!buttonDisabled}
     style:background-color={buttonDisabled
       ? 'var(--pc-text-disabled)'
