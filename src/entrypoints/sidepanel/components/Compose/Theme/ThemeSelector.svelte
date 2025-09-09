@@ -63,7 +63,7 @@
     height: 1.75rem;
     padding: 0.25rem;
     border-radius: 0.5rem;
-    color: var(--pc-text);
+    color: var(--pc-text-muted);
     border: 1px solid transparent;
     cursor: pointer;
     opacity: 0.6;
@@ -76,7 +76,7 @@
   }
 
   .theme-btn.active {
-    color: var(--pc-text-primary);
+    color: var(--pc-text-secondary);
     opacity: 1;
   }
 

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Update button styles for better visibility
+
 ## [3.2.1] - 2025-09-09
 
 ### Fixed
