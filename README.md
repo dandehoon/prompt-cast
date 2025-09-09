@@ -14,17 +14,19 @@ Useful Chrome extension for broadcasting prompts to multiple AI chat sites at on
 - **Keyboard Shortcuts**: Alt+P opens side panel, Alt+Shift+P closes all tabs
 - **Themes**: Light/dark/auto with comprehensive CSS variable system
 
-## Quick Start
+## Installation
 
-```bash
-git clone https://github.com/dandehoon/prompt-cast
-cd prompt-cast
-pnpm install && pnpm build
-```
+### Store
 
-Load in Chrome: `chrome://extensions/` → "Load unpacked" → select the `dist` folder
+- **[Install from Chrome Web Store](https://chromewebstore.google.com/detail/prompt-cast/gmcamplpmgncjmhjlpoenpdlkobgdhfp)**
 
-The extension will appear in your toolbar with the Prompt Cast icon. Click to open the side panel interface.
+### Locally
+
+1. Download the zip file from the [Releases page](https://github.com/dandehoon/prompt-cast/releases)
+2. Extract the zip file to a folder
+3. Open Chrome and navigate to `chrome://extensions/`
+4. Enable "Developer mode" in the top right corner
+5. Click "Load unpacked" and select the extracted folder
 
 ## Usage
 
@@ -48,7 +50,7 @@ The extension will appear in your toolbar with the Prompt Cast icon. Click to op
 | DeepSeek   | `chat.deepseek.com`     | ✅     |
 | Qwen       | `chat.qwen.ai`          | ✅     |
 
-## Development
+## Contribution
 
 ### Tech Stack
 
@@ -70,6 +72,18 @@ src/
 ├── background/          # Background script modules
 └── types/               # TypeScript definitions
 ```
+
+### Quick start
+
+```bash
+git clone https://github.com/dandehoon/prompt-cast
+cd prompt-cast
+pnpm install && pnpm build
+```
+
+Load in Chrome: `chrome://extensions/` → "Load unpacked" → select the `dist` folder
+
+The extension will appear in your toolbar with the Prompt Cast icon. Click to open the side panel interface.
 
 ### Commands
 

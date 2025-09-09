@@ -89,31 +89,13 @@ jobs:
         target_commitish: ${{ github.sha }}
         name: v${{ steps.extract-version.outputs.version }}
         body: |
-          ## 🚀 Release v${{ steps.extract-version.outputs.version }}
-
           ### 📋 Changelog
 
           ${{ steps.changelog.outputs.changes }}
 
-          ### � Pull Requests
+          ### 📜 Pull Requests
 
           ${{ steps.pr_log.outputs.commits }}
-
-          ### 📦 Installation
-
-          #### Chrome Web Store
-          - **[Install from Chrome Web Store](https://chromewebstore.google.com/detail/prompt-cast/gmcamplpmgncjmhjlpoenpdlkobgdhfp)**
-
-          #### Locally
-          1. Download the zip file from the assets below
-          2. Extract the zip file to a folder
-          3. Open Chrome and navigate to `chrome://extensions/`
-          4. Enable "Developer mode" in the top right corner
-          5. Click "Load unpacked" and select the extracted folder
-
-          ## 🔗 Links
-          - [Full Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
-          - [Documentation](https://github.com/${{ github.repository }}/blob/main/README.md)
         files: |
           .output/*.zip
         draft: false
