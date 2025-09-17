@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Chore update button and card styles
+- Remove cancel functionality for simplicity
+
 ## [3.2.2] - 2025-09-09
 
 ### Fixed

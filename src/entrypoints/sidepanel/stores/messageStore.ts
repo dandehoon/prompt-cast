@@ -209,15 +209,6 @@ function createMessageStore() {
         return;
       }
 
-      // Check if already sending
-      if (currentState.sendLoading) {
-        toastActions.showToast(
-          'Message already being sent, please wait',
-          'info',
-        );
-        return;
-      }
-
       // Store the message to send
       const messageToSend = trimmedMessage;
 

@@ -276,16 +276,4 @@ describe('MessageStore Logic', () => {
       expect(loadedHistory).toEqual([]);
     });
   });
-
-  describe('Cancel Message Logic', () => {
-    it('should reset sendLoading state when cancelling', () => {
-      // Test the logic for cancelling a send operation
-      let sendLoading = true;
-
-      // Simulate cancel action
-      sendLoading = false;
-
-      expect(sendLoading).toBe(false);
-    });
-  });
 });

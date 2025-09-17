@@ -28,23 +28,17 @@
   const hasMessage = $derived(messageState.current.trim().length > 0);
 
   // Button disabled when no message AND not sending
-  const buttonDisabled = $derived(!hasMessage && !messageState.sendLoading);
-  const buttonText = $derived(messageState.sendLoading ? 'Cancel' : 'Send');
+  const buttonDisabled = $derived(!hasMessage);
 
-  // Button click handler - send or cancel based on state
+  // Button click handler - send based on state
   const handleButtonClick = () => {
-    if (messageState.sendLoading) {
-      messageActions.cancelSendMessage();
-    } else {
-      messageActions.sendMessage();
-    }
+    messageActions.sendMessage();
   };
 
   // Local ref for message input - handle it here since parent doesn't care
   let messageInputRef = $state<HTMLTextAreaElement>();
 
   // Auto-focus management - disabled during sending to prevent conflicts
-  const autoFocusEnabled = $derived(!messageState.sendLoading);
   let autoFocusHandler: ReturnType<typeof createAutoFocusHandler> | undefined;
 
   // Update the input ref in the store when it changes
@@ -67,7 +61,7 @@
     // Setup auto-focus handler for clicks
     autoFocusHandler = createAutoFocusHandler(
       () => messageInputRef,
-      () => autoFocusEnabled,
+      () => true,
     );
     autoFocusHandler.attach();
 
@@ -105,10 +99,9 @@
     class="w-full px-4 py-2 rounded-lg text-sm font-medium disabled:cursor-not-allowed"
     class:cursor-pointer={!buttonDisabled}
     class:btn-disabled={buttonDisabled}
-    class:btn-cancel={messageState.sendLoading}
     class:btn-normal={!messageState.sendLoading && !buttonDisabled}
   >
-    {buttonText}
+    Send
   </button>
 
   <div class="flex items-center justify-center">
@@ -126,14 +119,6 @@
   .btn-disabled {
     background-color: var(--pc-text-disabled);
     color: var(--pc-text-inverted);
-  }
-  .btn-cancel {
-    background: var(--pc-text-muted);
-    border-color: var(--pc-text-inverted);
-    cursor: pointer;
-  }
-  .btn-cancel:hover {
-    opacity: 0.9;
   }
 
   .btn-normal {

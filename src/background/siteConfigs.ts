@@ -38,8 +38,8 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
     url: 'https://grok.com/',
     enabled: true,
     colors: {
-      light: '#5d5d5d',
-      dark: '#7d7d7d',
+      light: '#d55b5bff',
+      dark: '#d55b5bff',
     },
     inputSelectors: ['textarea[dir="auto"]'],
     submitSelectors: ['form.text-base button[aria-label="Submit"]'],
