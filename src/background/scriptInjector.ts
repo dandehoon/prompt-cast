@@ -45,7 +45,7 @@ export class ExecuteScriptInjector {
     injection: BatchInjectionConfig,
   ): Promise<BatchInjectionResult> {
     let lastError: Error | null = null;
-    const maxRetries = 5;
+    const maxRetries = 15;
     const checkInterval = 1000; // Check every 1000ms
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
