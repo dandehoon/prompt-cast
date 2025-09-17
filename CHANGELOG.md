@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.2.3] - 2025-09-17
+
 ### Fixed
 
 - Chore update button and card styles
