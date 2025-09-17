@@ -79,7 +79,7 @@
         >{site.name}</span
       >
       <div
-        class="w-2 h-2 rounded-full flex-shrink-0 self-center"
+        class="w-2 h-2 rounded-full flex-shrink-0 self-center pc-status"
         class:pc-status-connected={site.status === SITE_STATUS.CONNECTED}
         class:pc-status-loading={site.status === SITE_STATUS.LOADING}
         class:pc-status-error={site.status === SITE_STATUS.ERROR}
@@ -98,7 +98,7 @@
       <label
         id="site-toggle-{site.id}"
         for="site-checkbox-{site.id}"
-        class="cursor-pointer block w-11 h-6 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:rounded-full after:h-5 after:w-5 after:transition-all"
+        class="cursor-pointer block w-11 h-6 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:rounded-full after:h-5 after:w-5 after:transition-all pc-checkbox"
         style="background-color: {site.enabled
           ? 'var(--pc-success)'
           : 'var(--pc-border)'};"
@@ -141,8 +141,21 @@
     background-color: var(--pc-text-inverted);
   }
 
-  .pc-card.site-disabled {
+  .site-disabled {
     opacity: 0.3;
+  }
+
+  .site-disabled .pc-checkbox {
+    opacity: 0.8;
+  }
+
+  .site-disabled .site-logo {
+    filter: grayscale(1);
+    opacity: 0.3;
+  }
+
+  .site-disabled .pc-status {
+    opacity: 0.5;
   }
 
   .pc-card.active-tab {
