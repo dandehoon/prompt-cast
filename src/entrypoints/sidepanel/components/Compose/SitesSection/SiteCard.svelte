@@ -3,7 +3,6 @@
   import type { EnhancedSite } from '@/types';
   import { tabOperationsActions } from '../../../stores/tabOperationsStore';
   import { siteActions } from '../../../stores/siteStore';
-  import { toastActions } from '../../../stores/toastStore';
   import { activeTabStore } from '../../../stores/activeTabStore';
 
   interface Props {
@@ -34,10 +33,6 @@
   async function handleToggle(event: Event) {
     const target = event.target as HTMLInputElement;
     await siteActions.toggleSite(site.id, target.checked);
-    toastActions.showToast(
-      `${target.checked ? 'Enabled' : 'Disabled'} ${site.name}`,
-      'info',
-    );
   }
 </script>
 
