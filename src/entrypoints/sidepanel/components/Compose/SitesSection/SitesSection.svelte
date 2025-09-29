@@ -10,6 +10,8 @@
     themeActions,
   } from '../../../stores/themeStore';
 
+  let isTogglingAll = $state(false);
+
   // Get ordered sites from store
   const sites = $derived.by(() => {
     const orderedSitesFn = $orderedSites as (
@@ -32,6 +34,26 @@
 
   function handleThemeChange(selectedTheme: 'auto' | 'light' | 'dark') {
     themeActions.setTheme(selectedTheme);
+  }
+
+  async function handleEnableAll() {
+    if (isTogglingAll) return;
+    isTogglingAll = true;
+    try {
+      await siteActions.enableAllSites();
+    } finally {
+      isTogglingAll = false;
+    }
+  }
+
+  async function handleDisableAll() {
+    if (isTogglingAll) return;
+    isTogglingAll = true;
+    try {
+      await siteActions.disableAllSites();
+    } finally {
+      isTogglingAll = false;
+    }
   }
 
   // Utility function for resetting drag state
@@ -126,11 +148,51 @@
     <h2 class="text-sm font-medium" style="color: var(--pc-text-primary);">
       Sites
     </h2>
-    <ThemeSelector
-      currentTheme={$theme}
-      {themeOptions}
-      onThemeChange={handleThemeChange}
-    />
+    <div class="header-actions">
+      <button
+        class="toggle-btn"
+        onclick={handleDisableAll}
+        disabled={isTogglingAll}
+        title="Turn off all sites"
+        aria-label="Turn off all sites"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <rect x="5" y="5" width="14" height="14" rx="2" stroke-width="2" />
+        </svg>
+      </button>
+      <button
+        class="toggle-btn"
+        onclick={handleEnableAll}
+        disabled={isTogglingAll}
+        title="Turn on all sites"
+        aria-label="Turn on all sites"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <rect x="5" y="5" width="14" height="14" rx="2" stroke-width="2" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4"
+          />
+        </svg>
+      </button>
+      <ThemeSelector
+        currentTheme={$theme}
+        {themeOptions}
+        onThemeChange={handleThemeChange}
+      />
+    </div>
   </header>
   <div class="sites-scrollable">
     <div
@@ -178,6 +240,52 @@
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    color: var(--pc-text-secondary);
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+
+  .toggle-btn:hover:not(:disabled) {
+    background: var(--pc-bg-hover);
+    border-color: var(--pc-border);
+    opacity: 0.8;
+  }
+
+  .toggle-btn:active:not(:disabled) {
+    transform: scale(0.9);
+  }
+
+  .toggle-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .toggle-btn:disabled:hover {
+    background: transparent;
+    border-color: transparent;
+    opacity: 0.3;
+  }
+
+  .toggle-btn:disabled:active {
+    transform: none;
   }
 
   .sites-scrollable {

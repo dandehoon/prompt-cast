@@ -125,14 +125,14 @@
     opacity: 0.6;
   }
 
-  .action-btn:hover {
+  .action-btn:hover:not(:disabled) {
     background: var(--pc-bg-hover);
     border-color: var(--pc-border);
     opacity: 0.8;
   }
 
   .action-btn:active:not(:disabled) {
-    transform: scale(0.9) !important;
+    transform: scale(0.9);
     background: var(--pc-bg-active);
     border-color: var(--pc-border-hover);
   }
@@ -140,15 +140,5 @@
   .action-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
-  }
-
-  .action-btn:disabled:hover {
-    background: transparent;
-    border-color: transparent;
-    opacity: 0.3;
-  }
-
-  .action-btn:disabled:active {
-    transform: none;
   }
 </style>

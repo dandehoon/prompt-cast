@@ -306,6 +306,60 @@ export const siteActions = {
     }
   },
 
+  enableAllSites: async () => {
+    const configs = get(siteConfigs);
+    const allSiteIds = Object.keys(configs);
+
+    // Update all sites to enabled
+    const newStates = allSiteIds.reduce(
+      (acc, siteId) => {
+        acc[siteId] = { enabled: true };
+        return acc;
+      },
+      {} as Record<string, { enabled: boolean }>,
+    );
+
+    siteStates.set(newStates);
+
+    // Send toggle message for each site
+    try {
+      await Promise.all(
+        allSiteIds.map((siteId) =>
+          sendMessage('SITE_TOGGLE', { siteId, enabled: true }),
+        ),
+      );
+    } catch (error) {
+      logger.error('Failed to enable all sites:', error);
+    }
+  },
+
+  disableAllSites: async () => {
+    const configs = get(siteConfigs);
+    const allSiteIds = Object.keys(configs);
+
+    // Update all sites to disabled
+    const newStates = allSiteIds.reduce(
+      (acc, siteId) => {
+        acc[siteId] = { enabled: false };
+        return acc;
+      },
+      {} as Record<string, { enabled: boolean }>,
+    );
+
+    siteStates.set(newStates);
+
+    // Send toggle message for each site
+    try {
+      await Promise.all(
+        allSiteIds.map((siteId) =>
+          sendMessage('SITE_TOGGLE', { siteId, enabled: false }),
+        ),
+      );
+    } catch (error) {
+      logger.error('Failed to disable all sites:', error);
+    }
+  },
+
   initializeSites,
 };
 
