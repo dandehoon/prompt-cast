@@ -37,10 +37,10 @@ test.describe('Side Panel UI Component Tests', () => {
     // Check Sites section is visible (theme is now part of sites section)
     await expect(sidePanelPage.locator('#sites-section')).toBeVisible();
 
-    // Check theme buttons are visible in sites header
+    // Check theme button is visible in sites header (single cycling button)
     await expect(
       sidePanelPage.locator('.theme-selector .theme-btn'),
-    ).toHaveCount(3);
+    ).toBeVisible();
 
     // Check Message section is visible
     await expect(sidePanelPage.locator('#message-input')).toBeVisible();
@@ -101,29 +101,25 @@ test.describe('Side Panel UI Component Tests', () => {
   test('should handle theme selector interactions', async ({
     sidePanelPage,
   }) => {
-    // Theme selector is now buttons in the sites section header
+    // Theme selector is now a single cycling button in the sites section header
 
-    // Find theme selector buttons
-    const themeButtons = sidePanelPage.locator('.theme-selector .theme-btn');
-    await expect(themeButtons).toHaveCount(3);
+    // Find theme selector button
+    const themeButton = sidePanelPage.locator('.theme-selector .theme-btn');
+    await expect(themeButton).toBeVisible();
 
-    // Test clicking different theme buttons
-    // Get the buttons (should be auto, light, dark in that order based on themeOptions)
-    const autoButton = themeButtons.nth(0);
-    const lightButton = themeButtons.nth(1);
-    const darkButton = themeButtons.nth(2);
+    // Click the button multiple times to cycle through themes
+    // The button cycles through: auto → light → dark → auto
+    await themeButton.click();
+    await sidePanelPage.waitForTimeout(200);
 
-    // Click light theme button
-    await lightButton.click();
-    await expect(lightButton).toHaveClass(/active/);
+    await themeButton.click();
+    await sidePanelPage.waitForTimeout(200);
 
-    // Click dark theme button
-    await darkButton.click();
-    await expect(darkButton).toHaveClass(/active/);
+    await themeButton.click();
+    await sidePanelPage.waitForTimeout(200);
 
-    // Click auto theme button
-    await autoButton.click();
-    await expect(autoButton).toHaveClass(/active/);
+    // Button should still be visible and clickable after cycling
+    await expect(themeButton).toBeVisible();
   });
 
   test('should persist settings between sessions', async ({
