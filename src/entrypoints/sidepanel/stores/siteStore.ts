@@ -3,7 +3,7 @@ import type { SiteConfig, EnhancedSite } from '@/types';
 import type { SiteStatusType } from '@/shared';
 import { SITE_STATUS } from '@/shared';
 import { sendMessage } from '@/shared';
-import { logger } from '@/shared';
+import { logger, sleep } from '@/shared';
 import { tabStateStore } from './tabStateStore';
 
 // Internal stores
@@ -39,25 +39,42 @@ const siteStatuses = derived(
   },
 );
 
-// Fetch configurations from background script
+// Retry delay for background service worker initialization
+const FETCH_RETRY_DELAY_MS = 200;
+
+// Fetch configurations from background script with retry on failure
 const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
   try {
     const response = await sendMessage('GET_SITE_CONFIGS');
     return response.data.configs;
   } catch (error) {
-    logger.error('Failed to fetch site configs from background:', error);
-    return {};
+    logger.error('Failed to fetch site configs, will retry:', error);
+    await sleep(FETCH_RETRY_DELAY_MS);
+    try {
+      const response = await sendMessage('GET_SITE_CONFIGS');
+      return response.data.configs;
+    } catch (retryError) {
+      logger.error('Retry failed for site configs:', retryError);
+      return {};
+    }
   }
 };
 
-// Fetch site order from background script
+// Fetch site order from background script with retry on failure
 const fetchSiteOrder = async (): Promise<string[]> => {
   try {
     const response = await sendMessage('GET_SITE_ORDER');
     return response.order;
   } catch (error) {
-    logger.error('Failed to fetch site order from background:', error);
-    return [];
+    logger.error('Failed to fetch site order, will retry:', error);
+    await sleep(FETCH_RETRY_DELAY_MS);
+    try {
+      const response = await sendMessage('GET_SITE_ORDER');
+      return response.order;
+    } catch (retryError) {
+      logger.error('Retry failed for site order:', retryError);
+      return [];
+    }
   }
 };
 
@@ -127,8 +144,6 @@ const createEnhancedSite = (
 // Initialize site states from configs
 const initializeSites = async () => {
   try {
-    isLoading.set(true);
-
     const [configs, order] = await Promise.all([
       fetchSiteConfigs(),
       fetchSiteOrder(),
@@ -288,6 +303,60 @@ export const siteActions = {
         ...current,
         [siteId]: { enabled: configs[siteId]?.enabled ?? false },
       }));
+    }
+  },
+
+  enableAllSites: async () => {
+    const configs = get(siteConfigs);
+    const allSiteIds = Object.keys(configs);
+
+    // Update all sites to enabled
+    const newStates = allSiteIds.reduce(
+      (acc, siteId) => {
+        acc[siteId] = { enabled: true };
+        return acc;
+      },
+      {} as Record<string, { enabled: boolean }>,
+    );
+
+    siteStates.set(newStates);
+
+    // Send toggle message for each site
+    try {
+      await Promise.all(
+        allSiteIds.map((siteId) =>
+          sendMessage('SITE_TOGGLE', { siteId, enabled: true }),
+        ),
+      );
+    } catch (error) {
+      logger.error('Failed to enable all sites:', error);
+    }
+  },
+
+  disableAllSites: async () => {
+    const configs = get(siteConfigs);
+    const allSiteIds = Object.keys(configs);
+
+    // Update all sites to disabled
+    const newStates = allSiteIds.reduce(
+      (acc, siteId) => {
+        acc[siteId] = { enabled: false };
+        return acc;
+      },
+      {} as Record<string, { enabled: boolean }>,
+    );
+
+    siteStates.set(newStates);
+
+    // Send toggle message for each site
+    try {
+      await Promise.all(
+        allSiteIds.map((siteId) =>
+          sendMessage('SITE_TOGGLE', { siteId, enabled: false }),
+        ),
+      );
+    } catch (error) {
+      logger.error('Failed to disable all sites:', error);
     }
   },
 

@@ -126,11 +126,9 @@ export class TestUtils {
     const sendButton = page.locator('#send-message-button');
     await expect(sendButton).toBeVisible();
 
-    // Theme buttons (now in sites section header)
-    const themeButtons = page.locator('.theme-selector .theme-btn');
-    await expect(themeButtons.first()).toBeVisible();
-    const buttonCount = await themeButtons.count();
-    expect(buttonCount).toBe(3); // auto, light, dark
+    // Theme button (now a single cycling button in sites section header)
+    const themeButton = page.locator('.theme-selector .theme-btn');
+    await expect(themeButton).toBeVisible();
 
     // Site toggles (now inline)
     const siteToggles = page.locator('label[id^="site-toggle-"]');

@@ -41,7 +41,10 @@ const SITE_CONFIGS: Record<string, SiteConfig> = {
       light: '#d55b5bff',
       dark: '#d55b5bff',
     },
-    inputSelectors: ['textarea[dir="auto"]'],
+    inputSelectors: [
+      'textarea[dir="auto"]',
+      '[dir="ltr"] div[contenteditable]',
+    ],
     submitSelectors: ['form.text-base button[aria-label="Submit"]'],
     stopSelectors: ['form.text-base button[aria-label="Stop model response"]'],
     chatUriPatterns: ['/', '/chat/*', '/c/*'],

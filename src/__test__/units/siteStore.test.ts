@@ -255,8 +255,13 @@ describe('siteStore', () => {
 
       await siteActions.initializeSites();
 
+      // Should log initial failure and retry failure for both configs and order
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to fetch site configs from background:',
+        'Failed to fetch site configs, will retry:',
+        expect.any(Error),
+      );
+      expect(logger.error).toHaveBeenCalledWith(
+        'Retry failed for site configs:',
         expect.any(Error),
       );
     });
@@ -293,8 +298,13 @@ describe('siteStore', () => {
 
       await siteActions.initializeSites();
 
+      // Should log initial failure and retry failure for both configs and order
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to fetch site configs from background:',
+        'Failed to fetch site configs, will retry:',
+        expect.any(Error),
+      );
+      expect(logger.error).toHaveBeenCalledWith(
+        'Retry failed for site configs:',
         expect.any(Error),
       );
     });

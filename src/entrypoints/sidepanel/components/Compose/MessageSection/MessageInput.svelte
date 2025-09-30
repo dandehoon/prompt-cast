@@ -123,7 +123,7 @@
 
 <style>
   #message-input {
-    font-size: 1.05em;
+    font-size: 1.1em;
   }
 
   #message-input:focus {
