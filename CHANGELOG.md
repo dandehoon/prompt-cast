@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [3.3.0] - 2025-09-30
+
+### Added
+
+- **Improved site toggle and theme controls**: Enhanced UX with streamlined site management interface
+
+### Fixed
+
+- Resolve race condition in site config fetching for better reliability
+- Remove redundant toast notifications on site toggle for cleaner UX
+
 ## [3.2.3] - 2025-09-17
 
 ### Fixed
