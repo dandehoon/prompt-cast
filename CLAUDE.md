@@ -35,6 +35,10 @@ pnpm lint                 # ESLint with auto-fix
 # 2. Open Chrome → chrome://extensions/
 # 3. Enable "Developer mode"
 # 4. Click "Load unpacked" → select the dist/ folder
+
+# Keyboard Shortcuts (configured in wxt.config.ts)
+Alt+P          # Open side panel
+Alt+Shift+P    # Close all AI site tabs
 ```
 
 ## Architecture Overview
@@ -145,6 +149,16 @@ tests/
 ```
 
 ## Development Guidelines
+
+### Styling and UI Work
+
+- **Design System**: Reference `STYLE.md` for comprehensive design system documentation
+  - CSS custom properties (`--pc-*` variables) for theming
+  - Utility classes (`.pc-*`) for reusable patterns
+  - Light/dark mode theming with automatic switching
+  - Color palette, typography, spacing, and component patterns
+- **Framework**: Svelte 5 components with Tailwind CSS for layout/spacing
+- **Theme Management**: `src/entrypoints/sidepanel/stores/themeStore.ts`
 
 ### Adding a New AI Site
 
