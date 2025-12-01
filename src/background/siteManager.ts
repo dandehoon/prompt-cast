@@ -152,7 +152,14 @@ export class SiteManager {
 
   private async loadUserPreferences(): Promise<void> {
     try {
-      const result = await browser.storage.sync.get(['userPreferences']);
+      // Add timeout to storage call to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Storage timeout')), 2000),
+      );
+      const result = await Promise.race([
+        browser.storage.sync.get(['userPreferences']),
+        timeoutPromise,
+      ]);
       if (result.userPreferences) {
         const prefs: UserPreferences = result.userPreferences;
 

@@ -42,40 +42,79 @@ const siteStatuses = derived(
 // Retry delay for background service worker initialization
 const FETCH_RETRY_DELAY_MS = 200;
 
-// Fetch configurations from background script with retry on failure
-const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
-  try {
-    const response = await sendMessage('GET_SITE_CONFIGS');
-    return response.data.configs;
-  } catch (error) {
-    logger.error('Failed to fetch site configs, will retry:', error);
-    await sleep(FETCH_RETRY_DELAY_MS);
-    try {
-      const response = await sendMessage('GET_SITE_CONFIGS');
-      return response.data.configs;
-    } catch (retryError) {
-      logger.error('Retry failed for site configs:', retryError);
-      return {};
-    }
-  }
+// Helper for sending messages with timeout
+const sendMessageWithTimeout = async <T>(
+  message: keyof import('@/shared/messaging').ExtensionProtocolMap,
+  data?: any,
+  timeoutMs: number = 5000,
+): Promise<T> => {
+  return Promise.race([
+    data ? sendMessage(message as any, data) : sendMessage(message as any),
+    new Promise<T>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`Timeout waiting for ${message}`)),
+        timeoutMs,
+      ),
+    ),
+  ]) as Promise<T>;
 };
 
-// Fetch site order from background script with retry on failure
-const fetchSiteOrder = async (): Promise<string[]> => {
-  try {
-    const response = await sendMessage('GET_SITE_ORDER');
-    return response.order;
-  } catch (error) {
-    logger.error('Failed to fetch site order, will retry:', error);
-    await sleep(FETCH_RETRY_DELAY_MS);
+// Fetch configurations from background script with robust retry logic
+const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
+  let retries = 5;
+  let delay = 200;
+
+  while (retries > 0) {
     try {
-      const response = await sendMessage('GET_SITE_ORDER');
-      return response.order;
-    } catch (retryError) {
-      logger.error('Retry failed for site order:', retryError);
-      return [];
+      const response = await sendMessageWithTimeout<{
+        data: { configs: Record<string, SiteConfig> };
+      }>('GET_SITE_CONFIGS', undefined, 2000);
+      return response.data.configs;
+    } catch (error) {
+      logger.warn(
+        `Failed to fetch site configs (attempts left: ${retries}):`,
+        error,
+      );
+      retries--;
+      if (retries === 0) {
+        logger.error('All retries failed for site configs');
+        return {};
+      }
+      await sleep(delay);
+      delay = Math.min(delay * 1.5, 2000); // Exponential backoff capped at 2s
     }
   }
+  return {};
+};
+
+// Fetch site order from background script with robust retry logic
+const fetchSiteOrder = async (): Promise<string[]> => {
+  let retries = 5;
+  let delay = 200;
+
+  while (retries > 0) {
+    try {
+      const response = await sendMessageWithTimeout<{ order: string[] }>(
+        'GET_SITE_ORDER',
+        undefined,
+        2000,
+      );
+      return response.order;
+    } catch (error) {
+      logger.warn(
+        `Failed to fetch site order (attempts left: ${retries}):`,
+        error,
+      );
+      retries--;
+      if (retries === 0) {
+        logger.error('All retries failed for site order');
+        return [];
+      }
+      await sleep(delay);
+      delay = Math.min(delay * 1.5, 2000); // Exponential backoff capped at 2s
+    }
+  }
+  return [];
 };
 
 // Initialize site states from configs
@@ -126,10 +165,10 @@ const createEnhancedSite = (
     isActiveTab: boolean;
     tabId?: number;
   } = {
-    hasTab: false,
-    isTabReady: false,
-    isActiveTab: false,
-  },
+      hasTab: false,
+      isTabReady: false,
+      isActiveTab: false,
+    },
 ): EnhancedSite => ({
   ...config,
   status,
