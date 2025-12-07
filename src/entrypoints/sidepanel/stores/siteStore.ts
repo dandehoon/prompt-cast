@@ -40,7 +40,7 @@ const siteStatuses = derived(
 );
 
 // Retry configuration
-const MAX_RETRIES = 5;
+const MAX_RETRIES = 10;
 const BASE_RETRY_DELAY_MS = 500;
 
 // Generic retry helper with exponential backoff
@@ -69,6 +69,8 @@ async function retryOperation<T>(
   throw lastError;
 }
 
+import { getAllSiteConfigs } from '@/background/siteConfigs';
+
 // Fetch configurations from background script with robust retry
 const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
   try {
@@ -77,8 +79,11 @@ const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
       return response.data.configs;
     }, 'fetchSiteConfigs');
   } catch (error) {
-    logger.error('Failed to fetch site configs after all retries:', error);
-    return {};
+    logger.error(
+      'Failed to fetch site configs after all retries. Using local fallback:',
+      error,
+    );
+    return getAllSiteConfigs();
   }
 };
 
@@ -90,8 +95,12 @@ const fetchSiteOrder = async (): Promise<string[]> => {
       return response.order;
     }, 'fetchSiteOrder');
   } catch (error) {
-    logger.error('Failed to fetch site order after all retries:', error);
-    return [];
+    logger.error(
+      'Failed to fetch site order after all retries. Using default order:',
+      error,
+    );
+    // Fallback to default order from local configs
+    return Object.keys(getAllSiteConfigs());
   }
 };
 
