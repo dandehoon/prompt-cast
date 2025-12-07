@@ -39,42 +39,68 @@ const siteStatuses = derived(
   },
 );
 
-// Retry delay for background service worker initialization
-const FETCH_RETRY_DELAY_MS = 200;
+// Retry configuration
+const MAX_RETRIES = 10;
+const BASE_RETRY_DELAY_MS = 500;
 
-// Fetch configurations from background script with retry on failure
+// Generic retry helper with exponential backoff
+async function retryOperation<T>(
+  operation: () => Promise<T>,
+  operationName: string,
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      logger.warn(
+        `Attempt ${attempt}/${MAX_RETRIES} failed for ${operationName}:`,
+        error,
+      );
+      if (attempt < MAX_RETRIES) {
+        const delay = BASE_RETRY_DELAY_MS * Math.pow(1.5, attempt - 1);
+        await sleep(delay);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+import { getAllSiteConfigs } from '@/background/siteConfigs';
+
+// Fetch configurations from background script with robust retry
 const fetchSiteConfigs = async (): Promise<Record<string, SiteConfig>> => {
   try {
-    const response = await sendMessage('GET_SITE_CONFIGS');
-    return response.data.configs;
-  } catch (error) {
-    logger.error('Failed to fetch site configs, will retry:', error);
-    await sleep(FETCH_RETRY_DELAY_MS);
-    try {
+    return await retryOperation(async () => {
       const response = await sendMessage('GET_SITE_CONFIGS');
       return response.data.configs;
-    } catch (retryError) {
-      logger.error('Retry failed for site configs:', retryError);
-      return {};
-    }
+    }, 'fetchSiteConfigs');
+  } catch (error) {
+    logger.error(
+      'Failed to fetch site configs after all retries. Using local fallback:',
+      error,
+    );
+    return getAllSiteConfigs();
   }
 };
 
-// Fetch site order from background script with retry on failure
+// Fetch site order from background script with robust retry
 const fetchSiteOrder = async (): Promise<string[]> => {
   try {
-    const response = await sendMessage('GET_SITE_ORDER');
-    return response.order;
-  } catch (error) {
-    logger.error('Failed to fetch site order, will retry:', error);
-    await sleep(FETCH_RETRY_DELAY_MS);
-    try {
+    return await retryOperation(async () => {
       const response = await sendMessage('GET_SITE_ORDER');
       return response.order;
-    } catch (retryError) {
-      logger.error('Retry failed for site order:', retryError);
-      return [];
-    }
+    }, 'fetchSiteOrder');
+  } catch (error) {
+    logger.error(
+      'Failed to fetch site order after all retries. Using default order:',
+      error,
+    );
+    // Fallback to default order from local configs
+    return Object.keys(getAllSiteConfigs());
   }
 };
 
@@ -311,13 +337,10 @@ export const siteActions = {
     const allSiteIds = Object.keys(configs);
 
     // Update all sites to enabled
-    const newStates = allSiteIds.reduce(
-      (acc, siteId) => {
-        acc[siteId] = { enabled: true };
-        return acc;
-      },
-      {} as Record<string, { enabled: boolean }>,
-    );
+    const newStates = allSiteIds.reduce((acc, siteId) => {
+      acc[siteId] = { enabled: true };
+      return acc;
+    }, {} as Record<string, { enabled: boolean }>);
 
     siteStates.set(newStates);
 
@@ -338,13 +361,10 @@ export const siteActions = {
     const allSiteIds = Object.keys(configs);
 
     // Update all sites to disabled
-    const newStates = allSiteIds.reduce(
-      (acc, siteId) => {
-        acc[siteId] = { enabled: false };
-        return acc;
-      },
-      {} as Record<string, { enabled: boolean }>,
-    );
+    const newStates = allSiteIds.reduce((acc, siteId) => {
+      acc[siteId] = { enabled: false };
+      return acc;
+    }, {} as Record<string, { enabled: boolean }>);
 
     siteStates.set(newStates);
 

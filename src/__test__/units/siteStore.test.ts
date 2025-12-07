@@ -27,10 +27,31 @@ vi.mock('../../shared/logger', () => ({
 vi.mock('../../shared/constants', () => ({
   SITE_STATUS: {
     CONNECTED: 'connected',
-    DISCONNECTED: 'disconnected',
-    LOADING: 'loading',
     ERROR: 'error',
   },
+}));
+
+vi.mock('../../shared/utils', () => ({
+  sleep: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../../background/siteConfigs', () => ({
+  getAllSiteConfigs: vi.fn().mockReturnValue({
+    chatgpt: {
+      id: 'chatgpt',
+      name: 'ChatGPT',
+      url: 'https://chat.openai.com',
+      enabled: true,
+      colors: { light: '#10a37f', dark: '#10a37f' },
+    },
+    claude: {
+      id: 'claude',
+      name: 'Claude',
+      url: 'https://claude.ai',
+      enabled: false,
+      colors: { light: '#cc785c', dark: '#cc785c' },
+    },
+  }),
 }));
 
 // Mock localStorage
@@ -255,13 +276,15 @@ describe('siteStore', () => {
 
       await siteActions.initializeSites();
 
-      // Should log initial failure and retry failure for both configs and order
-      expect(logger.error).toHaveBeenCalledWith(
-        'Failed to fetch site configs, will retry:',
+      // Should log warnings for retries
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Attempt'),
         expect.any(Error),
       );
+
+      // Should log final error with fallback message
       expect(logger.error).toHaveBeenCalledWith(
-        'Retry failed for site configs:',
+        'Failed to fetch site configs after all retries. Using local fallback:',
         expect.any(Error),
       );
     });
@@ -292,31 +315,40 @@ describe('siteStore', () => {
   });
 
   describe('Error handling and edge cases', () => {
-    it('should handle background config fetch failure', async () => {
+    it('should handle background config fetch failure and use fallback', async () => {
       const { logger } = await import('../../shared/logger');
       mockSendMessage.mockRejectedValue(new Error('Background not available'));
 
       await siteActions.initializeSites();
 
-      // Should log initial failure and retry failure for both configs and order
-      expect(logger.error).toHaveBeenCalledWith(
-        'Failed to fetch site configs, will retry:',
+      // Should log warnings for retries
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Attempt'),
         expect.any(Error),
       );
+
+      // Should log final error with fallback message
       expect(logger.error).toHaveBeenCalledWith(
-        'Retry failed for site configs:',
+        'Failed to fetch site configs after all retries. Using local fallback:',
         expect.any(Error),
       );
     });
 
-    it('should handle complete initialization failure', async () => {
+    it('should successfully initialize with fallback when communication fails', async () => {
       const { logger } = await import('../../shared/logger');
       mockSendMessage.mockRejectedValue(new Error('Complete failure'));
 
       await siteActions.initializeSites();
 
+      // Should NOT log 'Failed to initialize sites' because we handled it with fallback
+      expect(logger.error).not.toHaveBeenCalledWith(
+        'Failed to initialize sites:',
+        expect.any(Error),
+      );
+
+      // Should have logged the fallback messages
       expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to'),
+        'Failed to fetch site configs after all retries. Using local fallback:',
         expect.any(Error),
       );
     });

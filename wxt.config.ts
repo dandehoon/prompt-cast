@@ -9,6 +9,9 @@ export default defineConfig({
   vite: () => ({
     plugins: [tailwindcss()],
   }),
+  webExt: {
+    disabled: true,
+  },
   manifest: {
     name: 'Prompt Cast',
     description: '📢 Broadcast your prompts to multiple AI sites at once',
