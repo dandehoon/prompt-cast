@@ -15,7 +15,7 @@ export default defineConfig({
   manifest: {
     name: 'Prompt Cast',
     description: '📢 Broadcast your prompts to multiple AI sites at once',
-    version: '3.3.0',
+    version: '3.3.1',
     permissions: ['tabs', 'scripting', 'storage', 'sidePanel'],
     host_permissions: getHostPermissions(),
     action: {
