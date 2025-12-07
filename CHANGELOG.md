@@ -4,6 +4,10 @@
 
 ## [3.3.1] - 2025-12-07
 
+### Fixed
+
+- **Site Loading Reliability**: Fix blank screen on startup using retry strategies and local fallbacks.
+
 ## [3.3.0] - 2025-09-30
 
 ### Added
